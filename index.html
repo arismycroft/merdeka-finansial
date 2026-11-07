@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16203a">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Merdeka Finansial – Game Perjalanan Cari Uang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1f2a44;--panel:#2f4a8a;--panel2:#243b73;--gold:#ffd23f;--good:#2fae48;--bad:#e5484d;--soft:#5a6a92}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#16203a;font-family:'Nunito',system-ui,sans-serif;color:var(--ink);overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+#app{position:relative;margin:0 auto;height:100dvh;max-width:480px;display:flex;flex-direction:column;background:#8ed1fc;overflow:hidden;user-select:none;-webkit-user-select:none}
+
+#hud{display:flex;gap:6px;padding:8px 8px 4px;background:linear-gradient(#3b5cae,#2f4a8a);padding-top:max(8px,env(safe-area-inset-top))}
+.pan{background:var(--panel2);border-radius:14px;padding:6px 8px;color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.pan.main{display:flex;align-items:center;gap:8px;flex:1.35;min-width:0}
+.avatar{position:relative;width:46px;height:46px;border-radius:12px;background:#cfe8ff;flex:none;overflow:hidden}
+.avatar svg{width:100%;height:100%}
+.avatar b{position:absolute;left:0;bottom:0;background:var(--gold);color:#5a3b00;font-size:11px;padding:0 6px;border-radius:0 8px 0 0}
+.money{min-width:0}
+.mv{font-weight:900;font-size:18px;line-height:1.1;white-space:nowrap}
+.mn{font-weight:800;font-size:12px;color:#8cf0a0;white-space:nowrap}
+.mn.neg{color:#ff9a96}
+.pan.bars{flex:1.3;display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:0}
+.bar{display:flex;align-items:center;gap:4px}
+.bar .ic{font-size:16px;width:20px;text-align:center}
+.track{position:relative;flex:1;height:18px;border-radius:9px;background:#142349;overflow:hidden}
+.track i{position:absolute;left:0;top:0;bottom:0;border-radius:9px;transition:width .3s}
+.track .happy{background:linear-gradient(#ffe066,#f5b700)}
+.track .health{background:linear-gradient(#ff7b7b,#e53935)}
+.track b{position:absolute;left:0;right:0;text-align:center;font-size:12px;line-height:18px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
+.pan.side{display:flex;flex-direction:column;align-items:center;justify-content:space-between;width:56px;padding:4px}
+#gear{background:none;border:0;font-size:22px;padding:0;line-height:1}
+.date{background:#fff;color:#b23;border-radius:8px;width:100%;text-align:center;overflow:hidden;line-height:1}
+.date small{display:block;background:#e53935;color:#fff;font-size:10px;font-weight:800;padding:1px 0}
+.date b{font-size:16px;display:block;padding:3px 0;color:#1f2a44}
+
+#ffbar{margin:6px 8px 0;padding:6px 10px 7px;background:#fff;border:3px solid #fff;border-radius:14px;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+#ffbar .top{display:flex;justify-content:space-between;align-items:baseline;font-weight:900;font-size:13px}
+#ffbar .top em{font-style:normal;font-size:11px;color:var(--soft);font-weight:800}
+.fft{position:relative;height:16px;border-radius:8px;background:#dfe8fb;margin:4px 0 3px;overflow:hidden}
+.fft i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#3fd16b,#ffd23f);border-radius:8px;transition:width .4s}
+.fft b{position:absolute;left:0;right:0;text-align:center;font-size:11px;line-height:16px;font-weight:900;color:#1f2a44}
+#ffbar .sub{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--soft)}
+#agebar{display:flex;align-items:center;gap:8px;margin:6px 8px 0;padding:4px 8px;background:rgba(255,255,255,.85);border:3px solid #fff;border-radius:14px;font-weight:800;font-size:12.5px}
+#agebar .sp{flex:1;color:#4a5b85}
+#agebar button{border:0;border-radius:10px;background:var(--panel);color:#fff;font-weight:900;padding:4px 10px;font-size:13px}
+#judol{display:none;background:#ffe0e0;color:#b3261e;border-radius:10px;padding:2px 8px;font-size:11.5px}
+
+#scene{position:relative;flex:1;min-height:0;margin-top:6px}
+#svg{position:absolute;inset:0;width:100%;height:100%}
+.cloud{animation:drift 70s linear infinite}
+@keyframes drift{from{transform:translateX(-120px)}to{transform:translateX(520px)}}
+.bob{transform-box:fill-box;transform-origin:50% 100%;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025)}}
+.tail{transform-box:fill-box;transform-origin:0% 100%;animation:wag 1.2s ease-in-out infinite}
+@keyframes wag{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(14deg)}}
+#floats{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ft{position:absolute;top:46%;font-weight:900;font-size:17px;color:#fff;text-shadow:0 2px 0 #2a7a3a,0 0 6px rgba(0,0,0,.35);animation:rise 1.4s ease-out forwards;white-space:nowrap}
+.ft.bad{text-shadow:0 2px 0 #8a2a2a}
+@keyframes rise{from{opacity:1;transform:translateY(0) scale(.9)}to{opacity:0;transform:translateY(-70px) scale(1.15)}}
+.sideL{position:absolute;left:8px;top:8px;display:flex;flex-direction:column;gap:7px}
+.act{width:66px;padding:5px 2px 4px;border-radius:14px;background:#fff;border:3px solid var(--panel);box-shadow:0 3px 0 #1d2f5e;font-weight:800;font-size:10px;text-align:center;color:var(--ink);line-height:1.15}
+.act i{font-style:normal;font-size:21px;display:block}
+.act small{display:block;color:#b4531a;font-weight:900}
+.act.off{opacity:.5}
+.act:active{transform:translateY(2px);box-shadow:0 1px 0 #1d2f5e}
+#toasts{position:absolute;right:8px;top:8px;width:min(250px,62%);display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:6}
+.toast{background:rgba(22,32,58,.93);color:#fff;border-radius:12px;padding:7px 10px;font-weight:700;font-size:12px;line-height:1.3;animation:tin .25s ease-out;border-left:5px solid #5aa7ff}
+.toast.good{border-color:#46c35f}.toast.bad{border-color:var(--bad)}.toast.gold{border-color:var(--gold)}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+#tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px 4px max(8px,env(safe-area-inset-bottom));background:linear-gradient(#3b5cae,#2f4a8a);z-index:8;position:relative}
+#tabs button{position:relative;border:0;border-radius:11px;background:#4a6dc4;color:#fff;padding:5px 0 3px;font-weight:800;font-size:9.5px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+#tabs button i{font-style:normal;font-size:20px;display:block;line-height:1.2}
+#tabs button.on{background:var(--gold);color:#5a3b00}
+#tabs button .dot{position:absolute;top:1px;right:4px;width:12px;height:12px;border-radius:50%;background:#ff3d3d;border:2px solid #fff;display:none}
+#tabs button.hasdot .dot{display:block}
+
+#sheet{position:absolute;left:0;right:0;bottom:0;height:66%;background:#eaf1ff;border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .28s ease;z-index:7;display:flex;flex-direction:column;box-shadow:0 -6px 20px rgba(0,0,0,.25);padding-bottom:64px}
+#sheet.open{transform:none}
+#sheet header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 6px;font-weight:900;font-size:18px}
+#sheet header button{border:0;background:#c9d4ee;border-radius:50%;width:30px;height:30px;font-weight:900;font-size:15px}
+#list{flex:1;overflow:auto;padding:4px 10px 12px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;user-select:text}
+.sec{font-weight:900;font-size:12px;color:var(--soft);text-transform:uppercase;letter-spacing:.5px;margin:6px 2px 0}
+.card{background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 2px 0 #c3d0ee;font-size:13px;font-weight:700}
+.card b{font-weight:900}
+.cf{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:12.5px;font-weight:700}
+.cf.h{font-weight:900;border-top:1px dashed #cfd9f1;margin-top:4px;padding-top:5px}
+.cf span:last-child{white-space:nowrap}
+.pos{color:#1f9a3c}.neg{color:#d03b3b}.mut{color:var(--soft)}
+.row{display:flex;gap:10px;align-items:center;background:#fff;border-radius:16px;padding:9px 10px;box-shadow:0 2px 0 #c3d0ee}
+.row.locked{opacity:.6}
+.row.me{outline:3px solid var(--gold)}
+.ri{width:44px;height:44px;border-radius:12px;background:#e3ecff;display:grid;place-items:center;font-size:24px;flex:none}
+.rm{flex:1;min-width:0}
+.rt{font-weight:900;font-size:14.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lv{background:#2f4a8a;color:#fff;border-radius:8px;font-size:10.5px;padding:1px 6px}
+.rs{font-size:11.5px;color:var(--soft);font-weight:700;line-height:1.3}
+.rs .ok{color:#1f9a3c}.rs .no{color:#d03b3b}
+.rb{flex:none;display:flex;flex-direction:column;gap:5px}
+.buy{border:0;border-radius:12px;background:linear-gradient(#58d86e,#2fae48);color:#fff;font-weight:900;padding:6px 10px;min-width:84px;box-shadow:0 3px 0 #1e7a30;line-height:1.15}
+.buy .bl{display:block;font-size:12.5px}.buy .bc{display:block;font-size:10.5px;opacity:.95}
+.buy:active{transform:translateY(2px);box-shadow:0 1px 0 #1e7a30}
+.buy.off,.buy:disabled{background:#c9d4ee;color:#8290b4;box-shadow:0 3px 0 #a7b4d6}
+.buy.blue{background:linear-gradient(#5aa7ff,#2f7ae0);box-shadow:0 3px 0 #1d55a8}
+.buy.red{background:linear-gradient(#ff7b7b,#e5484d);box-shadow:0 3px 0 #9c2a2e}
+.buy.blue.off,.buy.red.off{background:#c9d4ee;box-shadow:0 3px 0 #a7b4d6}
+.tag{font-weight:900;font-size:12px;border-radius:10px;padding:6px 10px;background:#e3ecff;color:#2f4a8a;display:inline-block;text-align:center}
+.tag.on{background:var(--gold);color:#5a3b00}
+.ibtns{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.ibtns .buy{min-width:0;flex:1;padding:5px 6px}
+.up{color:#1f9a3c;font-weight:900}.dn{color:#d03b3b;font-weight:900}
+
+#modal{position:absolute;inset:0;background:rgba(10,16,34,.6);display:none;align-items:center;justify-content:center;z-index:20;padding:18px}
+#modal.on{display:flex}
+.mbox{background:#fff;border-radius:22px;padding:18px;width:100%;max-width:370px;font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-height:92%;overflow:auto;user-select:text}
+.mbox h2{margin:0 0 8px;font-size:20px;font-weight:900}
+.mbox p{margin:6px 0;line-height:1.4}
+.mbox .stat{display:flex;justify-content:space-between;border-bottom:1px dashed #d4dcf0;padding:4px 0}
+.mbtns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.mbtns button{flex:1 1 40%;border:0;border-radius:14px;padding:11px;font-weight:900;font-size:13.5px;background:#c9d4ee;color:#2f4a8a}
+.mbtns button.pri{background:linear-gradient(#58d86e,#2fae48);color:#fff;box-shadow:0 3px 0 #1e7a30}
+.mbtns button.dng{background:#ef5350;color:#fff}
+
+#start{position:absolute;inset:0;z-index:30;background:linear-gradient(#76c1f3,#def3ff);display:none;overflow:auto;padding:18px 16px 30px}
+#start.on{display:block}
+#start h1{margin:6px 0 2px;font-size:26px;font-weight:900;color:#1f2a44;line-height:1.1}
+#start .lead{font-weight:700;font-size:13.5px;color:#34456f;margin:0 0 12px}
+#start label{display:block;font-weight:900;font-size:12px;margin:12px 0 5px;color:#34456f;text-transform:uppercase;letter-spacing:.4px}
+#start input[type=text]{width:100%;border:3px solid var(--panel);border-radius:12px;padding:10px;font-size:16px;font-weight:800;background:#fff}
+.chips{display:flex;gap:8px}
+.chip{flex:1;border:3px solid var(--panel);background:#fff;border-radius:14px;padding:10px;font-weight:900;font-size:15px;color:var(--ink)}
+.chip.on{background:var(--gold);box-shadow:0 3px 0 #b8860b}
+.bgc{display:block;width:100%;text-align:left;border:3px solid var(--panel);background:#fff;border-radius:14px;padding:9px 11px;margin-bottom:8px;color:var(--ink)}
+.bgc.on{background:#fff3c4;box-shadow:0 3px 0 #b8860b}
+.bgc b{font-size:15px;font-weight:900}.bgc span{display:block;font-size:12px;font-weight:700;color:var(--soft);margin-top:2px}
+#go{width:100%;margin-top:10px;border:0;border-radius:16px;padding:14px;font-weight:900;font-size:17px;color:#fff;background:linear-gradient(#58d86e,#2fae48);box-shadow:0 4px 0 #1e7a30}
+@media (min-width:481px){#app{border-left:4px solid #0d1630;border-right:4px solid #0d1630}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hud">
+    <div class="pan main">
+      <div class="avatar"><svg id="miniAv" viewBox="-32 -170 64 70"></svg><b id="ageBadge">22</b></div>
+      <div class="money"><div class="mv" id="money">Rp 0</div><div class="mn" id="net">+0/bln</div></div>
+    </div>
+    <div class="pan bars">
+      <div class="bar"><span class="ic">😊</span><div class="track"><i id="happyFill" class="happy"></i><b id="happyVal">70</b></div></div>
+      <div class="bar"><span class="ic">❤️</span><div class="track"><i id="healthFill" class="health"></i><b id="healthVal">90</b></div></div>
+    </div>
+    <div class="pan side"><button id="gear" aria-label="Pengaturan">⚙️</button><div class="date"><small id="yr">2027</small><b id="mo">JAN</b></div></div>
+  </header>
+
+  <div id="ffbar">
+    <div class="top"><span>🏁 Merdeka Finansial</span><em id="ffNums">Pasif Rp 0 / Butuh Rp 0</em></div>
+    <div class="fft"><i id="ffFill"></i><b id="ffPct">0%</b></div>
+    <div class="sub"><span id="ffHint">Pendapatan pasif harus menutup semua kebutuhan</span><span id="ffStreak"></span></div>
+  </div>
+
+  <div id="agebar">
+    <span class="sp" id="yearsLeft">Umur 22 · 38 thn lagi</span>
+    <span id="judol">🎰 Kecanduan 0%</span>
+    <button id="pause" aria-label="Jeda">⏸</button>
+    <button id="ff" aria-label="Kecepatan">⏩ 1×</button>
+  </div>
+
+  <main id="scene">
+    <svg id="svg" viewBox="0 0 400 520" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#76c1f3"/><stop offset="1" stop-color="#def3ff"/></linearGradient>
+        <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#93d65e"/><stop offset="1" stop-color="#5aa83a"/></linearGradient>
+        <radialGradient id="sunG"><stop offset="0" stop-color="#fff6b0"/><stop offset="1" stop-color="#fff6b0" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="400" height="520" fill="url(#sky)"/>
+      <circle cx="330" cy="90" r="62" fill="url(#sunG)"/>
+      <circle cx="330" cy="90" r="26" fill="#ffe65c"/>
+      <g class="cloud" style="animation-delay:-12s"><ellipse cx="0" cy="70" rx="40" ry="15" fill="#fff" opacity=".92"/><ellipse cx="26" cy="62" rx="26" ry="14" fill="#fff" opacity=".92"/><ellipse cx="-26" cy="64" rx="22" ry="12" fill="#fff" opacity=".92"/></g>
+      <g class="cloud" style="animation-delay:-45s;animation-duration:95s"><ellipse cx="0" cy="130" rx="34" ry="12" fill="#fff" opacity=".85"/><ellipse cx="22" cy="123" rx="22" ry="11" fill="#fff" opacity=".85"/></g>
+      <path d="M0 330 Q80 262 170 318 T400 296 L400 380 L0 380Z" fill="#a9de92"/>
+      <path d="M0 345 Q120 300 230 338 T400 322 L400 380 L0 380Z" fill="#8fd27a"/>
+      <g><rect x="352" y="292" width="16" height="72" fill="#8b5a2b"/><circle cx="360" cy="268" r="40" fill="#4caf50"/><circle cx="334" cy="292" r="27" fill="#43a047"/><circle cx="388" cy="294" r="27" fill="#43a047"/></g>
+
+      <g id="gHouse"></g>
+      <g id="gGarage"></g>
+      <rect y="360" width="400" height="160" fill="url(#grass)"/>
+      <path d="M0 372 Q200 360 400 374" stroke="#7fc84e" stroke-width="3" fill="none"/>
+
+      <g id="gScenery"></g>
+      <g transform="translate(366,500)">
+        <ellipse cx="0" cy="4" rx="26" ry="6" fill="rgba(0,0,0,.16)"/>
+        <g class="bob">
+          <path class="tail" d="M16 -14 q26 -4 20 -30" stroke="#e8923a" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <ellipse cx="0" cy="-14" rx="22" ry="14" fill="#f2a44b"/>
+          <circle cx="-16" cy="-28" r="12" fill="#f2a44b"/>
+          <polygon points="-27,-34 -25,-48 -17,-38" fill="#f2a44b"/><polygon points="-5,-34 -7,-48 -15,-38" fill="#f2a44b"/>
+          <circle cx="-20" cy="-29" r="2" fill="#222"/><circle cx="-11" cy="-29" r="2" fill="#222"/>
+        </g>
+      </g>
+      <g id="gKids"></g>
+      <g id="gPartner" transform="translate(178,508) scale(0.86)"></g>
+      <g id="gPlayer" transform="translate(98,510) scale(0.9)"></g>
+    </svg>
+    <div id="floats"></div>
+    <div id="toasts"></div>
+    <div class="sideL">
+      <button class="act" id="aFun"><i>🎉</i>Hiburan<small id="aFunC"></small></button>
+      <button class="act" id="aDoc"><i>🩺</i>Periksa<small id="aDocC"></small></button>
+    </div>
+  </main>
+
+  <section id="sheet" aria-live="polite">
+    <header><span id="sheetTitle"></span><button id="sheetClose" aria-label="Tutup">✕</button></header>
+    <div id="list"></div>
+  </section>
+
+  <nav id="tabs">
+    <button data-tab="career"><i>💼</i>Karier<span class="dot"></span></button>
+    <button data-tab="money"><i>📊</i>Keuangan<span class="dot"></span></button>
+    <button data-tab="invest"><i>📈</i>Investasi<span class="dot"></span></button>
+    <button data-tab="biz"><i>🏪</i>Bisnis<span class="dot"></span></button>
+    <button data-tab="family"><i>👨‍👩‍👧</i>Keluarga<span class="dot"></span></button>
+    <button data-tab="life"><i>🏠</i>Gaya<span class="dot"></span></button>
+    <button data-tab="rank"><i>🏆</i>Peringkat<span class="dot"></span></button>
+  </nav>
+  <div id="modal"></div>
+
+  <div id="start">
+    <h1>🏁 Merdeka Finansial</h1>
+    <p class="lead">Mulai dari gaji pas-pasan. Kelola uang, hadapi godaan, keluarga, pajak, dan sakit. Menang kalau <b>pendapatan pasifmu menutup semua kebutuhan</b> sebelum umur 60.</p>
+    <label for="nm">Nama karakter</label>
+    <input id="nm" type="text" maxlength="14" placeholder="Misal: Rani" autocomplete="off">
+    <label>Karakter</label>
+    <div class="chips"><button class="chip on" data-g="m">👦 Cowok</button><button class="chip" data-g="f">👧 Cewek</button></div>
+    <label>Latar belakang</label>
+    <div id="bgList"></div>
+    <button id="go">Mulai Hidup (Umur 22)</button>
+    <p class="lead" style="margin-top:12px;font-size:12px">Musim 1: semua pemain menghadapi kejadian acak yang sama (krisis, PHK, sakit, godaan). Yang beda hanya keputusanmu.</p>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
+const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
+
+/* ====================== konstanta & RNG musim ====================== */
+const SEED = 'MUSIM-1', SEASON_COL = 'season1', VER = 2, SAVE_KEY = 'merdeka_v2';
+const START_AGE = 22, END_AGE = 60, TOTAL = (END_AGE - START_AGE) * 12, MONTH_MS = 10000;
+const MONTHS = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+function cyrb53(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+const R = (...k) => cyrb53(SEED + '|' + k.join('|')) / 9007199254740992;
+const Z = (...k) => Math.sqrt(-2 * Math.log(1 - R(...k, 'a'))) * Math.cos(6.283185307 * R(...k, 'b'));
+
+/* ====================== format ====================== */
+function num(v) {
+  let t = v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2);
+  if (t.indexOf('.') >= 0) t = t.replace(/0+$/, '').replace(/\.$/, '');
+  return t.replace('.', ',');
+}
+function fmt(n, sign) {
+  const a = Math.abs(n); let v = a, u = '';
+  if (a >= 1e12) { v = a / 1e12; u = 'T'; } else if (a >= 1e9) { v = a / 1e9; u = 'M'; }
+  else if (a >= 1e6) { v = a / 1e6; u = 'jt'; } else if (a >= 1e3) { v = a / 1e3; u = 'rb'; }
+  else return (n < 0 ? '-' : sign ? '+' : '') + 'Rp ' + Math.round(a);
+  return (n < 0 ? '-' : sign ? '+' : '') + 'Rp ' + num(v) + u;
+}
+const pct = (x, d = 0) => (x * 100).toFixed(d).replace('.', ',') + '%';
+
+/* ====================== data ====================== */
+const SKILLS = [
+  { id: 'work', name: 'Keahlian Kerja', icon: '🛠️', base: 1.2e6, desc: 'Syarat naik jabatan & menambah penghasilan sampingan' },
+  { id: 'comm', name: 'Komunikasi',     icon: '🗣️', base: 0.9e6, desc: 'Syarat jabatan manajerial, cari kerja lebih cepat, relasi' },
+  { id: 'fin',  name: 'Literasi Finansial', icon: '📚', base: 0.7e6, desc: 'Membuka instrumen investasi & bisnis, mengenali penipuan' },
+];
+const JOBS = [
+  { name: 'Staf Junior',     sal: 5e6,   minM: 0,  req: {}, color: '#7a8aa0' },
+  { name: 'Staf',            sal: 8e6,   minM: 12, req: { work: 2 }, color: '#4a90d9' },
+  { name: 'Staf Senior',     sal: 12e6,  minM: 18, req: { work: 4, comm: 2 }, color: '#3d9970' },
+  { name: 'Supervisor',      sal: 17e6,  minM: 24, req: { work: 6, comm: 4 }, color: '#e07a5f' },
+  { name: 'Asisten Manajer', sal: 25e6,  minM: 30, req: { work: 8, comm: 6, fin: 1 }, color: '#7b5ea7' },
+  { name: 'Manajer',         sal: 36e6,  minM: 36, req: { work: 11, comm: 9 }, color: '#264653' },
+  { name: 'Senior Manajer',  sal: 55e6,  minM: 48, req: { work: 14, comm: 12, fin: 2 }, color: '#1b2233' },
+  { name: 'Direktur',        sal: 90e6,  minM: 60, req: { work: 18, comm: 15, fin: 3 }, color: '#b8860b' },
+];
+const INVS = [
+  { id: 'save',   name: 'Tabungan / Deposito', icon: '🏦', y: 0.0032, mu: 0,      sd: 0,     tax: 0.20, cr: 0,      fin: 0, desc: 'Aman, bunga kecil (pajak final 20%). Sering kalah dari inflasi.' },
+  { id: 'bond',   name: 'Obligasi / Reksa Dana Pendapatan Tetap', icon: '📜', y: 0.0040, mu: 0.0005, sd: 0.004, tax: 0.10, cr: 0, fin: 1, desc: 'Kupon rutin, naik-turun kecil.' },
+  { id: 'gold',   name: 'Emas',                icon: '🪙', y: 0,      mu: 0.0040, sd: 0.028, tax: 0,    cr: 0.010,  fin: 1, desc: 'Tidak ada hasil rutin. Naik pelan, cenderung aman saat krisis.' },
+  { id: 'stock',  name: 'Saham & Reksa Dana Saham', icon: '📈', y: 0.0027, mu: 0.0052, sd: 0.055, tax: 0.10, cr: -0.045, fin: 2, desc: 'Dividen kecil + potensi naik. Bisa anjlok saat krisis.' },
+  { id: 'reit',   name: 'Properti Sewa',       icon: '🏘️', y: 0.0042, mu: 0.0032, sd: 0.008, tax: 0.10, cr: -0.012, fin: 3, desc: 'Sewa rutin (pajak final 10%) + kenaikan nilai.' },
+  { id: 'crypto', name: 'Kripto',              icon: '🎲', y: 0,      mu: 0.018,  sd: 0.16,  tax: 0,    cr: -0.06,  fin: 2, desc: 'Sangat liar: bisa melonjak, bisa lenyap. Tidak ada hasil rutin.' },
+];
+const BIZS = [
+  { id: 'online', name: 'Jualan Online',      icon: '📦', cost: 12e6,  profit: 0.18e6, fin: 0, mgr: 8e6 },
+  { id: 'cafe',   name: 'Kedai Kopi',         icon: '☕', cost: 60e6,  profit: 0.9e6, fin: 1, mgr: 30e6 },
+  { id: 'kos',    name: 'Kos-kosan',          icon: '🛏️', cost: 300e6, profit: 3.0e6,  fin: 2, mgr: 40e6 },
+  { id: 'franch', name: 'Franchise Minimarket', icon: '🏬', cost: 1.2e9, profit: 12e6, fin: 3, mgr: 150e6 },
+];
+const LIFE = [
+  { n: 'Hemat',      c: 0,    h: 0,    d: 'Makan di rumah, jarang jajan' },
+  { n: 'Nyaman',     c: 0.8e6, h: 0.25, d: 'Sesekali nongkrong & belanja' },
+  { n: 'Sosialita',  c: 2.0e6, h: 0.5,  d: 'Nongkrong rutin, gadget baru' },
+  { n: 'Glamor',     c: 4.5e6, h: 0.8,  d: 'Resto & merek ternama' },
+  { n: 'Flexing',    c: 9e6,   h: 1.0,  d: 'Gaya hidup dipamerkan di medsos' },
+];
+const STAGES = [
+  { from: 0,  to: 2,  food: 1.8, tu: [0, 0, 0],        entry: [0, 0, 0],          label: 'Bayi (susu, popok, imunisasi)' },
+  { from: 3,  to: 5,  food: 1.0, tu: [0.3, 0.9, 3],    entry: [1, 5, 25],         label: 'PAUD/TK' },
+  { from: 6,  to: 11, food: 1.2, tu: [0.1, 0.9, 4],    entry: [2, 15, 60],        label: 'SD' },
+  { from: 12, to: 14, food: 1.4, tu: [0.15, 1.2, 5],   entry: [3, 20, 80],        label: 'SMP' },
+  { from: 15, to: 17, food: 1.6, tu: [0.2, 1.6, 6],    entry: [4, 25, 100],       label: 'SMA' },
+  { from: 18, to: 21, food: 1.8, tu: [1.2, 3.5, 12],   entry: [10, 50, 200],      label: 'Kuliah' },
+];
+const EDU = ['Negeri', 'Swasta', 'Internasional'];
+const EDUQ = [1, 1.5, 2];
+const mutu = c => (c.q || 0) / 228;
+const kidGift = (c, p) => kidAgeY(c) >= 22 ? Math.max(0, mutu(c) - 0.8) * 1e6 * p : 0;
+const KID_NAMES = { m: ['Arka', 'Dimas', 'Raka'], f: ['Nayla', 'Salsa', 'Kirana'] };
+const PARTNER_NAMES = { m: ['Dito', 'Bima', 'Fajar'], f: ['Sinta', 'Maya', 'Lestari'] };
+const BGS = {
+  fresh:     { name: 'Lulusan Baru', icon: '🎓', desc: 'Gaji setara UMR (Rp 5 jt). Paylater Rp 3 jt. Tabungan Rp 1 jt.', job: 0, cash: 1e6, happy: 70, life: 0, housing: 'kos', vehicle: 'none', support: 0, debts: [['paylater', 'Paylater', 3e6]] },
+  perantau:  { name: 'Anak Perantau', icon: '🧳', desc: 'Gaji Rp 5 jt, tapi kirim Rp 700 rb/bln ke kampung. Sangat pas-pasan.', job: 0, cash: 0.6e6, happy: 65, life: 0, housing: 'kos', vehicle: 'none', support: 0.7e6, debts: [] },
+  konsumtif: { name: 'Kelas Menengah Konsumtif', icon: '🛍️', desc: 'Gaji Rp 8 jt, tapi sudah ada paylater Rp 8 jt dan cicilan motor.', job: 1, cash: 3e6, happy: 75, life: 2, housing: 'kos', vehicle: 'motor', support: 0, debts: [['paylater', 'Paylater', 8e6], ['kredit', 'Cicilan Motor', 18e6, 0.012, 30]] },
+};
+
+/* ====================== state ====================== */
+let S = null, paused = false, speed = 1, modalOn = false, tab = null, started = false;
+const MQ = [];
+let shownCash = 0, acc = 0;
+let autoPause = true; try { autoPause = localStorage.getItem('merdeka_ap') !== '0'; } catch (e) {}
+const spdLabel = s => s === 0.5 ? '½×' : s + '×';
+
+function annuity(bal, r, n) { return bal * r / (1 - Math.pow(1 + r, -n)); }
+function mkDebt(kind, name, bal, rate, n) {
+  const d = { id: S.nid++, k: kind, name, bal, rate: rate != null ? rate : (kind === 'paylater' ? 0.025 : kind === 'pinjol' ? 0.09 : 0.012), n: n || 0 };
+  if (n) d.pmt = annuity(bal, d.rate, n);
+  return d;
+}
+function newState(o) {
+  const b = BGS[o.bg];
+  S = { v: VER, name: o.name, gender: o.gender, bg: o.bg, m: 0, cash: b.cash, happy: b.happy, health: 90,
+    skills: { work: 0, comm: 0, fin: 0 }, job: b.job, jobSince: 0, promoCd: 0, cd: { fun: 0, doc: 0, fr: 0 }, jobless: 0, side: false, debts: [], inv: {}, biz: {},
+    life: b.life, housing: b.housing, vehicle: b.vehicle, houseVal: 0, gym: false, ins: false,
+    partner: null, married: false, pregDue: null, kids: [], edu: 0, support: b.support, friends: 60,
+    addict: 0, loans: [], ponzi: [], ytdGross: 0, ytdWith: 0, last: {}, ffStreak: 0, ffMax: 0, ended: null, log: [], flags: {}, nid: 1, lives: (S && S.lives || 0) + 1 };
+  b.debts.forEach(d => S.debts.push(mkDebt(d[0], d[1], d[2], d[3], d[4])));
+  shownCash = S.cash;
+}
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function load() {
+  try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return d && d.v === VER ? d : null; } catch (e) { return null; }
+}
+
+/* ====================== ekonomi ====================== */
+const crisisStart = 108 + Math.floor(R('crisis') * 36);
+const inCrisis = m => m >= crisisStart && m < crisisStart + 14;
+const shk1 = 84 + Math.floor(R('shk1') * 24), shk2 = 228 + Math.floor(R('shk2') * 36);
+const PI = m => Math.pow(1.0033, m) * (m >= shk1 ? 1.05 : 1) * (m >= shk2 ? 1.06 : 1);
+const ageY = m => START_AGE + Math.floor(m / 12);
+const age = () => ageY(S.m);
+const ptkp = () => 54e6 + (S.married ? 4.5e6 : 0) + Math.min(3, S.kids.length) * 4.5e6;
+function annualTax(gross) {
+  let rem = Math.max(0, gross - Math.min(6e6, 0.05 * gross) - ptkp()), t = 0;
+  for (const [w, r] of [[60e6, .05], [190e6, .15], [250e6, .25], [4500e6, .30], [Infinity, .35]]) { const x = Math.min(rem, w); t += x * r; rem -= x; if (rem <= 0) break; }
+  return t;
+}
+const bizF = (b, m) => (0.75 + 0.5 * R('biz', b.id, m)) * (inCrisis(m) ? 0.7 : 1);
+const partnerGross = () => 5.5e6 * PI(S.m) * (1 + 0.001 * S.m);
+const kidAgeY = c => Math.floor((S.m - c.born) / 12);
+const stageOf = ay => STAGES.find(s => ay >= s.from && ay <= s.to);
+const VEH = { none: { t: 0.6e6, tax: 0 }, motor: { t: 0.5e6, tax: 0.5e6, price: 20e6 }, mobil: { t: 1.4e6, tax: 3e6, price: 220e6 } };
+const HOUSE_PRICE = 450e6;
+const HOUSING = { kos: 1.3e6, kontrak: 2.8e6, kpr: 0.3e6, own: 0.3e6 };
+
+function debtPay(d) {
+  const due = d.bal * (1 + d.rate);
+  let pay;
+  if (d.pmt) pay = d.pmt; else if (d.k === 'paylater') pay = d.bal * (d.rate + 0.04); else pay = d.bal * (d.rate + 0.05);
+  return Math.min(due, Math.max(pay, Math.min(due, 50e3)));
+}
+function compute() {
+  const m = S.m, p = PI(m), employed = S.jobless <= 0, job = JOBS[S.job];
+  const salary = employed ? job.sal * p * (S.happy < 25 ? 0.92 : 1) : 0;
+  const hustle = S.side ? 1.5e6 * p * (1 + 0.08 * S.skills.work) * (S.vehicle !== 'none' ? 1.3 : 1) : 0;
+  const thr = (employed && m % 12 === 2 && m > 0) ? salary : 0;
+  const pph = employed ? annualTax(salary * 13) / 12 : 0;
+  const bpjsMandiri = 0.15e6 * p * (1 + (S.married ? 1 : 0) + Math.min(3, S.kids.length));
+  const bpjs = employed ? salary * 0.01 : bpjsMandiri;
+  let bizA = 0, bizP = 0, bizTax = 0, ownerRun = 0;
+  BIZS.forEach(b => {
+    const s = S.biz[b.id]; if (!s || !s.lvl) return;
+    const prof = b.profit * s.lvl * p * bizF(b, m), tx = prof * 0.025; bizTax += tx;
+    if (s.mgr) bizP += prof * 0.75 - tx; else { bizA += prof - tx; ownerRun++; }
+  });
+  let passInv = 0, invTax = 0;
+  INVS.forEach(i => { const v = S.inv[i.id] || 0; if (v > 0 && i.y) { const g = v * i.y; passInv += g * (1 - i.tax); invTax += g * i.tax; } });
+  const works = S.married && S.partner && S.partner.works;
+  const partnerNet = works ? partnerGross() * 0.92 : 0;
+  const L = {};
+  L['Makan & utilitas'] = (2.2e6 + (S.married ? 1.1e6 : 0)) * p;
+  L['Transportasi'] = VEH[S.vehicle].t * p;
+  L['Tempat tinggal'] = HOUSING[S.housing] * p;
+  L['Gaya hidup'] = LIFE[S.life].c * p;
+  let kidsC = 0, youngest = 99;
+  S.kids.forEach(c => { const ay = kidAgeY(c); youngest = Math.min(youngest, ay); const st = stageOf(ay); if (st) kidsC += (st.food * 1e6 + st.tu[S.edu] * 1e6) * p; });
+  if (S.kids.length) L['Anak (makan, sekolah)'] = kidsC;
+  if (works && youngest < 6) L['Pengasuh / daycare'] = 1.2e6 * p;
+  if (S.ins) L['Asuransi kesehatan'] = 0.35e6 * (1 + 0.045 * (age() - START_AGE)) * p;
+  if (S.gym) L['Gym / olahraga'] = 0.35e6 * p;
+  if (S.support > 0) L['Kirim ke orang tua'] = S.support * p;
+  const pays = {}; let payT = 0;
+  S.debts.forEach(d => { pays[d.id] = debtPay(d); payT += pays[d.id]; });
+  if (payT > 0) L['Cicilan & utang'] = payT;
+  const needs0 = sum(L);
+  const active = salary + hustle + partnerNet + bizA;
+  let kidInc = 0; S.kids.forEach(c => kidInc += kidGift(c, p));
+  const passive = bizP + passInv + kidInc;
+  const net = active + passive - needs0 - bpjs - pph;
+  const needsFF = needs0 + bpjsMandiri;
+  return { kidInc, salary, hustle, thr, partnerNet, bizA, bizP, passInv, pph, bpjs, finalTax: bizTax + invTax, lines: L, needs0, needsFF, active, passive, net, ff: needsFF > 0 ? passive / needsFF : 0, ownerRun, pays, p, youngest };
+}
+function networth() {
+  let v = S.cash + sum(S.inv) + S.houseVal - sum(S.debts.map(d => d.bal));
+  BIZS.forEach(b => { const s = S.biz[b.id]; if (s && s.lvl) v += b.cost * (Math.pow(1.45, s.lvl) - 1) / 0.45 * 0.6; });
+  S.loans.forEach(l => v += l.amt * 0.4);
+  return v;
+}
+
+/* ====================== UI util ====================== */
+function toast(msg, cls) {
+  const box = $('#toasts'); if (!box) return;
+  const d = document.createElement('div'); d.className = 'toast ' + (cls || ''); d.textContent = msg; box.appendChild(d);
+  while (box.children.length > 4) box.removeChild(box.firstChild);
+  setTimeout(() => d.remove(), 5200);
+}
+function floatText(txt, cls) {
+  const d = document.createElement('div'); d.className = 'ft ' + (cls || ''); d.textContent = txt;
+  d.style.left = (30 + Math.random() * 25) + '%'; $('#floats').appendChild(d);
+  d.addEventListener('animationend', () => d.remove());
+}
+function modal(html, buttons) {
+  const m = $('#modal'); modalOn = true;
+  m.innerHTML = '<div class="mbox">' + html + '<div class="mbtns">' + buttons.map((b, i) => '<button data-i="' + i + '" class="' + (b.cls || '') + '">' + b.t + '</button>').join('') + '</div></div>';
+  m.classList.add('on');
+  m.onclick = e => {
+    const b = e.target.closest('button[data-i]'); if (!b) return;
+    const bt = buttons[+b.dataset.i];
+    m.classList.remove('on'); modalOn = false;
+    if (bt.ev) S.log.push([S.m, 'ev', bt.ev]);
+    if (bt.fn) bt.fn();
+    refresh(); drain();
+  };
+}
+function ask(title, body, choices) { MQ.push({ title, body, choices }); }
+function drain() {
+  if (modalOn || !MQ.length || (S && S.ended)) return;
+  const q = MQ.shift();
+  modal('<h2>' + q.title + '</h2><p>' + q.body + '</p>', q.choices);
+}
+
+/* ====================== kejadian ====================== */
+function addPinjol(amt) { const d = S.debts.find(x => x.k === 'pinjol'); if (d) d.bal += amt; else S.debts.push(mkDebt('pinjol', 'Pinjol', amt)); }
+function evJudol(m, p) {
+  const stake = Math.round(clamp(S.cash * 0.04, 0.1e6 * p, 2e6 * p) / 1e4) * 1e4;
+  ask('🎰 Godaan Judi Online', 'Temanmu mengirim link "slot gacor": <i>"Modal Rp 100 ribu bisa jadi Rp 1 juta! Aku kemarin menang 3 juta!"</i>', [
+    { t: 'Coba sekali (' + fmt(stake) + ')', cls: 'dng', ev: 'judol:try', fn: () => {
+        if (S.cash < stake) { toast('Uangmu tidak cukup, godaan lewat.', ''); return; }
+        const first = !S.flags.judolTried; S.cash -= stake; S.addict = Math.min(100, S.addict + (first ? 30 : 12));
+        const jack = !first && R('judolJ', m) < 0.03, win = first ? true : (jack || R('judol', m) < 0.2), mult = first ? 4 : jack ? 8 + 4 * R('judolM', m) : 1.5 + R('judol2', m);
+        S.flags.judolTried = true;
+        if (win) { S.cash += stake * mult; toast((jack ? '🎰💥 JACKPOT! ' : '🎰 ') + 'Menang ' + fmt(stake * mult, true) + '! Tapi ini jebakannya: sensasinya bikin ingin lagi.', 'gold'); }
+        else { S.happy = clamp(S.happy - 3); toast('🎰 Kalah, ' + fmt(stake) + ' hilang. Kok pengen coba lagi?', 'bad'); }
+      } },
+    { t: 'Abaikan', cls: 'pri', ev: 'judol:no', fn: () => { S.addict = Math.max(0, S.addict - 3); toast('💪 Kamu menolak godaan judol.', 'good'); } },
+  ]);
+}
+function evPinjam(m, p) {
+  const amt = Math.round(clamp(S.cash * 0.25, 0.5e6 * p, 15e6 * p) / 1e5) * 1e5;
+  ask('🤝 Teman Minta Pinjaman', 'Teman lamamu butuh ' + fmt(amt) + '. <i>"Cuma sebulan, janji langsung aku balikin!"</i>', [
+    { t: 'Pinjami', ev: 'pinjam:yes', fn: () => { S.cash -= amt; S.loans.push({ amt, due: m + 6, m0: m }); toast('Kamu meminjamkan ' + fmt(amt) + '. Semoga kembali.', ''); } },
+    { t: 'Tolak halus', ev: 'pinjam:soft', fn: () => { S.friends = clamp(S.friends - 3); toast('Kamu menolak dengan halus. Hubungan sedikit renggang.', ''); } },
+    { t: 'Tolak tegas', ev: 'pinjam:no', fn: () => { S.friends = clamp(S.friends - 10); toast('Kamu menolak tegas. Temanmu tersinggung.', 'bad'); } },
+  ]);
+}
+function evBodong(m, p) {
+  if (S.friends >= 75 && R('warn', m) < 0.5) { toast('👥 Temanmu mengingatkan: itu penipuan. Kamu urung ikut.', 'good'); return; }
+  if (S.skills.fin >= 4) { toast('🛡️ Kamu menolak tawaran investasi bodong karena paham ciri-cirinya.', 'good'); return; }
+  const stake = Math.round(clamp(S.cash * 0.3, 1e6 * p, 50e6 * p) / 1e5) * 1e5;
+  const warn = S.skills.fin >= 3 ? '<br><b style="color:#d03b3b">Literasimu berbisik: untung pasti 8% per bulan itu ciri skema ponzi.</b>' : '';
+  ask('💸 Investasi "AI Trading"', 'Seorang kenalan menawarkan investasi: <i>"Untung 8% per bulan, modal aman 100%, banyak yang sudah cuan!"</i>' + warn, [
+    { t: 'Ikut (' + fmt(stake) + ')', cls: 'dng', ev: 'bodong:yes', fn: () => { if (S.cash < stake) { toast('Uangmu tidak cukup.', ''); return; } S.cash -= stake; S.ponzi.push({ stake, collapse: m + 3 + Math.floor(R('ponzi', m) * 4) }); toast('Kamu ikut. Bulan depan katanya mulai cair...', ''); } },
+    { t: 'Abaikan', cls: 'pri', ev: 'bodong:no', fn: () => toast('Tidak ada yang untung pasti. Keputusan bijak.', 'good') },
+  ]);
+}
+function evOrtu(m, p) {
+  const cut = S.support > 0 ? Math.min(0.5, S.support * p / Math.max(1, JOBS[S.job].sal * p) * 2.5) : 0;
+  const c = Math.round((15 + 25 * R('ortu', m)) * (1 - cut) * 1e6 * p / 1e5) * 1e5;
+  ask('🏥 Orang Tua Sakit', 'Orang tuamu masuk rumah sakit. Biaya yang tidak ditanggung ' + fmt(c) + '.' + (cut > 0 ? ' (Kiriman rutinmu sudah jadi dana cadangan mereka, biaya turun ' + Math.round(cut * 100) + '%.)' : ''), [
+    { t: 'Tanggung penuh (' + fmt(c) + ')', ev: 'ortu:full', fn: () => { S.cash -= c; S.happy = clamp(S.happy + 3); } },
+    { t: 'Patungan dengan saudara (' + fmt(c * 0.4) + ')', ev: 'ortu:part', fn: () => { S.cash -= c * 0.4; S.happy = clamp(S.happy - 2); } },
+    { t: 'Belum mampu membantu', ev: 'ortu:no', fn: () => { S.happy = clamp(S.happy - 12); toast('Kamu merasa bersalah tidak bisa membantu.', 'bad'); } },
+  ]);
+}
+function evPHK(m, p) {
+  const sal = JOBS[S.job].sal * p, years = Math.min(6, 1 + Math.floor(m / 36)), pes = sal * years;
+  const js = Math.max(1, 4 - Math.min(3, Math.floor(S.skills.comm / 4))) + (inCrisis(m) ? 2 : 0);
+  S.cash += pes; S.jobless = js;
+  ask('📉 Kena PHK', 'Perusahaan melakukan efisiensi. Kamu menerima pesangon ' + fmt(pes) + '. Mencari kerja baru butuh sekitar <b>' + js + ' bulan</b> (komunikasi yang baik mempercepat). Selama itu tidak ada gaji, tapi pengeluaran jalan terus. Dana darurat dan penghasilan pasif sangat menolong.', [{ t: 'Oke, bangkit lagi', cls: 'pri' }]);
+}
+function evBonus(m, p) {
+  const b = JOBS[S.job].sal * p * (0.5 + R('bonus', m));
+  S.cash += b; S.ytdGross += b; toast('🎁 Bonus kinerja ' + fmt(b, true) + ' (dipotong pajak saat rekonsiliasi tahunan).', 'gold');
+}
+function randomEvents(m) {
+  const p = PI(m), a = ageY(m), employed = S.jobless <= 0;
+  if (employed && R('phk', m) < (inCrisis(m) ? 0.02 : 0.004)) { evPHK(m, p); return; }
+  if (R('ev', m) >= 0.24) return;
+  const W = [['judol', 3 * (1 + S.addict / 40) * (1 + 0.1 * S.life), true], ['pinjam', 2.5, S.cash >= 0.6e6 * p], ['bodong', 1.6 * (1 + 0.12 * S.life), a >= 24 && S.cash >= 1e6 * p], ['ortu', 1.4, a >= 28 || S.support > 0], ['bonus', 1.3, employed]];
+  const ok = W.filter(x => x[2]); const tw = ok.reduce((s, x) => s + x[1], 0); let v = R('evt', m) * tw, pick = ok[0];
+  for (const x of ok) { v -= x[1]; if (v <= 0) { pick = x; break; } }
+  ({ judol: evJudol, pinjam: evPinjam, bodong: evBodong, ortu: evOrtu, bonus: evBonus })[pick[0]](m, p);
+}
+
+/* ====================== langkah bulanan ====================== */
+function step() {
+  if (S.ended) return;
+  S.m++; const m = S.m, p = PI(m), a = ageY(m);
+  if (m === crisisStart) toast('📰 Krisis ekonomi! Pasar saham anjlok, risiko PHK naik.', 'bad');
+  if (m === crisisStart + 14) toast('📈 Ekonomi mulai pulih.', 'good');
+  if (m === shk1 || m === shk2) toast('⛽ Harga BBM naik! Semua harga naik permanen.', 'bad');
+  INVS.forEach(i => {
+    let mu = i.mu; if (inCrisis(m)) mu += i.cr;
+    const g = i.sd ? Math.max(-0.6, mu + i.sd * Z('mkt', i.id, m)) : mu;
+    S.last[i.id] = g; const v = S.inv[i.id] || 0; if (v > 0) S.inv[i.id] = v * (1 + g);
+  });
+  if (S.houseVal) S.houseVal *= 1.0045;
+  if (S.cd.fun > 0) S.cd.fun--; if (S.cd.doc > 0) S.cd.doc--; if (S.promoCd > 0) S.promoCd--; if (S.cd.fr > 0) S.cd.fr--;
+  S.friends = clamp(S.friends - 0.12 + [-0.04, 0, 0.04, 0.07, 0.1][S.life] + (S.vehicle === 'mobil' ? 0.03 : 0) - (S.addict >= 40 ? 0.2 : 0));
+  S.kids.forEach(c => { const ay = kidAgeY(c); if (ay >= 3 && ay <= 21) c.q = (c.q || 0) + EDUQ[S.edu]; });
+  S.ponzi = S.ponzi.filter(z => {
+    if (m >= z.collapse) { toast('💥 Investasi "AI Trading" ternyata penipuan. Modal ' + fmt(z.stake) + ' lenyap.', 'bad'); S.happy = clamp(S.happy - 10); return false; }
+    S.cash += z.stake * 0.08; toast('Dana "AI Trading" cair ' + fmt(z.stake * 0.08, true) + ' (jangan percaya dulu...)', ''); return true;
+  });
+  S.loans = S.loans.filter(l => {
+    if (m < l.due) return true;
+    const o = R('loan', l.m0);
+    if (o < 0.25) { S.cash += l.amt; S.friends = clamp(S.friends + 5); toast('🤝 Temanmu mengembalikan pinjaman ' + fmt(l.amt, true) + '. Langka!', 'good'); }
+    else if (o < 0.5) { S.cash += l.amt * 0.5; toast('🤝 Temanmu hanya mengembalikan separuh: ' + fmt(l.amt * 0.5, true), ''); }
+    else { S.friends = clamp(S.friends - 5); toast('🤝 Pinjaman ' + fmt(l.amt) + ' tak kembali. Temanmu menghilang.', 'bad'); }
+    return false;
+  });
+  if (S.jobless > 0) { S.jobless--; if (S.jobless === 0) { S.jobSince = S.m; toast('💼 Kamu mendapat pekerjaan baru sebagai ' + JOBS[S.job].name + ' (masa kerja dihitung ulang).', 'good'); } }
+
+  const f = compute();
+  S.cash += f.net + f.thr; S.ytdGross += f.salary + f.thr; S.ytdWith += f.pph;
+  S.debts.forEach(d => { d.bal = Math.max(0, d.bal * (1 + d.rate) - f.pays[d.id]); });
+  S.debts = S.debts.filter(d => d.bal > 1);
+  if (S.housing === 'kpr' && !S.debts.some(d => d.k === 'kpr')) { S.housing = 'own'; toast('🏡 KPR lunas! Rumah sepenuhnya milikmu.', 'gold'); }
+  if (f.thr > 0) toast('💰 THR cair ' + fmt(f.thr, true) + '!', 'gold');
+  if (m % 12 === 0) { if (S.houseVal) { const t = S.houseVal * 0.0012; S.cash -= t; toast('🧾 PBB tahunan ' + fmt(t), ''); } }
+  if (m % 12 === 5 && VEH[S.vehicle].tax) { const t = VEH[S.vehicle].tax * p; S.cash -= t; toast('🧾 Pajak kendaraan ' + fmt(t), ''); }
+  if (m % 12 === 11) {
+    const tax = annualTax(S.ytdGross), diff = tax - S.ytdWith;
+    S.cash -= diff; if (Math.abs(diff) > 1e5) toast(diff > 0 ? '🧾 Rekonsiliasi pajak: kurang bayar ' + fmt(diff) : '🧾 Rekonsiliasi pajak: lebih bayar, kamu dapat ' + fmt(-diff, true), diff > 0 ? 'bad' : 'good');
+    S.ytdGross = 0; S.ytdWith = 0;
+  }
+  // lahir & sekolah
+  if (S.pregDue != null && m >= S.pregDue) {
+    const g = R('kid', S.kids.length) < 0.5 ? 'm' : 'f', nm = KID_NAMES[g][S.kids.length % 3];
+    const cost = 14e6 * p * (S.ins ? 0.6 : 1); S.cash -= cost; S.kids.push({ born: m, g, name: nm }); S.pregDue = null; S.happy = clamp(S.happy + 12);
+    toast('👶 ' + nm + ' lahir! Biaya persalinan ' + fmt(cost) + '. Pengeluaran bulanan naik.', 'gold');
+  }
+  S.kids.forEach(c => {
+    const am = m - c.born; if (am > 0 && am % 12 === 0) { const st = STAGES.find(s => s.from === am / 12);
+      if (st && st.entry[S.edu]) { const e = st.entry[S.edu] * 1e6 * p; S.cash -= e; toast('🎒 ' + c.name + ' masuk ' + st.label + '. Uang pangkal ' + fmt(e), ''); } }
+  });
+  // kesehatan & kebahagiaan
+  const kids = Math.min(3, S.kids.length);
+  const ratioSup = S.support * p / Math.max(1, f.salary);
+  const bakti = S.support > 0 ? Math.min(0.35, ratioSup * 1.5) : (a >= 25 && S.jobless <= 0 ? -0.1 : 0);
+  const hasKids = S.kids.length > 0;
+  const homeFx = { kos: (S.married || hasKids) ? -0.5 : -0.2, kontrak: hasKids ? -0.15 : 0, kpr: 0.15, own: 0.3 }[S.housing] || 0;
+  const vehFx = { none: -0.15, motor: 0.1, mobil: 0.2 }[S.vehicle] || 0;
+  const gengsi = S.life >= 3 && S.cash < 3 * f.needsFF ? -0.4 : 0;
+  const judolFx = S.addict >= 20 ? -S.addict / 100 * 0.5 : 0;
+  S.happy = clamp(S.happy - 0.55 + bakti + homeFx + vehFx + gengsi + judolFx + LIFE[S.life].h + 0.35 * kids + (S.married ? 0.25 : 0) + (S.friends - 50) * 0.006 + (S.gym ? 0.05 : 0)
+    - (S.side ? 0.4 : 0) - f.ownerRun * 0.25 - (S.jobless > 0 ? 0.6 : 0) - (S.cash < f.needsFF ? 0.3 : 0) - (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active) ? 0.3 : 0));
+  const toddlers = Math.min(2, S.kids.filter(c => kidAgeY(c) <= 5).length);
+  S.health = clamp(S.health - 0.05 + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 30) * 0.005 + (S.health < 85 ? 0.12 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 : 0) - f.ownerRun * 0.1 - (S.happy < 25 ? 0.3 : 0));
+  if (S.vehicle === 'motor' && R('moto', m) < 0.004) { const c = 3e6 * p * (S.ins ? 0.4 : 1); S.cash -= c; S.health = clamp(S.health - 12); S.happy = clamp(S.happy - 4); toast('🛵 Kecelakaan motor! Biaya berobat & bengkel ' + fmt(c) + ', kesehatan turun.', 'bad'); }
+  // sakit
+  if (R('med', m) < 0.02 + 0.0012 * (a - START_AGE)) {
+    const sv = R('medsev', m), cp = 0.01 + 0.0025 * (a - START_AGE);
+    const cls = sv < cp ? 'cata' : sv < cp + 0.25 ? 'major' : 'minor';
+    const rng = { minor: [0.4e6, 2e6], major: [15e6, 60e6], cata: [100e6, 350e6] }[cls];
+    const cost = (rng[0] + (rng[1] - rng[0]) * R('medcost', m)) * p;
+    const cov = (S.ins ? { minor: .6, major: .95, cata: .95 } : { minor: .3, major: .75, cata: .65 })[cls];
+    const pay = cost * (1 - cov); S.cash -= pay;
+    S.health = clamp(S.health - { minor: 5, major: 15, cata: 30 }[cls]); S.happy = clamp(S.happy - { minor: 2, major: 6, cata: 12 }[cls]);
+    toast('🏥 ' + { minor: 'Sakit ringan', major: 'Rawat inap', cata: 'Penyakit berat' }[cls] + ': tagihan ' + fmt(cost) + ', kamu tanggung ' + fmt(pay) + (S.ins ? ' (ada asuransi)' : ' (BPJS saja)'), cls === 'minor' ? '' : 'bad');
+  }
+  // kecanduan judol
+  if (S.addict > 0) {
+    if (S.addict >= 40 && R('relapse', m) < 0.3) { const lost = clamp(S.cash * 0.2, 0.5e6 * p, 15e6 * p); S.cash -= lost; S.happy = clamp(S.happy - 5); S.addict = Math.min(100, S.addict + 5); toast('🎰 Kambuh! Kamu kembali main judol dan kehilangan ' + fmt(lost) + '.', 'bad'); }
+    else S.addict = Math.max(0, S.addict - 0.8);
+  }
+  randomEvents(m);
+  if (S.cash < 0 && S.debts.filter(d => d.k === 'pinjol').reduce((a, d) => a + d.bal, 0) > 24 * Math.max(JOBS[S.job].sal * p, 5e6 * p)) { S.cash = 0; return endGame('bankrupt'); }
+  if (S.cash < 0) { addPinjol(-S.cash); toast('⚠️ Uang habis, kamu terpaksa pinjol ' + fmt(-S.cash) + ' (bunga ±9%/bln!).', 'bad'); S.cash = 0; S.happy = clamp(S.happy - 4); }
+  if (m % 12 === 0) toast('🎂 Ulang tahun ke-' + a + '!', 'gold');
+  // merdeka?
+  const f2 = compute(); S.flow = f2;
+  S.ffStreak = f2.ff >= 1 ? S.ffStreak + 1 : 0; S.ffMax = Math.max(S.ffMax, f2.ff);
+  if (S.ffStreak >= 6) return endGame('ff');
+  if (S.health <= 0) return endGame('dead');
+  if (m >= TOTAL) return endGame('retire');
+}
+
+/* ====================== ending & skor ====================== */
+function calcScore(kind) {
+  const f = compute();
+  if (kind === 'ff') return 1000000 + (TOTAL - S.ffAt) * 1000 + Math.round(S.happy) * 50 + Math.round(S.health) * 50 + S.kids.length * 500 + Math.round(S.kids.reduce((s, c) => s + mutu(c), 0) * 10000);
+  if (kind === 'bankrupt') return 0;
+  if (kind === 'retire') return Math.round(Math.min(0.99, f.ff) * 100000);
+  return Math.round(Math.min(0.99, f.ff) * 50000);
+}
+function endGame(kind) {
+  S.ffAt = kind === 'ff' ? S.m - 5 : S.m;
+  S.ended = { kind, m: S.m, score: 0 };
+  S.ended.score = calcScore(kind);
+  MQ.length = 0; save();
+  const f = compute(), nw = networth(), yrs = Math.floor(S.ffAt / 12), mo = S.ffAt % 12;
+  const T = { ff: ['🏁 MERDEKA FINANSIAL!', 'Kamu merdeka finansial di umur ' + (START_AGE + yrs) + ' tahun ' + mo + ' bulan. Penghasilan pasifmu menutup semua kebutuhan, kamu tidak lagi bergantung pada gaji.'],
+    retire: ['🧓 Pensiun Belum Merdeka', 'Kamu mencapai umur ' + END_AGE + '. Pendapatan pasifmu baru menutup ' + pct(f.ff) + ' kebutuhan, jadi kamu harus terus bekerja atau mengandalkan keluarga.'],
+    bankrupt: ['📉 Bangkrut', 'Utang pinjol menggunung dan tidak terbayar lagi. Penagih datang dan semua asetmu disita. Pinjol berbunga ±9% per bulan itu jebakan: jangan pernah dipakai menutup kebutuhan harian.'],
+    dead: ['🕊️ Meninggal Dunia', 'Kesehatanmu habis di umur ' + age() + '. Uang tidak ada artinya kalau tubuh tidak dijaga. Pendapatan pasifmu baru ' + pct(f.ff) + ' kebutuhan.'] }[kind];
+  modal('<h2>' + T[0] + '</h2><p>' + T[1] + '</p>' +
+    '<div class="stat"><span>Skor musim</span><b>' + S.ended.score.toLocaleString('id-ID') + '</b></div>' +
+    '<div class="stat"><span>Pendapatan pasif / bulan</span><b>' + fmt(f.passive) + '</b></div>' +
+    '<div class="stat"><span>Kebutuhan / bulan</span><b>' + fmt(f.needsFF) + '</b></div>' +
+    '<div class="stat"><span>Kekayaan bersih</span><b>' + fmt(nw) + '</b></div>' +
+    '<div class="stat"><span>Kebahagiaan / Kesehatan</span><b>' + Math.round(S.happy) + ' / ' + Math.round(S.health) + '</b></div>' +
+    '<div class="stat"><span>Anak</span><b>' + S.kids.length + '</b></div>',
+    [{ t: 'Lihat peringkat', fn: () => { openTab('rank'); } }, { t: 'Main lagi (musim sama)', cls: 'pri', fn: () => { showStart(); } }]);
+  submitScore();
+}
+
+/* ====================== aksi pemain ====================== */
+const cost = {
+  skill: k => k.base * PI(S.m) * Math.pow(1.38, S.skills[k.id]),
+  bizBuy: (b, l) => b.cost * Math.pow(1.45, l) * PI(S.m),
+};
+function metReq(req) { return Object.keys(req).every(k => S.skills[k] >= req[k]); }
+const tenure = () => S.m - S.jobSince;
+const promoChance = i => { const j = JOBS[i]; let ex = 0; Object.keys(j.req).forEach(k => ex += Math.max(0, S.skills[k] - j.req[k])); return Math.max(0.1, Math.min(0.95, [1, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25][i] + 0.015 * ex - S.addict / 400)); };
+const canPromote = i => i === S.job + 1 && metReq(JOBS[i].req) && tenure() >= JOBS[i].minM && S.jobless <= 0;
+function pay(c) { if (S.cash < c) return false; S.cash -= c; return true; }
+const funCost = () => (0.4e6 + LIFE[S.life].c * 0.5) * PI(S.m);
+const A = {
+  skill(id) { const k = SKILLS.find(x => x.id === id); if (!k || S.skills[id] >= 20) return; if (!pay(cost.skill(k))) return; S.skills[id]++; S.happy = clamp(S.happy - 1.5); toast(k.icon + ' ' + k.name + ' naik ke Lv ' + S.skills[id], 'good'); },
+  job(i) {
+    i = +i; const j = JOBS[i]; if (!j || !canPromote(i) || S.promoCd > 0) return;
+    if (R('promo', S.m, i) < promoChance(i)) { S.job = i; S.jobSince = S.m; toast('💼 Diterima! Kamu sekarang ' + j.name + '. Gaji ' + fmt(j.sal * PI(S.m)) + '/bln', 'gold'); }
+    else { S.promoCd = 6; toast('😔 Lamaran ' + j.name + ' belum berhasil (posisi terbatas). Coba lagi 6 bulan lagi.', 'bad'); }
+  },
+  side() { S.side = !S.side; toast(S.side ? '🕘 Kerja sampingan dimulai (kesehatan & kebahagiaan terkuras).' : 'Kerja sampingan dihentikan.', ''); },
+  inv(id, how) {
+    const i = INVS.find(x => x.id === id); if (!i || S.skills.fin < i.fin) return;
+    if (how === 'wd') { const v = S.inv[id] || 0; if (v > 0) { S.cash += v; S.inv[id] = 0; } return; }
+    const amt = S.cash * (how === 'd25' ? 0.25 : how === 'd50' ? 0.5 : 1); if (amt < 100e3) return;
+    S.cash -= amt; S.inv[id] = (S.inv[id] || 0) + amt;
+  },
+  biz(id) {
+    const b = BIZS.find(x => x.id === id); if (!b || S.skills.fin < b.fin) return;
+    const s = S.biz[id] || (S.biz[id] = { lvl: 0, mgr: false }); if (!pay(cost.bizBuy(b, s.lvl))) return;
+    s.lvl++; toast(b.icon + ' ' + b.name + (s.lvl === 1 ? ' dibuka!' : ' tambah cabang (Lv ' + s.lvl + ')'), 'good');
+  },
+  mgr(id) {
+    const b = BIZS.find(x => x.id === id), s = S.biz[id]; if (!b || !s || !s.lvl || s.mgr) return;
+    if (!pay(b.mgr * PI(S.m))) return; s.mgr = true; toast('👔 Manajer direkrut. ' + b.name + ' kini jalan sendiri (jadi pendapatan pasif).', 'gold');
+  },
+  debt(id, how) {
+    const d = S.debts.find(x => x.id === +id); if (!d) return;
+    const amt = Math.min(d.bal, how === 'p25' ? S.cash * 0.25 : S.cash); if (amt < 1) return;
+    S.cash -= amt; d.bal -= amt; if (d.bal < 1) S.debts = S.debts.filter(x => x !== d);
+  },
+  life(n) { n = +n; if (n >= 0 && n < LIFE.length) { S.life = n; toast('Gaya hidup: ' + LIFE[n].n, ''); } },
+  house(how) {
+    const p = PI(S.m);
+    if (how === 'kos' || how === 'kontrak') { if (S.housing === 'kpr' || S.housing === 'own' || S.housing === how) return; if (how === 'kontrak' && !pay(5e6 * p)) return; S.housing = how; toast('Pindah ke ' + (how === 'kos' ? 'kos' : 'kontrakan') + '.', ''); }
+    if (how === 'kpr') { const price = HOUSE_PRICE * p, dp = price * 0.23; if (S.housing === 'kpr' || S.housing === 'own' || !pay(dp)) return; S.housing = 'kpr'; S.houseVal = price; S.debts.push(mkDebt('kpr', 'KPR Rumah', price * 0.8, 0.0085, 240)); toast('🏡 Beli rumah dengan KPR 20 tahun (DP + biaya ' + fmt(dp) + ').', 'gold'); }
+    if (how === 'cash') { const price = HOUSE_PRICE * p; if (S.housing === 'kpr' || S.housing === 'own' || !pay(price)) return; S.housing = 'own'; S.houseVal = price; toast('🏡 Rumah dibeli tunai!', 'gold'); }
+  },
+  veh(kind, how) {
+    const v = VEH[kind]; if (!v || S.vehicle === kind || S.vehicle === 'mobil') return;
+    const price = v.price * PI(S.m);
+    if (how === 'cash') { if (!pay(price)) return; } else { if (!pay(price * 0.2)) return; S.debts.push(mkDebt('kredit', 'Cicilan ' + (kind === 'motor' ? 'Motor' : 'Mobil'), price * 0.8, kind === 'motor' ? 0.012 : 0.01, kind === 'motor' ? 36 : 48)); }
+    S.vehicle = kind; toast('🚘 ' + (kind === 'motor' ? 'Motor' : 'Mobil') + ' dibeli' + (how === 'cash' ? ' tunai.' : ' dengan cicilan.'), 'gold');
+  },
+  gym() { S.gym = !S.gym; },
+  ins() { S.ins = !S.ins; },
+  cari() { const p = PI(S.m); if (S.partner || S.skills.comm < 1 || !pay(1.5e6 * p)) return; const g = S.gender === 'm' ? 'f' : 'm'; S.partner = { name: PARTNER_NAMES[g][Math.floor(R('pn') * 3)], works: true, g }; S.happy = clamp(S.happy + 6); toast('💞 Kamu bertemu ' + S.partner.name + '. Pacaran dimulai!', 'gold'); },
+  nikah(t) { t = +t; if (!S.partner || S.married) return; const c = [10e6, 40e6, 150e6][t] * PI(S.m); if (!pay(c)) return; S.married = true; S.happy = clamp(S.happy + [8, 14, 20][t]); toast('💍 Kalian menikah! Pengeluaran bersama naik, PTKP bertambah.', 'gold'); },
+  pwork() { if (S.partner) S.partner.works = !S.partner.works; },
+  hamil() { if (!S.married || S.pregDue != null || S.kids.length >= 3) return; S.pregDue = S.m + 9 + Math.floor(R('conc', S.m, S.kids.length) * 4); toast('🤰 Kabar bahagia! Calon bayi lahir sekitar 9 bulan lagi.', 'gold'); },
+  edu(n) { S.edu = +n; },
+  support(v) { S.support = +v; },
+  konseling() { if (S.addict <= 0 || !pay(2e6 * PI(S.m))) return; S.addict = Math.max(0, S.addict - 40); S.happy = clamp(S.happy + 3); toast('🧠 Konseling membantu. Kecanduan turun.', 'good'); },
+  kumpul() { if (S.cd.fr > 0 || !pay(0.3e6 * PI(S.m))) return; S.cd.fr = 2; S.friends = clamp(S.friends + 8); S.happy = clamp(S.happy + 3); floatText('+8 🤝'); },
+  fun() { if (S.cd.fun > 0 || !pay(funCost())) return; S.cd.fun = 3; S.happy = clamp(S.happy + 12); floatText('+12 😊'); },
+  doc() { if (S.cd.doc > 0 || !pay(0.6e6 * PI(S.m))) return; S.cd.doc = 6; S.health = clamp(S.health + 12); floatText('+12 ❤️'); },
+};
+function dispatch(a) {
+  if (!S || !started || S.ended || modalOn) return;
+  const p = a.split(':'); const fn = A[p[0]]; if (!fn) return;
+  S.log.push([S.m, a]); fn(p[1], p[2]); refresh(); save();
+}
+
+/* ====================== tab ====================== */
+const TITLES = { career: 'Karier', money: 'Keuangan', invest: 'Investasi', biz: 'Bisnis', family: 'Keluarga', life: 'Gaya Hidup & Aset', rank: 'Peringkat Musim 1' };
+function btn(act, label, c, cls) { return '<button class="buy ' + (cls || '') + '" data-act="' + act + '" data-cost="' + (c || 0) + '"><span class="bl">' + label + '</span>' + (c ? '<span class="bc">' + fmt(c) + '</span>' : '') + '</button>'; }
+function row(o) {
+  return '<div class="row ' + (o.cls || '') + '"><div class="ri">' + o.icon + '</div><div class="rm"><div class="rt">' + o.title + (o.lvl != null ? '<span class="lv">Lv ' + o.lvl + '</span>' : '') + '</div><div class="rs">' + o.sub + '</div>' + (o.extra || '') + '</div>' + (o.btn ? '<div class="rb">' + o.btn + '</div>' : '') + '</div>';
+}
+function reqText(req) {
+  const ks = Object.keys(req); if (!ks.length) return 'Tanpa syarat';
+  const nm = { work: 'Kerja', comm: 'Komunikasi', fin: 'Literasi' };
+  return ks.map(k => '<span class="' + (S.skills[k] >= req[k] ? 'ok' : 'no') + '">' + nm[k] + ' ' + S.skills[k] + '/' + req[k] + '</span>').join(' · ');
+}
+const cfRow = (l, v, cls) => '<div class="cf ' + (cls || '') + '"><span>' + l + '</span><span>' + v + '</span></div>';
+const tog = (act, on, label) => '<button class="buy ' + (on ? 'red' : 'blue') + '" data-act="' + act + '" data-cost="0"><span class="bl">' + label + '</span></button>';
+
+const TABS = {
+  career() {
+    const p = PI(S.m), j = JOBS[S.job];
+    let h = '<div class="card"><b>' + j.name + '</b><div class="rs">Gaji bruto ' + fmt(j.sal * p) + '/bln' + (S.jobless > 0 ? ' · <span class="no">Menganggur ' + S.jobless + ' bln lagi</span>' : '') + '</div><div class="rs">Gaji naik mengikuti inflasi, tapi PTKP dan lapisan pajak tidak ikut naik.</div></div>';
+    h += '<div class="sec">Keahlian (kursus berbayar)</div>' + SKILLS.map(k => row({ icon: k.icon, title: k.name, lvl: S.skills[k.id], sub: k.desc, btn: S.skills[k.id] >= 20 ? '<span class="tag on">MAX</span>' : btn('skill:' + k.id, 'Belajar', cost.skill(k)) })).join('');
+    h += '<div class="sec">Tangga karier (butuh keahlian + masa kerja)</div>' + JOBS.map((jb, i) => {
+      const met = metReq(jb.req), nxt = i === S.job + 1, tn = Math.min(tenure(), jb.minM); let b;
+      if (i === S.job) b = '<span class="tag on">Aktif</span>'; else if (i < S.job) b = '<span class="tag">Lewat</span>';
+      else b = canPromote(i) ? (S.promoCd > 0 ? '<span class="tag">Tunggu ' + S.promoCd + ' bln</span>' : btn('job:' + i, 'Lamar', 0, 'blue')) : '<span class="tag">🔒</span>';
+      const tx = i > S.job ? '<br>' + (nxt ? '<span class="' + (tenure() >= jb.minM ? 'ok' : 'no') + '">Masa kerja ' + tn + '/' + jb.minM + ' bln</span> · peluang lolos ±' + pct(promoChance(i)) : '<span class="no">Naik jabatan sebelumnya dulu</span>') : '';
+      return row({ icon: '💼', title: jb.name, sub: 'Gaji ' + fmt(jb.sal * p) + '/bln<br>' + reqText(jb.req) + tx, cls: (i > S.job && !canPromote(i)) ? 'locked' : '', btn: b });
+    }).join('');
+    h += '<div class="sec">Penghasilan tambahan</div>' + row({ icon: '🕘', title: 'Kerja Sampingan', sub: 'Freelance ±' + fmt(1.5e6 * p * (1 + 0.08 * S.skills.work)) + '/bln. Menguras kesehatan & kebahagiaan.', btn: tog('side', S.side, S.side ? 'Berhenti' : 'Mulai') });
+    return h;
+  },
+  money() {
+    const f = S.flow || compute(); let h = '';
+    h += '<div class="card"><b>Arus kas bulan ini</b>';
+    h += cfRow('Pemasukan aktif', fmt(f.active), 'h');
+    if (f.salary) h += cfRow('Gaji', fmt(f.salary), 'mut'); if (f.hustle) h += cfRow('Sampingan', fmt(f.hustle), 'mut');
+    if (f.partnerNet) h += cfRow('Gaji pasangan (bersih)', fmt(f.partnerNet), 'mut'); if (f.bizA) h += cfRow('Bisnis (dijalankan sendiri)', fmt(f.bizA), 'mut');
+    h += cfRow('Pemasukan PASIF', fmt(f.passive), 'h pos');
+    if (f.passInv) h += cfRow('Bunga, dividen, sewa (setelah pajak)', fmt(f.passInv), 'mut'); if (f.bizP) h += cfRow('Bisnis ber-manajer', fmt(f.bizP), 'mut');
+    h += cfRow('Pengeluaran rutin', fmt(-f.needs0), 'h neg');
+    Object.keys(f.lines).forEach(k => { h += cfRow(k, fmt(-f.lines[k]), 'mut'); });
+    h += cfRow('Pajak & potongan', fmt(-(f.pph + f.bpjs)), 'h neg');
+    h += cfRow('PPh 21 dipotong gaji', fmt(-f.pph), 'mut'); h += cfRow('BPJS', fmt(-f.bpjs), 'mut');
+    if (f.finalTax) h += cfRow('Pajak final investasi/bisnis (sudah dipotong)', fmt(-f.finalTax), 'mut');
+    h += cfRow('Sisa per bulan', fmt(f.net, true), 'h ' + (f.net >= 0 ? 'pos' : 'neg')); h += '</div>';
+    const runway = f.needsFF > 0 ? S.cash / f.needsFF : 0;
+    h += '<div class="card"><b>Dana darurat: ' + num(runway) + ' bulan</b><div class="rs">Target sehat: 6 bulan kebutuhan (' + fmt(6 * f.needsFF) + '). Dana darurat menyelamatkanmu dari PHK, sakit, dan pinjol.</div></div>';
+    h += '<div class="card"><b>Merdeka Finansial: ' + pct(f.ff) + '</b><div class="rs">Pasif ' + fmt(f.passive) + ' dari kebutuhan ' + fmt(f.needsFF) + ' (termasuk BPJS mandiri). Harus ≥100% selama 6 bulan berturut-turut.</div></div>';
+    h += '<div class="sec">Utang</div>';
+    if (!S.debts.length) h += '<div class="card">Tidak ada utang. 👍</div>';
+    S.debts.forEach(d => {
+      h += row({ icon: d.k === 'pinjol' ? '🦈' : d.k === 'kpr' ? '🏡' : d.k === 'kredit' ? '🚘' : '💳', title: d.name,
+        sub: 'Sisa ' + fmt(d.bal) + ' · bunga ' + pct(d.rate, 1) + '/bln (' + pct(Math.pow(1 + d.rate, 12) - 1) + '/thn)<br>Cicilan bulan ini ' + fmt(f.pays[d.id] || 0),
+        extra: '<div class="ibtns"><button class="buy blue" data-act="debt:' + d.id + ':p25" data-cost="100000"><span class="bl">Bayar 25% kas</span></button><button class="buy" data-act="debt:' + d.id + ':max" data-cost="100000"><span class="bl">Bayar maks</span></button></div>' });
+    });
+    return h;
+  },
+  invest() {
+    let h = '<div class="card"><b>Pasar bulan lalu</b><div class="rs">Hasil rutin (bunga/dividen/sewa) dihitung sebagai pendapatan pasif. Naik-turun harga tidak dihitung pasif. Inflasi ±4%/tahun menggerus uang yang menganggur.</div></div>';
+    h += INVS.map(i => {
+      const un = S.skills.fin >= i.fin, v = S.inv[i.id] || 0, g = S.last[i.id];
+      const sub = un ? i.desc + '<br>Hasil rutin ' + pct(i.y, 2) + '/bln · pajak ' + pct(i.tax) : '🔒 Butuh Literasi Finansial Lv ' + i.fin;
+      const ex = un ? '<div class="rs">Nilai: <b>' + fmt(v) + '</b> ' + (g != null && v > 0 ? '<span class="' + (g >= 0 ? 'up' : 'dn') + '">' + (g >= 0 ? '▲ ' : '▼ ') + Math.abs(g * 100).toFixed(1).replace('.', ',') + '% bln lalu</span>' : '') + '</div>' +
+        '<div class="ibtns"><button class="buy blue" data-act="inv:' + i.id + ':d25" data-cost="100000"><span class="bl">Setor 25%</span></button><button class="buy blue" data-act="inv:' + i.id + ':d50" data-cost="100000"><span class="bl">Setor 50%</span></button><button class="buy" data-act="inv:' + i.id + ':wd" data-need="' + i.id + '"><span class="bl">Tarik</span></button></div>' : '';
+      return row({ icon: i.icon, title: i.name, sub, extra: ex, cls: un ? '' : 'locked' });
+    }).join('');
+    return h;
+  },
+  biz() {
+    const p = PI(S.m);
+    let h = '<div class="card"><b>Bisnis</b><div class="rs">Dijalankan sendiri = pendapatan <b>aktif</b> (menguras waktu). Setelah merekrut manajer = <b>pasif</b> (bagi hasil 75%). Pajak final usaha dipotong otomatis.</div></div>';
+    h += BIZS.map(b => {
+      const un = S.skills.fin >= b.fin, s = S.biz[b.id] || { lvl: 0, mgr: false };
+      const sub = !un ? '🔒 Butuh Literasi Finansial Lv ' + b.fin : 'Laba ±' + fmt(b.profit * p) + '/bln per level (naik-turun)' + (s.lvl ? '<br>' + (s.mgr ? '👔 Dikelola manajer (pasif)' : '🕘 Dijalankan sendiri (aktif)') : '');
+      let btns = '';
+      if (un) { btns = btn('biz:' + b.id, s.lvl ? 'Cabang' : 'Buka', cost.bizBuy(b, s.lvl)); if (s.lvl && !s.mgr) btns += btn('mgr:' + b.id, 'Rekrut manajer', b.mgr * p, 'blue'); }
+      return row({ icon: b.icon, title: b.name, lvl: s.lvl || null, sub, cls: un ? '' : 'locked', btn: btns });
+    }).join('');
+    return h;
+  },
+  family() {
+    const p = PI(S.m); let h = '';
+    h += '<div class="sec">Pasangan</div>';
+    if (!S.partner) h += row({ icon: '💞', title: 'Cari Pasangan', sub: S.skills.comm >= 1 ? 'Kencan & acara: ' + fmt(1.5e6 * p) : '🔒 Butuh Komunikasi Lv 1', btn: S.skills.comm >= 1 ? btn('cari', 'Cari', 1.5e6 * p) : '' , cls: S.skills.comm >= 1 ? '' : 'locked' });
+    else if (!S.married) h += row({ icon: '💍', title: S.partner.name + ' (pacar)', sub: 'Menikah menambah pengeluaran bersama & PTKP. Pilih skala pesta:', extra: '<div class="ibtns">' + ['Sederhana', 'Sedang', 'Mewah'].map((n, i) => btn('nikah:' + i, n, [10e6, 40e6, 150e6][i] * p, 'blue')).join('') + '</div>' });
+    else h += row({ icon: '💑', title: S.partner.name + ' (pasangan)', sub: S.partner.works ? 'Bekerja: +' + fmt(partnerGross() * 0.92) + '/bln. ' : 'Tidak bekerja (mengurus keluarga). ', btn: tog('pwork', !S.partner.works, S.partner.works ? 'Berhenti kerja' : 'Kerja lagi') });
+    h += '<div class="sec">Anak</div>';
+    if (S.married) {
+      h += row({ icon: '🤰', title: 'Program Hamil', sub: (S.pregDue != null ? 'Sedang hamil, lahir sekitar bulan ke-' + S.pregDue + '.' : S.kids.length >= 3 ? 'Maksimal 3 anak.' : 'Persalinan ±' + fmt(14e6 * p * (S.ins ? 0.6 : 1)) + '. Biaya anak naik seiring tumbuh; balita (0–5 thn) membuat kesehatanmu terkuras pelan.'), btn: (S.pregDue == null && S.kids.length < 3) ? btn('hamil', 'Mulai', 0, 'blue') : '' });
+    } else h += '<div class="card">Menikah dulu untuk punya anak.</div>';
+    S.kids.forEach(c => { const ay = kidAgeY(c), st = stageOf(ay); h += row({ icon: c.g === 'm' ? '👦' : '👧', title: c.name + ' (' + ay + ' thn)', sub: (st ? st.label + ': ±' + fmt((st.food + st.tu[S.edu]) * 1e6 * p) + '/bln' : 'Sudah mandiri 🎉' + (kidGift(c, p) > 0 ? ' · kirim ' + fmt(kidGift(c, p)) + '/bln ke kamu' : '')) + ' · 🎓 mutu ' + mutu(c).toFixed(2) }); });
+    h += row({ icon: '🏫', title: 'Pilihan Sekolah: ' + EDU[S.edu], sub: 'Biaya: negeri paling murah, internasional ±5×. Manfaat: 🎓 mutu pendidikan anak (negeri 1,0 · swasta 1,5 · internasional 2,0) menambah skor leaderboard, dan anak bermutu tinggi mengirim uang ke orang tua setelah umur 22.', extra: '<div class="ibtns">' + EDU.map((n, i) => '<button class="buy ' + (S.edu === i ? '' : 'blue') + '" data-act="edu:' + i + '" data-cost="0"><span class="bl">' + n + '</span></button>').join('') + '</div>' });
+    h += '<div class="sec">Orang tua & teman</div>';
+    h += row({ icon: '👵', title: 'Kirim untuk Orang Tua', sub: 'Saat ini ' + (S.support ? fmt(S.support * p) + '/bln · 😊 naik tiap bulan, biaya RS ortu berkurang' : 'tidak mengirim · setelah umur 25 kamu mulai merasa bersalah (😊 turun pelan)'), extra: '<div class="ibtns">' + [0, 0.5e6, 1e6, 2e6].map(v => '<button class="buy ' + (S.support === v ? '' : 'blue') + '" data-act="support:' + v + '" data-cost="0"><span class="bl">' + (v ? fmt(v) : 'Tidak') + '</span></button>').join('') + '</div>' });
+    h += row({ icon: '🧑‍🤝‍🧑', title: 'Hubungan Pertemanan: ' + Math.round(S.friends), sub: 'Teman erat menjaga 😊 dan mengingatkanmu saat ada tawaran bodong (≥75). Hubungan memudar pelan kalau tidak dirawat.', btn: S.cd.fr > 0 ? '<span class="tag">Tunggu ' + S.cd.fr + ' bln</span>' : btn('kumpul', 'Kumpul', 0.3e6 * p, 'blue') });
+    if (S.addict > 0) h += row({ icon: '🎰', title: 'Kecanduan Judol: ' + Math.round(S.addict) + '%', sub: 'Mulai 20%: 😊 turun tiap bulan. Mulai 40%: bisa kambuh & kehilangan uang, pertemanan memburuk. Godaan judol makin sering, peluang naik jabatan turun. Konseling menurunkan 40 poin.', btn: btn('konseling', 'Konseling', 2e6 * p, 'blue') });
+    return h;
+  },
+  life() {
+    const p = PI(S.m); let h = '<div class="sec">Gaya hidup</div>';
+    h += LIFE.map((l, i) => row({ icon: ['🥗', '🙂', '🍹', '💎', '👑'][i], title: l.n, sub: l.d + ' · ' + fmt(l.c * p) + '/bln · 😊 ' + (l.h ? '+' + l.h : '±0') + '/bln · teman ' + (['−0,04', '±0', '+0,04', '+0,07', '+0,1'][i]) + '/bln' + (i >= 3 ? ' · stres −0,4 😊 kalau kas tipis (gengsi), godaan judol & bodong lebih sering' : i >= 1 ? ' · godaan judol & bodong sedikit lebih sering' : ''), btn: S.life === i ? '<span class="tag on">Aktif</span>' : btn('life:' + i, 'Pilih', 0, 'blue') })).join('');
+    h += '<div class="sec">Tempat tinggal</div>';
+    const hp = HOUSE_PRICE * p;
+    h += row({ icon: '🛏️', title: 'Kos', sub: fmt(HOUSING.kos * p) + '/bln · 😊 −0,2/bln (−0,5 kalau sudah menikah/punya anak)', btn: S.housing === 'kos' ? '<span class="tag on">Aktif</span>' : (S.housing === 'kpr' || S.housing === 'own') ? '' : btn('house:kos', 'Pindah', 0, 'blue') });
+    h += row({ icon: '🏘️', title: 'Kontrakan', sub: fmt(HOUSING.kontrak * p) + '/bln, deposit ' + fmt(5e6 * p) + ' · 😊 ±0 (−0,15 kalau punya anak)', btn: S.housing === 'kontrak' ? '<span class="tag on">Aktif</span>' : (S.housing === 'kpr' || S.housing === 'own') ? '' : btn('house:kontrak', 'Pindah', 5e6 * p, 'blue') });
+    h += row({ icon: '🏡', title: 'Rumah Sendiri' + (S.housing === 'own' ? ' ✓' : S.housing === 'kpr' ? ' (KPR)' : ''), sub: 'Harga ' + fmt(hp) + '. Nilai naik ±5%/thn, ada PBB. KPR 20 thn: DP 20% + biaya 3%. 😊 +0,15/bln (KPR), +0,3 (milik penuh)', btn: (S.housing === 'kpr' || S.housing === 'own') ? '<span class="tag on">Dimiliki</span>' : btn('house:kpr', 'KPR', hp * 0.23) + btn('house:cash', 'Tunai', hp, 'blue') });
+    h += '<div class="sec">Kendaraan</div>';
+    h += row({ icon: '🚆', title: 'TransJakarta / KRL' + (S.vehicle === 'none' ? ' ✓' : ''), sub: 'Transport ' + fmt(VEH.none.t * p) + '/bln · 😊 −0,15/bln (desak-desakan) · ❤️ +0,04/bln (jalan kaki)', btn: S.vehicle === 'none' ? '<span class="tag on">Aktif</span>' : '' });
+    [['motor', '🛵', 'Motor'], ['mobil', '🚗', 'Mobil']].forEach(([k, ic, nm]) => {
+      const price = VEH[k].price * p, has = S.vehicle === k, lock = S.vehicle === 'mobil' && k === 'motor';
+      h += row({ icon: ic, title: nm, sub: 'Harga ' + fmt(price) + ' · transport ' + fmt(VEH[k].t * p) + '/bln · pajak ' + fmt(VEH[k].tax * p) + '/thn' + (k === 'motor' ? ' · 😊 +0,1/bln (bebas macet, praktis) · sampingan +30% (ojol/kurir) · risiko kecelakaan ±0,4%/bln' : ' · 😊 +0,2/bln · sampingan +30% · teman +0,03 · ❤️ −0,02/bln'), btn: has ? '<span class="tag on">Dimiliki</span>' : lock ? '' : btn('veh:' + k + ':credit', 'Kredit (DP 20%)', price * 0.2) + btn('veh:' + k + ':cash', 'Tunai', price, 'blue') });
+    });
+    h += '<div class="sec">Kesehatan</div>';
+    h += row({ icon: '🏋️', title: 'Gym / Olahraga Rutin', sub: fmt(0.35e6 * p) + '/bln · kesehatan +0,2/bln', btn: tog('gym', S.gym, S.gym ? 'Berhenti' : 'Mulai') });
+    h += row({ icon: '🛡️', title: 'Asuransi Kesehatan Swasta', sub: 'Premi naik seiring umur. Menanggung hingga ±95% biaya rawat inap & penyakit berat (BPJS saja ±65-75%).', btn: tog('ins', S.ins, S.ins ? 'Berhenti' : 'Ikut') });
+    return h;
+  },
+  rank() { return rankHTML(); },
+};
+function renderSheet(keep) {
+  if (!tab) return; const list = $('#list'), st = keep ? list.scrollTop : 0;
+  list.innerHTML = TABS[tab](); list.scrollTop = st; $('#sheetTitle').textContent = TITLES[tab]; updateSheet();
+}
+function updateSheet() {
+  if (!tab) return;
+  $$('#list [data-cost]').forEach(b => b.classList.toggle('off', S.cash < (+b.dataset.cost)));
+  $$('#list [data-need]').forEach(b => b.classList.toggle('off', !((S.inv[b.dataset.need] || 0) > 0)));
+}
+function openTab(t) {
+  if (tab === t) return closeSheet();
+  tab = t; $('#sheet').classList.add('open'); $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  renderSheet(false); if (t === 'rank') loadBoard();
+}
+function closeSheet() { tab = null; $('#sheet').classList.remove('open'); $$('#tabs button').forEach(b => b.classList.remove('on')); }
+function tabDots() {
+  const f = S.flow || compute(), d = {};
+  d.career = SKILLS.some(k => S.skills[k.id] < 20 && S.cash >= cost.skill(k)) || JOBS.some((j, i) => canPromote(i));
+  d.money = S.debts.some(x => x.k === 'pinjol');
+  d.invest = sum(S.inv) === 0 && S.cash > 3 * f.needsFF && S.skills.fin >= 0;
+  d.biz = false; d.family = false; d.life = false; d.rank = !!S.ended;
+  $$('#tabs button').forEach(b => b.classList.toggle('hasdot', !!d[b.dataset.tab] && b.dataset.tab !== tab));
+}
+
+/* ====================== karakter & scene ====================== */
+/* ====================== seni karakter ====================== */
+const SK = '#f7d1b0', SK2 = '#eab794';
+const BLING = (x, y, s) => '<path transform="translate(' + x + ',' + y + ') scale(' + (s || 1) + ')" d="M0 -5 L1.4 -1.4 L5 0 L1.4 1.4 L0 5 L-1.4 1.4 L-5 0 L-1.4 -1.4Z" fill="#fff6a8" stroke="#f2b705" stroke-width=".6"/>';
+function faceSVG(g, o) {
+  o = o || {}; const T = o.T || 0, hc = o.hairC || (g === 'f' ? '#2a1a14' : '#241a14'), hl = g === 'f' ? '#7b5440' : '#5b4636';
+  const f = g === 'f', s = '';
+  let h = '';
+  // rambut belakang
+  if (f && !o.kid) h += '<path d="M-27 -138 C-31 -166 -12 -173 0 -173 C12 -173 31 -166 27 -138 C33 -118 31 -92 25 -80 Q9 -72 0 -80 Q-9 -72 -25 -80 C-31 -92 -33 -118 -27 -138Z" fill="' + hc + '"/>';
+  if (f && o.kid) h += '<circle cx="-25" cy="-128" r="8.5" fill="' + hc + '"/><circle cx="25" cy="-128" r="8.5" fill="' + hc + '"/>';
+  // telinga (cowok)
+  if (!f) h += '<circle cx="-22" cy="-132" r="4.2" fill="' + SK2 + '"/><circle cx="22" cy="-132" r="4.2" fill="' + SK2 + '"/>';
+  // wajah
+  h += f
+    ? '<path d="M-21 -137 C-21 -152 -12 -158 0 -158 C12 -158 21 -152 21 -137 C21 -124 14 -109 0 -105 C-14 -109 -21 -124 -21 -137Z" fill="' + SK + '"/>'
+    : '<path d="M-22 -139 C-22 -154 -12 -159 0 -159 C12 -159 22 -154 22 -139 L21 -125 C20 -112 10 -105 0 -105 C-10 -105 -20 -112 -21 -125Z" fill="' + SK + '"/>';
+  // pipi
+  h += '<ellipse cx="-14" cy="-120" rx="5" ry="3" fill="#ff8da4" opacity="' + (f ? '.42' : '.18') + '"/><ellipse cx="14" cy="-120" rx="5" ry="3" fill="#ff8da4" opacity="' + (f ? '.42' : '.18') + '"/>';
+  // mata
+  [-9.5, 9.5].forEach(x => {
+    const sg = x < 0 ? -1 : 1;
+    if (f) {
+      h += '<ellipse cx="' + x + '" cy="-132" rx="5.8" ry="6.6" fill="#fff"/><circle cx="' + (x + sg * .3) + '" cy="-131.4" r="4.4" fill="#5a3522"/><circle cx="' + (x + sg * .3) + '" cy="-131.4" r="2.3" fill="#140b07"/><circle cx="' + (x - 1.3) + '" cy="-133.4" r="1.6" fill="#fff"/><circle cx="' + (x + 1.7) + '" cy="-129.4" r=".8" fill="#fff" opacity=".85"/>';
+      h += '<path d="M' + (x - 6.6) + ' -133.4 Q' + x + ' -140.4 ' + (x + 6.6) + ' -133.4" stroke="#1b110d" stroke-width="2.3" fill="none" stroke-linecap="round"/><path d="M' + (x + sg * 6.2) + ' -134.2 l' + (sg * 3.2) + ' -2.4" stroke="#1b110d" stroke-width="1.6" stroke-linecap="round"/>';
+      h += '<path d="M' + (x - 6) + ' -143.4 Q' + x + ' -147.4 ' + (x + 6) + ' -143.6" stroke="' + hc + '" stroke-width="1.7" fill="none" stroke-linecap="round"/>';
+    } else {
+      h += '<ellipse cx="' + x + '" cy="-132" rx="4.8" ry="4.9" fill="#fff"/><circle cx="' + (x + sg * .2) + '" cy="-131.8" r="3.5" fill="#3b2415"/><circle cx="' + (x + sg * .2) + '" cy="-131.8" r="1.9" fill="#0f0806"/><circle cx="' + (x - 1) + '" cy="-133.2" r="1.2" fill="#fff"/>';
+      h += '<path d="M' + (x - 5.2) + ' -135 Q' + x + ' -138.6 ' + (x + 5.2) + ' -135" stroke="#1b110d" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
+      h += '<path d="M' + (x - sg * 6.5) + ' -141.2 L' + (x + sg * 6.2) + ' -143.8" stroke="' + hc + '" stroke-width="3" stroke-linecap="round"/>';
+    }
+  });
+  // hidung & mulut
+  h += '<path d="M-1.6 -122.8 Q0 -120.6 1.8 -122.8" stroke="#d29a78" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+  if (f) h += '<path d="M-5.2 -114.6 Q0 -111.4 5.2 -114.6 Q0 -113.2 -5.2 -114.6Z" fill="#cf3f60"/><path d="M-4.6 -114.4 Q0 -108.6 4.6 -114.4 Q0 -112 -4.6 -114.4Z" fill="#ec6784"/>';
+  else h += '<path d="M-5.8 -114.4 Q0 -109 5.8 -114.4" stroke="#8f4638" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M-4 -113 Q0 -110.4 4 -113" stroke="#fff" stroke-width="1.2" fill="none" opacity=".8" stroke-linecap="round"/>';
+  // rambut depan
+  if (f) {
+    h += o.kid
+      ? '<path d="M-23 -138 C-25 -160 -9 -166 2 -165 C18 -164 26 -152 23 -138 C20 -147 14 -152 4 -152 C-8 -151 -18 -147 -23 -138Z" fill="' + hc + '"/>'
+      : '<path d="M-24 -136 C-28 -162 -9 -170 3 -168 C21 -167 28 -152 24 -136 C22 -147 16 -153 7 -155 C-1 -147 -14 -141 -24 -136Z" fill="' + hc + '"/><path d="M-15 -160 Q-4 -166 9 -164" stroke="' + hl + '" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".6"/>';
+  } else {
+    h += o.kid
+      ? '<path d="M-23 -140 C-24 -161 -8 -166 3 -165 C18 -164 25 -153 23 -140 C18 -146 10 -149 0 -148 C-10 -147 -18 -145 -23 -140Z" fill="' + hc + '"/>'
+      : '<path d="M-23.5 -139 C-28 -162 -10 -172 6 -168 C22 -165 28 -151 23.5 -139 L23 -133 C21 -142 15 -148 6 -149 C-6 -150 -16 -147 -22 -134Z" fill="' + hc + '"/><path d="M-12 -163 Q-2 -168 10 -165" stroke="' + hl + '" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>';
+  }
+  return h;
+}
+function accessorySVG(g, T, kid) {
+  let h = '';
+  if (kid) return h;
+  if (g === 'f') {
+    if (T === 1) h += '<path d="M-17 -154 l6 -2 l-1 5 z" fill="#ff7fa5"/><circle cx="-13" cy="-154" r="1.6" fill="#fff"/>';
+    if (T >= 2) h += '<path d="M-23 -142 C-18 -164 18 -164 23 -142" stroke="' + (T === 2 ? '#ff7fa5' : '#e9c46a') + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    if (T >= 2) h += '<circle cx="-21.5" cy="-123" r="2" fill="' + (T >= 3 ? '#f2c14e' : '#ff7fa5') + '"/><circle cx="21.5" cy="-123" r="2" fill="' + (T >= 3 ? '#f2c14e' : '#ff7fa5') + '"/>';
+    if (T >= 3) h += '<path d="M-21.5 -121 q0 7 -3 8" stroke="#f2c14e" stroke-width="1.6" fill="none"/><path d="M21.5 -121 q0 7 3 8" stroke="#f2c14e" stroke-width="1.6" fill="none"/>';
+    if (T >= 4) h += '<g><path d="M-20 -150 Q0 -162 20 -150" stroke="#222" stroke-width="2.4" fill="none"/><rect x="-19" y="-157" width="16" height="8" rx="3" fill="#161616"/><rect x="3" y="-157" width="16" height="8" rx="3" fill="#161616"/><path d="M-17 -155 l4 0 M5 -155 l4 0" stroke="#8aa" stroke-width="1.4" opacity=".6"/></g>' + BLING(26, -150, 1.1) + BLING(-28, -112, .8);
+  } else {
+    if (T === 2) h += '<g fill="none" stroke="#2b2b2b" stroke-width="1.8"><circle cx="-9.5" cy="-132" r="7"/><circle cx="9.5" cy="-132" r="7"/><path d="M-2.5 -132 H2.5"/></g>';
+    if (T >= 4) h += '<g><rect x="-17" y="-151" width="15" height="8" rx="3" fill="#161616" transform="rotate(-6 -9 -147)"/><rect x="2" y="-151" width="15" height="8" rx="3" fill="#161616" transform="rotate(6 9 -147)"/><path d="M-3 -148 H3" stroke="#d4af37" stroke-width="2"/></g>' + BLING(28, -150, 1.1);
+  }
+  return h;
+}
+const JEANS = '#3f5f8f', JEANS2 = '#34507a';
+function shoe(x, kind, col) {
+  const s = x < 0 ? -1 : 1;
+  if (kind === 'heel') return '<path d="M' + (x - 4) + ' -10 L' + (x + 4) + ' -10 L' + (x + 4) + ' -3 Q' + (x + 4) + ' 0 ' + (x + 1) + ' 0 L' + (x - 6) + ' 0 Q' + (x - 7) + ' -5 ' + (x - 4) + ' -10Z" fill="' + col + '"/><rect x="' + (x + (s > 0 ? 1.5 : -3.5)) + '" y="-3" width="2" height="3" fill="' + col + '"/>';
+  return '<path d="M' + (x - 6) + ' -9 L' + (x + 5) + ' -9 L' + (x + 7) + ' -3 Q' + (x + 7) + ' 0 ' + (x + 4) + ' 0 L' + (x - 8) + ' 0 Q' + (x - 9) + ' -5 ' + (x - 6) + ' -9Z" fill="' + col + '"/><path d="M' + (x - 8) + ' -2 H' + (x + 7) + '" stroke="#fff" stroke-width="1.6" opacity=".7"/>';
+}
+function personF(o) {
+  const T = o.T, top = o.top, hc = o.hairC; let h = '';
+  const dressy = T >= 3, skirt = T >= 2;
+  h += faceBack(o);
+  // kaki
+  if (T === 0) h += '<path d="M-14 -68 Q0 -64 14 -68 L12.5 -9 L2.6 -9 L0 -48 L-2.6 -9 L-12.5 -9Z" fill="' + JEANS + '"/><path d="M0 -60 V-48" stroke="' + JEANS2 + '" stroke-width="1.2"/>';
+  else if (T === 1) h += '<path d="M-10 -22 L-9 -9 L-3 -9 L-2 -22Z M2 -22 L3 -9 L9 -9 L10 -22Z" fill="' + SK + '"/><path d="M-14 -68 Q0 -64 14 -68 L12 -20 L2.6 -20 L0 -48 L-2.6 -20 L-12 -20Z" fill="' + (o.bottom || '#2d3748') + '"/>';
+  else h += '<path d="M-10.5 -40 Q-11.5 -22 -8.8 -9 L-3.2 -9 Q-1.4 -22 -1.6 -40Z M1.6 -40 Q1.4 -22 3.2 -9 L8.8 -9 Q11.5 -22 10.5 -40Z" fill="' + SK + '"/>';
+  const shoeKind = T >= 3 ? 'heel' : 'flat', shoeCol = ['#fff', '#ff7fa5', '#8b5a3c', '#b3243b', '#d4af37'][T];
+  h += shoe(-7.5, shoeKind, shoeCol) + shoe(7.5, shoeKind, shoeCol);
+  // torso & rok
+  if (T === 2) h += '<path d="M-14 -70 Q0 -66 14 -70 L24 -34 Q0 -26 -24 -34Z" fill="' + (o.bottom || '#6b4ea0') + '"/><path d="M-8 -66 L-13 -31 M0 -65 V-29 M8 -66 L13 -31" stroke="#fff" stroke-width="1" opacity=".25"/>';
+  if (T === 3) h += '<path d="M-15 -99 Q0 -104 15 -99 L17 -86 Q12 -80 13 -72 L26 -36 Q0 -28 -26 -36 L-13 -72 Q-12 -80 -17 -86Z" fill="' + top + '"/><path d="M-13 -78 Q0 -74 13 -78" stroke="#e9c46a" stroke-width="3" fill="none"/>';
+  if (T >= 4) h += '<path d="M-15 -99 Q0 -104 15 -99 L17 -86 Q12 -80 13 -72 L33 -16 Q0 -4 -33 -16 L-13 -72 Q-12 -80 -17 -86Z" fill="' + top + '"/><path d="M-13 -78 Q0 -74 13 -78" stroke="#f2c14e" stroke-width="3.4" fill="none"/><path d="M-14 -50 L-28 -18 M0 -48 V-8 M14 -50 L28 -18" stroke="#fff" stroke-width="1" opacity=".3"/>' + BLING(-18, -40, .9) + BLING(20, -30, .8) + BLING(8, -60, .7);
+  if (T < 3) h += '<path d="M-15 -99 Q0 -104 15 -99 L17 -86 Q12 -80 14 -66 Q0 -62 -14 -66 Q-12 -80 -17 -86Z" fill="' + top + '"/>' + (T === 1 ? '<path d="M-6 -102 L0 -92 L6 -102" fill="#fff" opacity=".7"/>' : '');
+  // lengan
+  const armLen = T >= 3 ? 4 : 0;
+  [-1, 1].forEach(sg => {
+    h += '<path d="M' + (sg * 15) + ' -96 Q' + (sg * 24) + ' -78 ' + (sg * 21) + ' -60" stroke="' + SK + '" stroke-width="6.6" fill="none" stroke-linecap="round"/><circle cx="' + (sg * 21) + '" cy="-57" r="3.8" fill="' + SK + '"/>';
+    if (T === 1) h += '<path d="M' + (sg * 15) + ' -96 Q' + (sg * 23.5) + ' -80 ' + (sg * 22) + ' -72" stroke="' + top + '" stroke-width="7" fill="none" stroke-linecap="round"/>';
+    else if (T === 4) h += '<path d="M' + (sg * 15) + ' -97 Q' + (sg * 17) + ' -93 ' + (sg * 17) + ' -90" stroke="' + top + '" stroke-width="6" fill="none" stroke-linecap="round"/>';
+    else h += '<path d="M' + (sg * 15) + ' -96 Q' + (sg * 20) + ' -88 ' + (sg * 20) + ' -83" stroke="' + top + '" stroke-width="7" fill="none" stroke-linecap="round"/>';
+  });
+  if (T >= 3) h += '<path d="M18.6 -63 q2.4 3 4.8 0" stroke="#f2c14e" stroke-width="1.6" fill="none"/>';
+  if (T >= 3) h += '<path d="M-7 -102 Q0 -92 7 -102" stroke="' + (T === 3 ? '#fff' : '#f2c14e') + '" stroke-width="1.8" fill="none"/>' + (T === 3 ? '<circle cx="0" cy="-92.4" r="1.7" fill="#fff"/>' : '<circle cx="0" cy="-92.4" r="2" fill="#f2c14e"/>');
+  // tas
+  if (T >= 3) h += '<g transform="translate(-26,-52)"><path d="M-3 0 Q-9 -14 0 -16 Q9 -14 3 0" stroke="#7b2d3a" stroke-width="1.8" fill="none"/><rect x="-10" y="-2" width="20" height="14" rx="3" fill="' + (T === 3 ? '#b3243b' : '#161616') + '"/><rect x="-2" y="2" width="4" height="3" rx="1" fill="#f2c14e"/></g>';
+  // leher + kepala
+  h += '<rect x="-4.6" y="-111" width="9.2" height="13" rx="3" fill="' + SK2 + '"/>';
+  h += faceSVG('f', o) + accessorySVG('f', T);
+  return h;
+}
+function faceBack(o) { return ''; }
+function personM(o) {
+  const T = o.T, top = o.top; let h = '';
+  const slack = T >= 2 ? (T >= 3 ? '#2b3345' : '#5b6578') : (T === 1 ? '#a58b6a' : JEANS);
+  const suit = T >= 3 ? (T === 3 ? '#26344f' : '#15151b') : (T === 2 ? '#6d7f56' : null);
+  // kaki
+  h += '<path d="M-17 -68 Q0 -64 17 -68 L15 -9 L3 -9 L0 -48 L-3 -9 L-15 -9Z" fill="' + (o.bottom && T < 2 ? o.bottom : slack) + '"/>';
+  h += '<path d="M0 -62 V-48" stroke="rgba(0,0,0,.18)" stroke-width="1.2"/>';
+  const shoeCol = ['#f4f4f4', '#e9edf5', '#7a4b2b', '#3a2517', '#0e0e0e'][T];
+  h += shoe(-8.5, 'flat', shoeCol).replace(/#fff/g, 'rgba(255,255,255,.0)') + shoe(8.5, 'flat', shoeCol).replace(/#fff/g, 'rgba(255,255,255,.0)');
+  // badan
+  h += '<path d="M-19 -99 Q0 -104 19 -99 L22 -90 Q16 -80 15 -66 Q0 -62 -15 -66 Q-16 -80 -22 -90Z" fill="' + top + '"/>';
+  if (T === 0) h += '<path d="M-7 -102 Q0 -96 7 -102" stroke="rgba(0,0,0,.18)" stroke-width="1.6" fill="none"/>';
+  if (T === 1) h += '<path d="M-7 -103 L0 -94 L7 -103" fill="#fff" opacity=".85"/><path d="M0 -94 V-66" stroke="rgba(0,0,0,.18)" stroke-width="1.2"/>';
+  if (T >= 2) h += '<path d="M-7 -103 L0 -93 L7 -103" fill="#fff"/>';
+  if (T >= 2) h += '<path d="M-19 -99 Q-23 -84 -16 -66 L-8 -66 L-3 -94 Z M19 -99 Q23 -84 16 -66 L8 -66 L3 -94Z" fill="' + suit + '"/><path d="M-3 -94 L-8 -66 M3 -94 L8 -66" stroke="rgba(0,0,0,.25)" stroke-width="1.2"/>';
+  if (T === 3) h += '<path d="M-1.6 -100 L1.6 -100 L2.4 -84 L0 -80 L-2.4 -84Z" fill="#b3243b"/><rect x="9" y="-88" width="6" height="4" fill="#fff" opacity=".9"/>';
+  if (T >= 4) h += '<path d="M-1.6 -100 L1.6 -100 L2.4 -86 L0 -82 L-2.4 -86Z" fill="#d4af37"/><path d="M-6 -100 Q0 -88 6 -100" stroke="#f2c14e" stroke-width="2" fill="none"/><circle cx="0" cy="-89.5" r="2.2" fill="#f2c14e"/>' + BLING(-12, -86, .8) + BLING(16, -80, .7);
+  // lengan
+  [-1, 1].forEach(sg => {
+    h += '<path d="M' + (sg * 19) + ' -95 Q' + (sg * 28) + ' -78 ' + (sg * 24) + ' -59" stroke="' + SK + '" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="' + (sg * 24) + '" cy="-55.5" r="4.4" fill="' + SK + '"/>';
+    const sleeveCol = T >= 2 ? suit : top;
+    const end = T >= 2 ? -61 : -82;
+    h += '<path d="M' + (sg * 19) + ' -95 Q' + (sg * (T >= 2 ? 27.6 : 24.4)) + ' ' + (T >= 2 ? -79 : -88) + ' ' + (sg * (T >= 2 ? 24.2 : 23)) + ' ' + end + '" stroke="' + sleeveCol + '" stroke-width="9" fill="none" stroke-linecap="round"/>';
+    if (T >= 2) h += '<path d="M' + (sg * 20.6) + ' -64 L' + (sg * 27.4) + ' -64" stroke="#fff" stroke-width="2.4"/>';
+  });
+  if (T >= 1) h += '<g transform="translate(-24,-63)"><circle cx="0" cy="0" r="3.8" fill="none" stroke="' + (T >= 4 ? '#f2c14e' : '#444') + '" stroke-width="2"/><circle cx="0" cy="0" r="2.4" fill="' + (T >= 4 ? '#fff6c8' : '#fff') + '"/></g>';
+  h += '<rect x="-5.4" y="-112" width="10.8" height="14" rx="3" fill="' + SK2 + '"/>';
+  h += faceSVG('m', o) + accessorySVG('m', T);
+  return h;
+}
+/* tier gaya dari gaya hidup & jabatan */
+const TOP_F = ['#ff9ec0', '#9bd1ff', '#c7a4ff', '#b3243b', '#101010'];
+const TOP_M = ['#6bb3ff', '#e4572e', '#f4f1ea', '#26344f', '#15151b'];
+function person(g, o) {
+  o = Object.assign({ T: 0 }, o || {});
+  o.T = Math.max(0, Math.min(4, o.T | 0));
+  o.top = o.top || (g === 'f' ? TOP_F[o.T] : TOP_M[o.T]);
+  if (o.uniform) return personUniform(g, o);
+  return g === 'f' ? personF(o) : personM(o);
+}
+function personUniform(g, o) {
+  const u = o.uniform, ph = Object.assign({}, o, { T: 1 });
+  let h = '';
+  // tas ransel (di belakang)
+  h += '<rect x="-23" y="-96" width="46" height="36" rx="10" fill="' + (u.bag || '#e4572e') + '"/>';
+  if (g === 'f') {
+    h += '<path d="M-14 -68 Q0 -64 14 -68 L22 -34 Q0 -28 -22 -34Z" fill="' + u.bottom + '"/>';
+    h += '<path d="M-10.5 -34 Q-11.5 -22 -8.8 -9 L-3.2 -9 Q-1.4 -22 -1.6 -34Z M1.6 -34 Q1.4 -22 3.2 -9 L8.8 -9 Q11.5 -22 10.5 -34Z" fill="' + SK + '"/><path d="M-11 -17 H-3 M3 -17 H11" stroke="#fff" stroke-width="5"/>';
+    h += shoe(-7.5, 'flat', '#222') + shoe(7.5, 'flat', '#222');
+    h += '<path d="M-15 -99 Q0 -104 15 -99 L17 -86 Q12 -80 14 -66 Q0 -62 -14 -66 Q-12 -80 -17 -86Z" fill="' + u.top + '"/>';
+  } else {
+    h += '<path d="M-17 -68 Q0 -64 17 -68 L15 -9 L3 -9 L0 -48 L-3 -9 L-15 -9Z" fill="' + u.bottom + '"/><path d="M-15 -26 H-3 M3 -26 H15" stroke="' + SK + '" stroke-width="0"/>';
+    h += shoe(-8.5, 'flat', '#222') + shoe(8.5, 'flat', '#222');
+    h += '<path d="M-19 -99 Q0 -104 19 -99 L22 -90 Q16 -80 15 -66 Q0 -62 -15 -66 Q-16 -80 -22 -90Z" fill="' + u.top + '"/>';
+  }
+  const w = g === 'f' ? 15 : 19, sw = g === 'f' ? 6.6 : 8;
+  [-1, 1].forEach(sg => {
+    h += '<path d="M' + (sg * w) + ' -96 Q' + (sg * (w + 9)) + ' -78 ' + (sg * (w + 5)) + ' -60" stroke="' + SK + '" stroke-width="' + sw + '" fill="none" stroke-linecap="round"/><circle cx="' + (sg * (w + 5)) + '" cy="-57" r="4" fill="' + SK + '"/>';
+    h += '<path d="M' + (sg * w) + ' -96 Q' + (sg * (w + 5)) + ' -88 ' + (sg * (w + 4)) + ' -83" stroke="' + u.top + '" stroke-width="' + (sw + .6) + '" fill="none" stroke-linecap="round"/>';
+  });
+  if (u.tie) h += '<path d="M-1.8 -100 L1.8 -100 L2.6 -80 L0 -76 L-2.6 -80Z" fill="' + u.tie + '"/>';
+  if (u.blazer) h += '<path d="M-19 -99 Q-23 -84 -16 -66 L-8 -66 L-3 -94Z M19 -99 Q23 -84 16 -66 L8 -66 L3 -94Z" fill="' + u.blazer + '"/><circle cx="-12" cy="-84" r="3" fill="#f2c14e"/>';
+  h += '<rect x="-5" y="-111" width="10" height="13" rx="3" fill="' + SK2 + '"/>';
+  h += '<path d="M-7 -102 L0 -93 L7 -102" fill="#fff"/>';
+  h += faceSVG(g, ph);
+  return h;
+}
+/* anak kecil */
+function kidSVG(g, ay, edu, i) {
+  const f = g === 'f', pal = [['#ffd23f', '#ff8fb1'], ['#7fd1ff', '#8ee08b'], ['#ffa94d', '#c4a4ff']][i % 3], hair = f ? '#2a1a14' : '#241a14';
+  let h = '';
+  const face = (cy, sc) => '<g transform="translate(0,' + cy + ') scale(' + sc + ') translate(0,130)">' + faceSVG(g, { kid: true, T: 0, hairC: hair }) + '</g>';
+  if (ay < 3) { // bayi duduk
+    h += '<ellipse cx="-17" cy="-10" rx="9" ry="6" fill="' + SK + '" transform="rotate(-18 -17 -10)"/><ellipse cx="17" cy="-10" rx="9" ry="6" fill="' + SK + '" transform="rotate(18 17 -10)"/>';
+    h += '<ellipse cx="0" cy="-30" rx="21" ry="24" fill="' + pal[f ? 1 : 0] + '"/><circle cx="0" cy="-20" r="2" fill="#fff" opacity=".6"/>';
+    h += '<circle cx="-21" cy="-34" r="6" fill="' + SK + '"/><circle cx="21" cy="-34" r="6" fill="' + SK + '"/>';
+    h += face(-64, 1.2) + '<circle cx="0" cy="-44" r="4.6" fill="#7fd1ff" stroke="#fff" stroke-width="1.4"/>';
+    return h;
+  }
+  if (ay < 12) {
+    const sch = ay >= 6, top = sch ? '#fff' : pal[0], bot = sch ? '#d62839' : pal[1];
+    if (ay >= 3) h += '<rect x="-17" y="-72" width="34" height="32" rx="10" fill="' + (sch ? '#e4572e' : '#58b368') + '"/>';
+    h += '<rect x="-8" y="-24" width="6.5" height="17" rx="3" fill="' + SK + '"/><rect x="1.5" y="-24" width="6.5" height="17" rx="3" fill="' + SK + '"/>';
+    h += '<ellipse cx="-5" cy="-3" rx="7.5" ry="4.2" fill="' + (sch ? '#222' : '#fff') + '"/><ellipse cx="5" cy="-3" rx="7.5" ry="4.2" fill="' + (sch ? '#222' : '#fff') + '"/>';
+    if (sch) h += '<path d="M-8 -17 H-1.5 M1.5 -17 H8" stroke="#fff" stroke-width="3.4"/>';
+    h += f && sch ? '<path d="M-14 -44 L14 -44 L19 -24 L-19 -24Z" fill="' + bot + '"/>' : '<rect x="-12" y="-44" width="24" height="22" rx="5" fill="' + bot + '"/>';
+    h += '<rect x="-14" y="-76" width="28" height="36" rx="11" fill="' + top + '"/>';
+    if (sch) h += '<path d="M-5 -76 L0 -68 L5 -76" fill="#d62839" opacity=".9"/>' + (edu >= 1 ? '<path d="M-1.5 -70 L1.5 -70 L2 -60 L0 -57 L-2 -60Z" fill="#1d3557"/>' : '');
+    h += '<path d="M-14 -70 Q-24 -58 -20 -46" stroke="' + SK + '" stroke-width="6.5" fill="none" stroke-linecap="round"/><path d="M14 -70 Q24 -58 20 -46" stroke="' + SK + '" stroke-width="6.5" fill="none" stroke-linecap="round"/>';
+    h += '<path d="M-14 -70 Q-19 -64 -19 -60" stroke="' + top + '" stroke-width="7.4" fill="none" stroke-linecap="round"/><path d="M14 -70 Q19 -64 19 -60" stroke="' + top + '" stroke-width="7.4" fill="none" stroke-linecap="round"/>';
+    h += face(-100, 1.08) + (f ? '<g transform="translate(0,-100) scale(1.08) translate(0,130)"><path d="M-17 -156 l-9 -5 l1 11z M-17 -156 l-3 8 l-6 -4z" fill="#ff5d8f"/><circle cx="-17" cy="-156" r="2.2" fill="#ffd23f"/></g>' : '');
+    return h;
+  }
+  return null; // usia 12+ dirender dengan person + seragam
+}
+function uniformFor(ay, edu, i) {
+  const bag = ['#e4572e', '#3a86ff', '#2a9d8f'][i % 3];
+  if (ay >= 22) return null;
+  if (ay >= 18) return { top: ['#ff9ec0', '#7fd1ff', '#c4a4ff'][i % 3], bottom: '#3f5f8f', bag };
+  const bottom = ay < 15 ? '#1d3557' : '#6b7280';
+  const u = { top: '#fff', bottom, bag };
+  if (edu >= 1) u.tie = ay < 15 ? '#1d3557' : '#6b7280';
+  if (edu >= 2) u.blazer = '#7b1e3a';
+  return u;
+}
+
+/* ====================== rumah & kendaraan ====================== */
+const wheel = (x, y, r, rim) => '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#171717"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .55) + '" fill="' + (rim || '#c9ced6') + '"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .18) + '" fill="#555"/>';
+function carSVG(kind, col) {
+  let s = '<ellipse cx="0" cy="1" rx="52" ry="4" fill="rgba(0,0,0,.18)"/>';
+  const glass = '#bfe3f7', rim = kind === 'lux' || kind === 'sport' ? '#e0b43a' : '#c9ced6';
+  if (kind === 'hatch') {
+    s += '<path d="M-44 -4 L-44 -16 Q-43 -22 -35 -23 L-27 -35 Q-24 -39 -18 -39 L12 -39 Q18 -39 22 -34 L31 -24 L41 -22 Q46 -20 46 -14 L46 -4Z" fill="' + col + '"/>';
+    s += '<path d="M-24 -26 L-18 -35 H-4 V-26Z M0 -26 V-35 H11 Q15 -35 18 -31 L24 -26Z" fill="' + glass + '"/>';
+  } else if (kind === 'sedan') {
+    s += '<path d="M-52 -4 L-52 -16 Q-51 -21 -44 -22 L-34 -24 L-24 -36 Q-21 -39 -15 -39 L12 -39 Q18 -39 22 -35 L32 -25 L46 -22 Q52 -20 52 -14 L52 -4Z" fill="' + col + '"/>';
+    s += '<path d="M-30 -26 L-22 -35 H-6 V-26Z M-2 -26 V-35 H11 Q15 -35 18 -31 L26 -26Z" fill="' + glass + '"/>';
+  } else if (kind === 'suv') {
+    s += '<path d="M-50 -4 L-50 -22 Q-50 -27 -44 -28 L-40 -42 Q-38 -46 -32 -46 L16 -46 Q22 -46 26 -41 L33 -30 L46 -28 Q51 -26 51 -20 L51 -4Z" fill="' + col + '"/>';
+    s += '<path d="M-36 -31 L-33 -41 H-6 V-31Z M-2 -31 V-41 H14 Q18 -41 21 -37 L26 -31Z" fill="' + glass + '"/>';
+  } else if (kind === 'lux') {
+    s += '<path d="M-54 -4 L-54 -15 Q-53 -20 -46 -21 L-34 -23 L-22 -35 Q-19 -38 -13 -38 L12 -38 Q18 -38 22 -34 L34 -24 L48 -21 Q54 -19 54 -13 L54 -4Z" fill="' + col + '"/>';
+    s += '<path d="M-28 -25 L-20 -34 H-5 V-25Z M-1 -25 V-34 H11 Q15 -34 18 -30 L28 -25Z" fill="#8fb7d6"/><path d="M-50 -14 H50" stroke="#fff" stroke-width=".8" opacity=".35"/><circle cx="50" cy="-12" r="2" fill="#fff6c8"/>';
+  } else { // sport
+    s += '<path d="M-54 -4 L-54 -13 Q-52 -18 -44 -19 L-28 -22 Q-20 -34 -8 -35 L10 -35 Q18 -35 24 -27 L36 -22 L50 -19 Q55 -17 55 -11 L55 -4Z" fill="' + col + '"/>';
+    s += '<path d="M-22 -23 Q-17 -31 -8 -31 H6 Q12 -31 16 -26 L20 -23Z" fill="#8fb7d6"/><path d="M-44 -9 H-24" stroke="#fff" stroke-width="1.5" opacity=".5"/><circle cx="52" cy="-11" r="2" fill="#fff6c8"/>';
+  }
+  s += '<rect x="-52" y="-6" width="104" height="3" rx="1.5" fill="rgba(0,0,0,.18)"/>';
+  const wy = kind === 'sport' ? -8 : -9, r = kind === 'suv' ? 11 : kind === 'sport' ? 9 : 9.5;
+  s += wheel(-30, wy, r, rim) + wheel(30, wy, r, rim);
+  return s;
+}
+function bikeSVG(kind) {
+  let s = '<ellipse cx="0" cy="1" rx="40" ry="4" fill="rgba(0,0,0,.18)"/>';
+  if (kind === 'matic') {
+    s += '<path d="M-26 -9 L-18 -22 L10 -22 L18 -9 Z" fill="#e8a23a"/><path d="M10 -22 L20 -40 L28 -40 L20 -9 L12 -9Z" fill="#d68e22"/><rect x="-22" y="-30" width="30" height="8" rx="4" fill="#4a3220"/><path d="M20 -40 L16 -52 L26 -54" stroke="#bbb" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="28" cy="-38" r="3" fill="#fff6c8"/>';
+    s += wheel(-26, -9, 9) + wheel(26, -9, 9);
+  } else if (kind === 'vespa') {
+    s += '<path d="M-28 -10 Q-30 -30 -14 -30 L8 -30 Q16 -28 18 -10 Z" fill="#f2e6c9"/><path d="M12 -32 Q22 -36 28 -12 L18 -10Z" fill="#f2e6c9"/><path d="M16 -34 Q24 -52 32 -50" stroke="#c9ced6" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="30" cy="-38" r="4" fill="#fff6c8" stroke="#bbb"/><rect x="-18" y="-38" width="28" height="8" rx="4" fill="#7a4b2b"/><path d="M-4 -24 H12" stroke="#d1c4a0" stroke-width="2"/>';
+    s += wheel(-26, -9, 8.5) + wheel(26, -9, 8.5);
+  } else { // big bike
+    s += '<path d="M-32 -14 L-20 -34 L8 -34 L22 -20 L26 -9 L-6 -9Z" fill="#1c1c22"/><rect x="-18" y="-40" width="26" height="8" rx="4" fill="#3a2a22"/><path d="M-4 -18 H12 L16 -9 H-8Z" fill="#c9ced6"/><path d="M22 -20 L34 -42 L42 -42" stroke="#d0d4dc" stroke-width="3.6" fill="none" stroke-linecap="round"/><circle cx="36" cy="-34" r="4" fill="#fff6c8"/><path d="M-34 -14 L-42 -12" stroke="#d0d4dc" stroke-width="4" stroke-linecap="round"/>';
+    s += wheel(-32, -10, 10.5, '#d4af37') + wheel(32, -10, 10.5, '#d4af37');
+  }
+  return s;
+}
+function carport(w) { return '<g><rect x="' + (214) + '" y="296" width="' + w + '" height="6" fill="#8a97b3"/><rect x="216" y="302" width="4" height="60" fill="#aab3c7"/><rect x="' + (214 + w - 6) + '" y="302" width="4" height="60" fill="#aab3c7"/></g>'; }
+function halteSVG() {
+  return '<rect x="204" y="352" width="190" height="12" fill="#6b717d"/><path d="M210 358 H390" stroke="#f3f3f3" stroke-width="2" stroke-dasharray="14 10"/>'
+    + '<g><rect x="222" y="300" width="64" height="5" fill="#2f6fd0"/><rect x="224" y="305" width="3" height="48" fill="#8ea2c4"/><rect x="281" y="305" width="3" height="48" fill="#8ea2c4"/><rect x="228" y="328" width="52" height="4" fill="#7a5a3a"/><rect x="228" y="318" width="52" height="24" fill="#bfe3f7" opacity=".35"/></g>'
+    + '<g><rect x="296" y="296" width="3" height="58" fill="#8ea2c4"/><rect x="288" y="288" width="20" height="16" rx="3" fill="#2f6fd0"/><text x="298" y="300" text-anchor="middle" font-size="9" font-weight="900" fill="#fff" font-family="Nunito,sans-serif">TJ</text></g>'
+    + '<g transform="translate(350,350)"><rect x="-44" y="-34" width="88" height="30" rx="7" fill="#1e88e5"/><rect x="-44" y="-18" width="88" height="5" fill="#fff"/><g fill="#d6efff"><rect x="-38" y="-30" width="14" height="10" rx="2"/><rect x="-20" y="-30" width="14" height="10" rx="2"/><rect x="-2" y="-30" width="14" height="10" rx="2"/><rect x="16" y="-30" width="22" height="10" rx="2"/></g><text x="0" y="-9" text-anchor="middle" font-size="7.5" font-weight="900" fill="#fff" font-family="Nunito,sans-serif">TransJakarta</text>' + wheel(-26, -4, 6.5) + wheel(24, -4, 6.5) + '</g>';
+}
+function garageSVG(veh, V, W) {
+  if (veh === 'none') return halteSVG();
+  let s = carport(130) + '<rect x="222" y="330" width="116" height="4" fill="rgba(0,0,0,0)"/>';
+  s += '<rect x="214" y="352" width="132" height="10" fill="#c9cfd9"/>';
+  if (veh === 'motor') {
+    const k = V >= 4 ? 'big' : V >= 2 ? 'vespa' : 'matic';
+    s += '<g transform="translate(280,354) scale(1.15)">' + bikeSVG(k) + '</g>';
+  } else {
+    const spec = V >= 4 ? [['suv', '#16181d', 0.7, 246], ['sport', '#c8102e', 0.72, 314]] : [[['hatch', '#f4f4f1'], ['hatch', '#d9dde6'], ['sedan', '#9aa4b5'], ['suv', '#20242c']][Math.min(V, 3)]];
+    if (V >= 4) spec.forEach(a => { s += '<g transform="translate(' + a[3] + ',354) scale(' + a[2] + ')">' + carSVG(a[0], a[1]) + '</g>'; });
+    else { const a = spec[0][0] ? spec[0] : spec; const k = spec[0]; s += '<g transform="translate(280,354) scale(0.98)">' + carSVG(k[0], k[1]) + '</g>'; }
+  }
+  return s;
+}
+function houseSVG(housing, W) {
+  const win = (x, y, w, h) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="#bfe6ff" stroke="#fff" stroke-width="3"/><path d="M' + (x + w / 2) + ' ' + y + 'v' + h + 'M' + x + ' ' + (y + h / 2) + 'h' + w + '" stroke="#fff" stroke-width="2"/>';
+  const style = housing === 'kos' ? 'kos' : housing === 'kontrak' ? 'kontrak' : (W >= 4 ? 'mansion' : W >= 3 ? 'villa' : W >= 2 ? 'modern' : 'cluster');
+  let s = '';
+  if (style === 'kos') {
+    s += '<rect x="22" y="236" width="176" height="126" fill="#f1dfbd"/><rect x="14" y="226" width="192" height="11" fill="#8a97b3"/>';
+    [34, 78, 122, 166].forEach((x, i) => { s += '<rect x="' + x + '" y="250" width="26" height="36" rx="2" fill="#6f7f95"/><circle cx="' + (x + 21) + '" cy="270" r="1.8" fill="#ffd23f"/><text x="' + (x + 13) + '" y="262" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">' + (i + 5) + '</text>'; });
+    s += '<rect x="20" y="286" width="180" height="5" fill="#d3bd8e"/><g stroke="#8a97b3" stroke-width="2">' + Array.from({ length: 19 }, (_, i) => '<path d="M' + (26 + i * 9.4) + ' 276 v10"/>').join('') + '<path d="M22 276 H198"/></g>';
+    s += '<path d="M40 276 q8 6 16 0" stroke="#ff6f91" stroke-width="5" fill="none"/><rect x="56" y="270" width="10" height="9" fill="#58b8ff"/><rect x="132" y="269" width="9" height="9" fill="#ffd23f"/>';
+    [34, 78, 122, 166].forEach((x, i) => { s += '<rect x="' + x + '" y="310" width="26" height="52" rx="2" fill="' + (i === 0 ? '#3b6fd4' : '#6f7f95') + '"/><circle cx="' + (x + 21) + '" cy="338" r="1.8" fill="#ffd23f"/><text x="' + (x + 13) + '" y="324" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">' + (i + 1) + '</text>'; });
+    s += '<rect x="76" y="226" width="68" height="18" rx="4" fill="#fff" transform="translate(0,0)"/><text x="110" y="239" text-anchor="middle" font-size="10" font-weight="800" fill="#c8553d" font-family="Nunito,sans-serif">KOS PUTRA/I</text>';
+  } else if (style === 'kontrak') {
+    s += '<rect x="30" y="288" width="158" height="74" fill="#fbe8c8"/><polygon points="18,292 109,236 200,292" fill="#b5523b"/><polygon points="30,292 109,244 188,292" fill="#c8553d"/>';
+    s += '<rect x="52" y="312" width="30" height="50" rx="3" fill="#7a4b2b"/><circle cx="76" cy="338" r="2" fill="#ffd23f"/>' + win(110, 314, 52, 34);
+    s += '<rect x="44" y="358" width="46" height="5" fill="#cfc2a6"/><rect x="170" y="314" width="12" height="46" fill="#9aa4b5"/><path d="M104 300 h22 l-2 8 h-18z" fill="#fff" opacity=".0"/>';
+  } else if (style === 'cluster') {
+    s += '<rect x="26" y="290" width="172" height="72" fill="#f4f1ea"/><rect x="40" y="242" width="124" height="50" fill="#e6dfd0"/><rect x="20" y="284" width="184" height="8" fill="#5b6578"/><rect x="34" y="234" width="136" height="9" fill="#5b6578"/>';
+    s += win(54, 252, 40, 28) + win(112, 252, 40, 28) + '<rect x="48" y="312" width="30" height="50" rx="3" fill="#9a6a3f"/><circle cx="72" cy="338" r="2" fill="#ffd23f"/>' + win(106, 308, 70, 40);
+    s += '<path d="M18 360 Q30 346 44 360Z M170 360 Q184 346 198 360Z" fill="#43a047"/><rect x="14" y="352" width="190" height="10" fill="#b9c9a0" opacity=".0"/>';
+  } else if (style === 'modern') {
+    s += '<rect x="18" y="284" width="188" height="78" fill="#f6f3ec"/><rect x="38" y="222" width="140" height="64" fill="#e9e3d6"/><rect x="12" y="276" width="200" height="10" fill="#474f5f"/><rect x="30" y="214" width="156" height="10" fill="#474f5f"/>';
+    s += '<rect x="46" y="232" width="84" height="46" fill="#bfe6ff" stroke="#fff" stroke-width="3"/><path d="M74 232v46M102 232v46" stroke="#fff" stroke-width="2"/><rect x="138" y="228" width="34" height="52" fill="#a1744a"/>';
+    s += '<rect x="44" y="302" width="34" height="60" rx="3" fill="#a1744a"/><circle cx="72" cy="333" r="2" fill="#ffd23f"/><rect x="98" y="298" width="96" height="48" fill="#bfe6ff" stroke="#fff" stroke-width="3"/><path d="M130 298v48M162 298v48" stroke="#fff" stroke-width="2"/>';
+    s += '<g fill="#43a047"><ellipse cx="22" cy="358" rx="12" ry="9"/><ellipse cx="200" cy="358" rx="12" ry="9"/></g><rect x="82" y="214" width="40" height="4" fill="#ffd23f" opacity=".0"/>';
+  } else if (style === 'villa') {
+    s += '<rect x="14" y="276" width="196" height="86" fill="#f1ede3"/><rect x="30" y="212" width="150" height="66" fill="#e0d8c6"/><rect x="6" y="268" width="212" height="10" fill="#2e3340"/><rect x="22" y="202" width="166" height="11" fill="#2e3340"/>';
+    s += '<rect x="38" y="222" width="76" height="50" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="124" y="222" width="48" height="50" fill="#b48a5c"/><g stroke="#8e6a43" stroke-width="2">' + Array.from({ length: 6 }, (_, i) => '<path d="M124 ' + (230 + i * 8) + ' H172"/>').join('') + '</g>';
+    s += '<rect x="26" y="290" width="104" height="64" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><path d="M52 290v64M78 290v64M104 290v64" stroke="#fff" stroke-width="2"/><rect x="144" y="292" width="40" height="70" rx="3" fill="#b48a5c"/><circle cx="178" cy="330" r="2.4" fill="#ffd23f"/>';
+    s += '<rect x="26" y="194" width="30" height="6" fill="#3b82f6"/><rect x="60" y="194" width="30" height="6" fill="#3b82f6"/><g transform="translate(196,300)"><rect x="0" y="0" width="3" height="62" fill="#8b5a2b"/><path d="M1 0 q-18 4 -22 20 M1 0 q16 2 22 16 M1 0 q-6 -12 -16 -14 M1 0 q8 -12 18 -12" stroke="#2e9a4a" stroke-width="5" fill="none" stroke-linecap="round"/></g>';
+    s += '<rect x="8" y="358" width="60" height="8" rx="4" fill="#58c7f2"/>';
+  } else { // mansion
+    s += '<rect x="6" y="250" width="50" height="112" fill="#f3e9d2"/><rect x="166" y="250" width="50" height="112" fill="#f3e9d2"/><rect x="0" y="240" width="62" height="12" fill="#6b3b2a"/><rect x="160" y="240" width="62" height="12" fill="#6b3b2a"/>';
+    s += '<rect x="48" y="214" width="126" height="148" fill="#f8efd9"/><polygon points="36,216 111,164 186,216" fill="#6b3b2a"/><polygon points="52,214 111,174 170,214" fill="#8a4b34"/><circle cx="111" cy="200" r="8" fill="#fff4d6" stroke="#6b3b2a" stroke-width="3"/>';
+    s += '<g fill="#fff">' + [58, 82, 126, 150].map(x => '<rect x="' + x + '" y="226" width="10" height="136"/><rect x="' + (x - 3) + '" y="222" width="16" height="5"/>').join('') + '</g>';
+    s += '<rect x="92" y="300" width="38" height="62" rx="19" fill="#5b3a29"/><circle cx="124" cy="334" r="2.4" fill="#ffd23f"/><rect x="70" y="240" width="22" height="36" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="130" y="240" width="22" height="36" fill="#9fd4f5" stroke="#fff" stroke-width="3"/>';
+    s += '<rect x="16" y="268" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="176" y="268" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="16" y="318" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="176" y="318" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/>';
+    s += '<g transform="translate(111,366)"><ellipse cx="0" cy="0" rx="22" ry="6" fill="#7fd3f2"/><rect x="-2" y="-14" width="4" height="14" fill="#c9ced6"/><path d="M0 -14 q-10 -10 -14 0 M0 -14 q10 -10 14 0 M0 -14 V-26" stroke="#cdeefc" stroke-width="2.4" fill="none"/></g>';
+    s += BLING(32, 190, 1) + BLING(190, 188, .9);
+  }
+  return s;
+}
+function sceneryExtra(W) {
+  let s = '';
+  if (W >= 2) s += '<g><rect x="2" y="316" width="4" height="46" fill="#4b4f5a"/><circle cx="4" cy="312" r="6" fill="#fff6c8"/></g>';
+  if (W >= 3) s += '<g transform="translate(386,372)"><rect x="0" y="-70" width="4" height="70" fill="#8b5a2b"/><path d="M2 -70 q-22 4 -26 22 M2 -70 q20 2 26 18 M2 -70 q-8 -14 -20 -16 M2 -70 q10 -14 22 -14" stroke="#2e9a4a" stroke-width="6" fill="none" stroke-linecap="round"/></g>';
+  return s;
+}
+
+function wealthTier() { const r = networth() / PI(S.m); return r >= 5e9 ? 4 : r >= 1.8e9 ? 3 : r >= 0.6e9 ? 2 : r >= 0.15e9 ? 1 : 0; }
+function styleTier(W) { return Math.max(S.life, [0, 0, 1, 1, 2, 2, 3, 3][S.job] || 0, Math.min(W, 3)); }
+let sceneSig = '';
+function updateScene() {
+  const W = wealthTier(), T = styleTier(W), V = Math.max(S.life, W);
+  const sig = [S.gender, T, W, V, S.married, S.partner && S.partner.g, S.kids.map(c => c.g + kidAgeY(c)).join(','), S.edu, S.housing, S.vehicle].join('|');
+  if (sig === sceneSig) return; sceneSig = sig;
+  $('#gPlayer').innerHTML = '<ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(0,0,0,.18)"/><g class="bob">' + person(S.gender, { T }) + '</g>';
+  $('#gPartner').innerHTML = (S.partner && S.married) ? '<ellipse cx="0" cy="4" rx="32" ry="7" fill="rgba(0,0,0,.16)"/><g class="bob">' + person(S.partner.g, { T: Math.max(0, T - (T >= 3 ? 1 : 0)), top: S.partner.g === 'f' ? ['#ff7fa5', '#8fd0ff', '#c4a4ff', '#8e2b6a', '#f2c14e'][T] : ['#58b368', '#ffb347', '#e6e2d8', '#3c5a47', '#222'][T] }) + '</g>' : '';
+  $('#gKids').innerHTML = S.kids.map((c, i) => {
+    const ay = kidAgeY(c), sc = Math.min(0.8, 0.34 + ay * 0.028);
+    const body = kidSVG(c.g, ay, S.edu, i) || person(c.g, ay >= 22 ? { T: Math.min(T, 2) } : { T: 0, uniform: uniformFor(ay, S.edu, i) });
+    return '<g transform="translate(' + (244 + i * 32) + ',508) scale(' + sc.toFixed(2) + ')"><ellipse cx="0" cy="4" rx="30" ry="7" fill="rgba(0,0,0,.14)"/><g class="bob">' + body + '</g></g>';
+  }).join('');
+  $('#miniAv').setAttribute('viewBox', '-36 -178 72 76');
+  $('#miniAv').innerHTML = '<rect x="-36" y="-178" width="72" height="76" fill="#cfe8ff"/>' + faceSVG(S.gender, { T }) + accessorySVG(S.gender, T);
+  $('#gHouse').innerHTML = houseSVG(S.housing, W);
+  $('#gGarage').innerHTML = garageSVG(S.vehicle, V, W);
+  $('#gScenery').innerHTML = sceneryExtra(W);
+}
+function refresh() { S.flow = compute(); updateScene(); updateHUD(true); renderSheet(true); }
+let hudN = 0;
+function updateHUD(force) {
+  if (!S) return; const f = S.flow || (S.flow = compute());
+  const ne = $('#net'); ne.textContent = fmt(f.net, true) + '/bln'; ne.className = 'mn' + (f.net < 0 ? ' neg' : '');
+  $('#happyFill').style.width = S.happy + '%'; $('#happyVal').textContent = Math.round(S.happy);
+  $('#healthFill').style.width = S.health + '%'; $('#healthVal').textContent = Math.round(S.health);
+  $('#ageBadge').textContent = age(); $('#yr').textContent = 2027 + Math.floor(S.m / 12); $('#mo').textContent = MONTHS[S.m % 12];
+  $('#yearsLeft').textContent = 'Umur ' + age() + ' · ' + Math.max(0, END_AGE - age()) + ' thn lagi';
+  const ff = Math.min(1, f.ff); $('#ffFill').style.width = (ff * 100) + '%'; $('#ffPct').textContent = pct(f.ff);
+  $('#ffNums').textContent = 'Pasif ' + fmt(f.passive) + ' / Butuh ' + fmt(f.needsFF);
+  $('#ffStreak').textContent = S.ffStreak > 0 ? '🔥 bertahan ' + S.ffStreak + '/6 bln' : '';
+  $('#ffHint').textContent = f.ff >= 1 ? 'Pertahankan 6 bulan berturut-turut!' : 'Pasif harus menutup semua kebutuhan';
+  const jd = $('#judol'); jd.style.display = S.addict > 0 ? 'inline-block' : 'none'; jd.textContent = '🎰 Kecanduan ' + Math.round(S.addict) + '%';
+  const cf = funCost(), cd = 0.6e6 * PI(S.m);
+  $('#aFunC').textContent = S.cd.fun > 0 ? S.cd.fun + ' bln' : fmt(cf); $('#aFun').classList.toggle('off', S.cd.fun > 0 || S.cash < cf);
+  $('#aDocC').textContent = S.cd.doc > 0 ? S.cd.doc + ' bln' : fmt(cd); $('#aDoc').classList.toggle('off', S.cd.doc > 0 || S.cash < cd);
+  if (force || ++hudN % 5 === 0) tabDots();
+}
+
+/* ====================== peringkat (db bersama) ====================== */
+let db = null, uid = null, board = null, boardState = 'idle', unsub = null;
+const withTimeout = (pr, ms) => Promise.race([pr, new Promise(r => setTimeout(() => r(null), ms))]);
+const FB_CONFIG = {"apiKey": "AIzaSyB7ZxJK5Mg6gDRLbakWnzofRMjQb8YeH-0", "authDomain": "merdeka-finansial.firebaseapp.com", "projectId": "merdeka-finansial", "storageBucket": "merdeka-finansial.firebasestorage.app", "messagingSenderId": "1097757236891", "appId": "1:1097757236891:web:e7d09e017d1f2a84ebb03e"}; /* diisi saat build untuk versi web/Play Store */
+const inArtifact = () => !!(window.claude && window.claude.use);
+/* pembungkus Firestore modular -> API db.collection().doc().get()/set(), orderBy().limit().onSnapshot() */
+function makeShim(fs, store) {
+  return { collection: name => ({
+    doc: id => ({
+      get: async () => { const s = await fs.getDoc(fs.doc(store, name, id)); return { data: () => (s.exists() ? s.data() : undefined) }; },
+      set: d => fs.setDoc(fs.doc(store, name, id), d),
+    }),
+    orderBy: (f, dir) => ({ limit: n => ({ onSnapshot: (ok, bad) => fs.onSnapshot(fs.query(fs.collection(store, name), fs.orderBy(f, dir), fs.limit(n)), ok, bad) }) }),
+  }) };
+}
+async function initFirebase() {
+  const B = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const [app, fs, au] = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-firestore.js'), import(B + 'firebase-auth.js')]);
+  const a = app.initializeApp(FB_CONFIG), auth = au.getAuth(a);
+  const cred = await au.signInAnonymously(auth);
+  uid = cred.user.uid; db = makeShim(fs, fs.getFirestore(a));
+}
+async function initDB() {
+  try {
+    if (inArtifact()) {
+      db = await withTimeout(window.claude.use('db'), 10000);
+      const user = await withTimeout(window.claude.use('user'), 10000);
+      if (user && user.id) uid = await user.id();
+    } else if (FB_CONFIG) await withTimeout(initFirebase(), 15000);
+    boardState = db && uid ? 'ready' : 'none';
+  } catch (e) { boardState = 'none'; }
+  if (tab === 'rank') { renderSheet(true); loadBoard(); }
+}
+function rowsFrom(snap) {
+  const out = [];
+  try {
+    if (!snap) return out;
+    const push = d => { const v = d && typeof d.data === 'function' ? d.data() : d; if (v && typeof v.score === 'number') out.push(v); };
+    if (Array.isArray(snap)) snap.forEach(push); else if (snap.docs) snap.docs.forEach(push); else if (typeof snap.forEach === 'function') snap.forEach(push);
+  } catch (e) {}
+  return out;
+}
+function loadBoard() {
+  if (boardState !== 'ready' || unsub) return;
+  try {
+    const q = db.collection(SEASON_COL).orderBy('score', 'desc').limit(30);
+    const t = setTimeout(() => { if (board === null) { board = []; if (tab === 'rank') renderSheet(true); } }, 10000);
+    const cb = snap => { clearTimeout(t); board = rowsFrom(snap); if (tab === 'rank') renderSheet(true); };
+    unsub = q.onSnapshot(cb, () => { clearTimeout(t); board = []; if (tab === 'rank') renderSheet(true); }) || true;
+  } catch (e) { board = []; }
+}
+async function submitScore() {
+  if (!S.ended || boardState !== 'ready') return;
+  const payload = { nick: S.name, g: S.gender, bg: S.bg, ending: S.ended.kind, m: S.ended.m, age: age(), score: S.ended.score, nw: Math.round(networth()), kids: S.kids.length, ver: VER, at: Date.now(), log: JSON.stringify(S.log).slice(0, 20000) };
+  try {
+    const ref = db.collection(SEASON_COL).doc(uid);
+    let cur = null; try { const s = await ref.get(); cur = s && (typeof s.data === 'function' ? s.data() : s); } catch (e) {}
+    if (cur && typeof cur.score === 'number' && cur.score >= payload.score) { S.flags.submitted = 'lebih rendah dari skor terbaikmu'; return; }
+    await ref.set(payload); S.flags.submitted = 'terkirim';
+  } catch (e) { S.flags.submitted = inArtifact() ? 'gagal (butuh akses kontributor)' : 'gagal (cek koneksi internet)'; }
+  if (tab === 'rank') renderSheet(true);
+}
+const END_ICON = { ff: '🏁', retire: '🧓', dead: '🕊️', bankrupt: '📉' };
+function rankHTML() {
+  let h = '<div class="card"><b>Musim 1</b><div class="rs">Semua pemain menghadapi kejadian acak yang sama. Peringkat: yang <b>paling cepat merdeka finansial</b> menang; yang belum merdeka diurutkan dari persentase pasif tertinggi.</div></div>';
+  if (S.ended) h += '<div class="card"><b>Hasilmu: ' + S.ended.score.toLocaleString('id-ID') + '</b> ' + END_ICON[S.ended.kind] + '<div class="rs">Pengiriman skor: ' + (S.flags.submitted || (boardState === 'ready' ? 'sedang dikirim…' : 'tidak tersedia di tampilan ini')) + '</div></div>';
+  if (boardState !== 'ready') return h + '<div class="card">' + (inArtifact() ? 'Peringkat bersama belum aktif di tampilan ini (butuh login & akses dari pemilik game).' : 'Peringkat bersama belum tersambung. Cek koneksi internetmu lalu buka ulang game.') + ' Skor tetap tersimpan lokal.</div>';
+  if (board === null) return h + '<div class="card">Memuat peringkat…</div>';
+  if (!board.length) return h + '<div class="card">Belum ada skor. Jadilah yang pertama merdeka finansial!</div>';
+  return h + board.map((r, i) => row({ icon: i < 3 ? ['🥇', '🥈', '🥉'][i] : '#' + (i + 1), title: (r.g === 'f' ? '👧 ' : '👦 ') + String(r.nick || '?').replace(/[<>&]/g, ''),
+    sub: (END_ICON[r.ending] || '') + ' ' + ({ ff: 'Merdeka umur ' + r.age, retire: 'Pensiun, belum merdeka', dead: 'Meninggal umur ' + r.age, bankrupt: 'Bangkrut umur ' + r.age }[r.ending] || '') + ' · ' + (BGS[r.bg] ? BGS[r.bg].name : ''), btn: '<span class="tag on">' + Number(r.score).toLocaleString('id-ID') + '</span>' })).join('');
+}
+
+/* ====================== mulai, pengaturan, loop ====================== */
+let pick = { gender: 'm', bg: 'fresh' };
+function showStart() {
+  $('#bgList').innerHTML = Object.keys(BGS).map(k => '<button class="bgc ' + (pick.bg === k ? 'on' : '') + '" data-bg="' + k + '"><b>' + BGS[k].icon + ' ' + BGS[k].name + '</b><span>' + BGS[k].desc + '</span></button>').join('');
+  $$('#start .chip').forEach(c => c.classList.toggle('on', c.dataset.g === pick.gender));
+  $('#start').classList.add('on'); started = false; closeSheet();
+}
+function startGame() {
+  const nm = ($('#nm').value || '').trim() || (pick.gender === 'f' ? 'Rani' : 'Rian');
+  newState({ name: nm, gender: pick.gender, bg: pick.bg }); sceneSig = '';
+  $('#start').classList.remove('on'); started = true; MQ.length = 0; board = null;
+  S.flow = compute(); updateScene(); updateHUD(true); save();
+  toast('👋 Halo ' + nm + '! Pendapatan pasif harus menutup semua kebutuhanmu. Mulai dari tab 💼 Karier.', 'gold');
+}
+function settings() {
+  modal('<h2>⚙️ Pengaturan</h2><div class="stat"><span>Karakter</span><b>' + S.name + '</b></div><div class="stat"><span>Percobaan ke-</span><b>' + S.lives + '</b></div><div class="stat"><span>Kekayaan bersih</span><b>' + fmt(networth()) + '</b></div><p style="font-size:12px;color:#5a6a92">Pajak & aturan disederhanakan untuk game. Ini bukan nasihat keuangan.</p>',
+    [{ t: 'Jeda otomatis saat panel terbuka: ' + (autoPause ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { autoPause = !autoPause; try { localStorage.setItem('merdeka_ap', autoPause ? '1' : '0'); } catch (e) {} setTimeout(settings, 0); } }, { t: 'Tutup' }, { t: 'Mulai ulang', cls: 'dng', fn: () => modal('<h2>Mulai ulang?</h2><p>Progres hidup ini akan dihapus. Musim dan kejadian acak tetap sama.</p>', [{ t: 'Batal' }, { t: 'Ya, ulang', cls: 'dng', fn: showStart }]) }]);
+}
+function bind() {
+  $('#tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) openTab(b.dataset.tab); });
+  $('#sheetClose').addEventListener('click', closeSheet);
+  $('#list').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b || b.classList.contains('off')) return; dispatch(b.dataset.act); });
+  $('#aFun').addEventListener('click', () => dispatch('fun')); $('#aDoc').addEventListener('click', () => dispatch('doc'));
+  $('#gear').addEventListener('click', () => { if (S) settings(); });
+  $('#pause').addEventListener('click', () => { paused = !paused; $('#pause').textContent = paused ? '▶' : '⏸'; });
+  $('#ff').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : speed === 4 ? 0.5 : 1; $('#ff').textContent = '⏩ ' + spdLabel(speed); });
+  $('#start').addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if (c) { pick.gender = c.dataset.g; $$('#start .chip').forEach(x => x.classList.toggle('on', x === c)); }
+    const b = e.target.closest('.bgc'); if (b) { pick.bg = b.dataset.bg; $$('#start .bgc').forEach(x => x.classList.toggle('on', x === b)); }
+  });
+  $('#go').addEventListener('click', startGame);
+}
+let last = performance.now(), saveT = 0, uiT = 0;
+function loop() {
+  const now = performance.now(), dt = Math.min(1000, now - last); last = now;
+  const hold = autoPause && !!tab;
+  if (started && S && !paused) { const pb = $('#pause'), want = hold ? '💭' : '⏸'; if (pb.textContent !== want) pb.textContent = want; }
+  if (started && S && !paused && !S.ended && !modalOn && !hold) {
+    acc += dt * speed; let n = 0;
+    while (acc >= MONTH_MS && n < 8) { acc -= MONTH_MS; step(); n++; if (modalOn || S.ended) break; }
+    if (n >= 8) acc = 0;
+    if (n > 0) { updateScene(); renderSheet(true); drain(); updateHUD(true); }
+  }
+  if (S) { shownCash += (S.cash - shownCash) * 0.25; if (Math.abs(S.cash - shownCash) < 1) shownCash = S.cash; $('#money').textContent = fmt(shownCash); }
+  uiT += dt; if (uiT > 200) { uiT = 0; if (S && started) { updateHUD(); updateSheet(); } }
+  saveT += dt; if (saveT > 5000) { saveT = 0; if (S && started && !S.ended) save(); }
+}
+try { if ('serviceWorker' in navigator && !(window.claude && window.claude.use)) navigator.serviceWorker.register('/sw.js'); } catch (e) {}
+function start() {
+  bind();
+  const d = load();
+  if (d && !d.ended) { S = d; started = true; shownCash = S.cash; S.flow = compute(); updateScene(); updateHUD(true); }
+  else showStart();
+  initDB();
+  setInterval(loop, 50);
+  document.addEventListener('visibilitychange', () => { if (document.hidden && S && started) save(); });
+}
+try { globalThis.__game = { step, compute, dispatch, endGame, newState, networth, annualTax, R, Z, fmt, calcScore, openTab, renderSheet, updateHUD, updateScene, refresh, tabDots, rankHTML, A, JOBS, INVS, BIZS, STAGES, TABS, get S() { return S; }, get MQ() { return MQ; }, drain, resolveModal(i) { const m = $('#modal'); return m && m.onclick ? m.onclick({ target: { closest: () => ({ dataset: { i: String(i) } }) } }) : null; }, get modalOn() { return modalOn; }, TOTAL, crisisStart, startGame, pick }; } catch (e) {}
+start();
+})();
+</script>
+</body>
+</html>

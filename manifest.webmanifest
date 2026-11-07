@@ -1,0 +1,36 @@
+{
+  "name": "Merdeka Finansial",
+  "short_name": "Merdeka",
+  "description": "Game simulasi perjalanan cari uang sampai bebas finansial.",
+  "lang": "id",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16203a",
+  "theme_color": "#16203a",
+  "categories": [
+    "games",
+    "simulation"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

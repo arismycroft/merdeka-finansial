@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Papan peringkat musim 1: satu dokumen per pemain, nama dokumen = uid login anonim.
+    match /season1/{uid} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && skorValid(request.resource.data);
+
+      // Boleh memperbarui hanya milik sendiri, dan skor tidak boleh turun.
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && skorValid(request.resource.data)
+                    && request.resource.data.score >= resource.data.score;
+
+      allow delete: if false;
+    }
+
+    function skorValid(d) {
+      return d.keys().hasOnly(['nick','g','bg','ending','m','age','score','nw','kids','ver','at','log'])
+          && d.keys().hasAll(['nick','ending','score'])
+          && d.nick is string && d.nick.size() >= 1 && d.nick.size() <= 20
+          && d.ending in ['ff','retire','dead','bankrupt']
+          && d.score is number && d.score >= 0 && d.score <= 1600000
+          && (!('log' in d) || (d.log is string && d.log.size() <= 20000));
+    }
+
+    // Selain itu semua ditolak.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
