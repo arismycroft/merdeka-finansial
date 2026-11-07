@@ -173,6 +173,7 @@ input{font-family:inherit}
     <span id="judol">🎰 Kecanduan 0%</span>
     <button id="pause" aria-label="Jeda">⏸</button>
     <button id="ff" aria-label="Kecepatan">⏩ 1×</button>
+    <button id="music" aria-label="Musik">🎵</button>
   </div>
 
   <main id="scene">
@@ -1323,7 +1324,7 @@ function startGame() {
 }
 function settings() {
   modal('<h2>⚙️ Pengaturan</h2><div class="stat"><span>Karakter</span><b>' + S.name + '</b></div><div class="stat"><span>Percobaan ke-</span><b>' + S.lives + '</b></div><div class="stat"><span>Kekayaan bersih</span><b>' + fmt(networth()) + '</b></div><p style="font-size:12px;color:#5a6a92">Pajak & aturan disederhanakan untuk game. Ini bukan nasihat keuangan.</p>',
-    [{ t: 'Jeda otomatis saat panel terbuka: ' + (autoPause ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { autoPause = !autoPause; try { localStorage.setItem('merdeka_ap', autoPause ? '1' : '0'); } catch (e) {} setTimeout(settings, 0); } }, { t: 'Tutup' }, { t: 'Mulai ulang', cls: 'dng', fn: () => modal('<h2>Mulai ulang?</h2><p>Progres hidup ini akan dihapus. Musim dan kejadian acak tetap sama.</p>', [{ t: 'Batal' }, { t: 'Ya, ulang', cls: 'dng', fn: showStart }]) }]);
+    [{ t: 'Gaya musik: ' + (Music.style === 'ceria' ? 'Ceria (adaptif)' : 'Santai (lo-fi)'), cls: 'pri', fn: () => { Music.setStyle(Music.style === 'ceria' ? 'santai' : 'ceria'); setTimeout(settings, 0); } }, { t: 'Musik: ' + (Music.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { $('#music').textContent = Music.toggle() ? '🎵' : '🔇'; setTimeout(settings, 0); } }, { t: 'Jeda otomatis saat panel terbuka: ' + (autoPause ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { autoPause = !autoPause; try { localStorage.setItem('merdeka_ap', autoPause ? '1' : '0'); } catch (e) {} setTimeout(settings, 0); } }, { t: 'Tutup' }, { t: 'Mulai ulang', cls: 'dng', fn: () => modal('<h2>Mulai ulang?</h2><p>Progres hidup ini akan dihapus. Musim dan kejadian acak tetap sama.</p>', [{ t: 'Batal' }, { t: 'Ya, ulang', cls: 'dng', fn: showStart }]) }]);
 }
 function bind() {
   $('#tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) openTab(b.dataset.tab); });
@@ -1333,6 +1334,10 @@ function bind() {
   $('#gear').addEventListener('click', () => { if (S) settings(); });
   $('#pause').addEventListener('click', () => { paused = !paused; $('#pause').textContent = paused ? '▶' : '⏸'; });
   $('#ff').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : speed === 4 ? 0.5 : 1; $('#ff').textContent = '⏩ ' + spdLabel(speed); });
+  $('#music').textContent = Music.on ? '🎵' : '🔇';
+  $('#music').addEventListener('click', () => { $('#music').textContent = Music.toggle() ? '🎵' : '🔇'; });
+  document.addEventListener('pointerdown', () => Music.start(), { once: true, passive: true });
+  document.addEventListener('visibilitychange', () => { if (!Music.ctx) return; try { if (document.hidden) Music.ctx.suspend(); else if (Music.on) Music.ctx.resume(); } catch (e) {} });
   $('#start').addEventListener('click', e => {
     const c = e.target.closest('.chip'); if (c) { pick.gender = c.dataset.g; $$('#start .chip').forEach(x => x.classList.toggle('on', x === c)); }
     const b = e.target.closest('.bgc'); if (b) { pick.bg = b.dataset.bg; $$('#start .bgc').forEach(x => x.classList.toggle('on', x === b)); }
@@ -1354,6 +1359,205 @@ function loop() {
   uiT += dt; if (uiT > 200) { uiT = 0; if (S && started) { updateHUD(); updateSheet(); } }
   saveT += dt; if (saveT > 5000) { saveT = 0; if (S && started && !S.ended) save(); }
 }
+function econPressure() {
+  if (!S || !started) return 0;
+  const f = S.flow || compute(); let p = 0;
+  if (inCrisis(S.m)) p += 0.35;
+  if (S.debts.some(d => d.k === 'pinjol')) p += 0.3;
+  if (S.cash < f.needsFF) p += 0.1;
+  if (f.net < 0) p += 0.15;
+  if (S.jobless > 0) p += 0.2;
+  if (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active)) p += 0.1;
+  if (S.happy < 30) p += 0.1;
+  return Math.max(0, Math.min(1, p));
+}
+/* ====================== musik (disintesis langsung, tanpa berkas audio) ====================== */
+const MUSIC_BPM = 72, MUSIC_VOL = 0.7;
+const PROG = {
+  major: [[48, 52, 55, 59], [45, 48, 52, 55], [41, 45, 48, 52], [43, 47, 50, 52]],
+  minor: [[45, 48, 52, 55], [41, 45, 48, 52], [38, 41, 45, 48], [40, 43, 47, 50]],
+};
+const PENTA = { major: [72, 74, 76, 79, 81, 84], minor: [69, 72, 74, 76, 79, 81] };
+function makeMusic(ctx, out) {
+  const mtof = n => 440 * Math.pow(2, (n - 69) / 12), spb = 60 / MUSIC_BPM, sr = ctx.sampleRate;
+  const len = Math.floor(sr * 2.6), ir = ctx.createBuffer(2, len, sr);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
+  const conv = ctx.createConvolver(); conv.buffer = ir;
+  const wet = ctx.createGain(); wet.gain.value = 0.3; conv.connect(wet); wet.connect(out);
+  const bus = ctx.createGain(); bus.connect(out); bus.connect(conv);
+  const nb = ctx.createBuffer(1, sr, sr), nd = nb.getChannelData(0); for (let i = 0; i < sr; i++) nd[i] = Math.random() * 2 - 1;
+  const rnd = (a, b) => a + Math.random() * (b - a), pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  function osc(type, f, t, dur, dest, detune) { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (detune) o.detune.value = detune; o.connect(dest); o.start(t); o.stop(t + dur); return o; }
+  function pad(chord, t, dur) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1000; f.Q.value = 0.3; f.connect(bus);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 1.4); g.gain.setValueAtTime(0.05, t + dur - 0.6); g.gain.linearRampToValueAtTime(0.0001, t + dur + 1.2); g.connect(f);
+    chord.forEach(n => { osc('triangle', mtof(n + 12), t, dur + 1.3, g, -6); osc('triangle', mtof(n + 12), t, dur + 1.3, g, 6); });
+  }
+  function rhodes(n, t, vel) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2600; f.connect(bus);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.1 * vel, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8); g.connect(f);
+    osc('sine', mtof(n), t, 1.9, g);
+    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.linearRampToValueAtTime(0.03 * vel, t + 0.008); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.5); g2.connect(f);
+    osc('sine', mtof(n) * 2, t, 0.6, g2);
+  }
+  function bass(n, t, vel) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 240; f.connect(out);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.22 * vel, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1); g.connect(f);
+    osc('sine', mtof(n), t, 1.2, g);
+  }
+  function kick(t, vel) {
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.28 * vel, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.3);
+  }
+  function hit(t, kind, vel) {
+    const s = ctx.createBufferSource(); s.buffer = nb; const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    if (kind === 'hat') { f.type = 'highpass'; f.frequency.value = 7000; g.gain.setValueAtTime(0.03 * vel, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); }
+    else { f.type = 'bandpass'; f.frequency.value = 1600; f.Q.value = 0.8; g.gain.setValueAtTime(0.09 * vel, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); }
+    s.connect(f); f.connect(g); g.connect(bus); s.start(t, Math.random() * 0.5); s.stop(t + 0.2);
+  }
+  return {
+    bar(t0, idx, info) {
+      const mood = info.mood, chord = PROG[mood][idx % 4], pent = PENTA[mood];
+      pad(chord, t0, 4 * spb);
+      const step = i => t0 + i * spb / 2 + (i % 2 ? 0.1 * spb : 0);
+      bass(chord[0], step(0), 1); bass(mood === 'major' ? chord[2] - 12 + 12 : chord[0], step(5), 0.7);
+      kick(step(0), 1); kick(step(5), 0.8);
+      hit(step(2), 'snare', 0.8); hit(step(6), 'snare', 0.9);
+      for (let i = 0; i < 8; i++) hit(step(i), 'hat', i % 2 ? rnd(0.6, 1) : rnd(0.3, 0.6));
+      for (let i = 0; i < 8; i++) {
+        const p = i === 0 ? 0.95 : 0.5;
+        if (Math.random() < p) rhodes(pick(chord) + pick([12, 12, 24]), step(i), rnd(0.55, 1));
+      }
+      [2, 4, 6, 7].forEach(i => { if (Math.random() < 0.28) rhodes(pick(pent), step(i), rnd(0.7, 1)); });
+      return 4 * spb;
+    },
+  };
+}
+
+/* ---- gaya "Ceria": cerah di awal, makin muram & pelan saat tekanan ekonomi naik ---- */
+const CH = {
+  bright: [[48, 52, 55, 60], [43, 50, 55, 59], [45, 52, 57, 60], [41, 48, 53, 57]],
+  mid:    [[45, 48, 52, 55], [41, 48, 53, 57], [48, 52, 55, 60], [43, 50, 55, 59]],
+  dark:   [[45, 52, 57, 60], [41, 48, 53, 57], [38, 50, 53, 57], [40, 47, 52, 56]],
+};
+function makeMusic2(ctx, out) {
+  const mtof = n => 440 * Math.pow(2, (n - 69) / 12), sr = ctx.sampleRate;
+  const rnd = (a, b) => a + Math.random() * (b - a), pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const len = Math.floor(sr * 2.4), ir = ctx.createBuffer(2, len, sr);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
+  const conv = ctx.createConvolver(); conv.buffer = ir;
+  const wet = ctx.createGain(); wet.gain.value = 0.15; conv.connect(wet); wet.connect(out);
+  const bus = ctx.createGain(); bus.connect(out); bus.connect(conv);
+  const nb = ctx.createBuffer(1, sr, sr), nd = nb.getChannelData(0); for (let i = 0; i < sr; i++) nd[i] = Math.random() * 2 - 1;
+  function osc(type, f, t, dur, dest, detune) { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (detune) o.detune.value = detune; o.connect(dest); o.start(t); o.stop(t + dur); return o; }
+  function pad(chord, t, dur, cutoff) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cutoff; f.Q.value = 0.4; f.connect(bus);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.045, t + 0.6); g.gain.setValueAtTime(0.045, t + dur - 0.4); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.9); g.connect(f);
+    chord.forEach(n => { osc('sawtooth', mtof(n + 12), t, dur + 1, g, -7); osc('sawtooth', mtof(n + 12), t, dur + 1, g, 7); });
+  }
+  function pluck(n, t, vel, dec, bright) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = bright; f.connect(bus);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.13 * vel, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dec); g.connect(f);
+    osc('triangle', mtof(n), t, dec + 0.1, g);
+    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.linearRampToValueAtTime(0.05 * vel, t + 0.004); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.12); g2.connect(f);
+    osc('sine', mtof(n) * 4, t, 0.15, g2);
+  }
+  function bass(n, t, vel, dur) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 420; f.connect(out);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.2 * vel, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); g.connect(f);
+    osc('triangle', mtof(n), t, dur + 0.1, g);
+  }
+  function kick(t, vel) {
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.1);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.3 * vel, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.28);
+  }
+  function noise(t, kind, vel) {
+    const s = ctx.createBufferSource(); s.buffer = nb; const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    if (kind === 'shk') { f.type = 'highpass'; f.frequency.value = 6000; g.gain.setValueAtTime(0.03 * vel, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07); }
+    else { f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 0.9; g.gain.setValueAtTime(0.1 * vel, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14); }
+    s.connect(f); f.connect(g); g.connect(bus); s.start(t, Math.random() * 0.5); s.stop(t + 0.2);
+  }
+  function drone(t, dur, vel) {
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 200; f.connect(out);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.06 * vel, t + 1); g.gain.setValueAtTime(0.06 * vel, t + dur - 0.5); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.6); g.connect(f);
+    osc('sine', mtof(33), t, dur + 0.7, g); osc('sine', mtof(33) * 1.0595, t, dur + 0.7, g, 0);
+  }
+  let sp = 0, seeded = false; // tekanan yang dihaluskan, berubah pelan antar bar
+  return {
+    get level() { return sp; },
+    bar(t0, idx, info) {
+      if (!seeded) { sp = info.p; seeded = true; } else sp += (info.p - sp) * 0.4;
+      const p = sp, bpm = 108 - 26 * p, spb = 60 / bpm, eighth = spb / 2;
+      const chord = (p < 0.35 ? CH.bright : p < 0.65 ? CH.mid : CH.dark)[idx % 4];
+      const pent = p < 0.35 ? [72, 74, 76, 79, 81, 84] : [69, 72, 74, 76, 79, 81];
+      const dens = 0.82 - 0.55 * p;
+      const bright = 4200 - 3300 * p;
+      wet.gain.setTargetAtTime(0.15 + 0.3 * p, t0, 0.5);
+      const swing = p < 0.35 ? 0 : 0.08 * spb;
+      const step = i => t0 + i * eighth + (i % 2 ? swing : 0);
+      pad(chord, t0, 4 * spb, 3000 - 2400 * p);
+      if (p > 0.55) drone(t0, 4 * spb, Math.min(1, (p - 0.5) * 2));
+      // bas
+      bass(chord[0], step(0), 1, spb * 1.4);
+      if (p < 0.65) { bass(chord[0] + 12, step(3), 0.7, spb * 0.5); bass(chord[2] - 12 + 12, step(4), 0.85, spb); }
+      if (p < 0.35) bass(chord[0] + 7, step(7), 0.6, spb * 0.5);
+      // drum
+      if (p < 0.7) { kick(step(0), 1); if (p < 0.5) kick(step(4), 0.85); noise(step(2), 'clap', 0.8 - 0.4 * p); noise(step(6), 'clap', 0.8 - 0.4 * p); }
+      else kick(step(0), 0.6);
+      if (p < 0.5) for (let i = 0; i < 8; i++) noise(step(i), 'shk', i % 2 ? rnd(0.7, 1) : rnd(0.35, 0.6));
+      // melodi/arpeggio
+      for (let i = 0; i < 8; i++) {
+        if (Math.random() < (i === 0 ? 0.95 : dens * 0.8)) pluck(pick(chord) + pick([12, 12, 24]), step(i), rnd(0.6, 1), 0.28 + 0.9 * p, bright);
+      }
+      [1, 3, 5, 6, 7].forEach(i => { if (Math.random() < dens * 0.45) pluck(pick(pent), step(i), rnd(0.75, 1), 0.4 + 0.8 * p, bright); });
+      return 4 * spb;
+    },
+  };
+}
+const Music = {
+  ctx: null, master: null, eng: null, timer: null, nextT: 0, n: 0, on: true, style: 'santai', dirty: false,
+  build() {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) throw new Error('no audio');
+    if (!this.ctx) this.ctx = new AC();
+    if (this.master) { try { this.master.disconnect(); } catch (e) {} }
+    this.master = this.ctx.createGain(); this.master.gain.value = 0;
+    const comp = this.ctx.createDynamicsCompressor(); this.master.connect(comp); comp.connect(this.ctx.destination);
+    this.eng = this.style === 'ceria' ? makeMusic2(this.ctx, this.master) : makeMusic(this.ctx, this.master);
+  },
+  init() {
+    if (this.ctx && this.eng) return true;
+    try { this.build(); return true; } catch (e) { this.ctx = null; return false; }
+  },
+  mood() { return (typeof S !== 'undefined' && S && started && (S.happy < 35 || inCrisis(S.m))) ? 'minor' : 'major'; },
+  pressure() { return typeof econPressure === 'function' ? econPressure() : 0; },
+  tick() { while (this.nextT < this.ctx.currentTime + 1.2) { const len = this.eng.bar(this.nextT, this.n % 4, { mood: this.mood(), p: this.pressure() }); this.nextT += len; this.n++; } },
+  start() {
+    if (!this.on || !this.init()) return;
+    try {
+      if (this.dirty) { this.build(); this.dirty = false; }
+      this.ctx.resume(); const t = this.ctx.currentTime; this.master.gain.cancelScheduledValues(t); this.master.gain.setTargetAtTime(MUSIC_VOL, t, 0.6);
+    } catch (e) {}
+    if (!this.timer) { this.nextT = this.ctx.currentTime + 0.2; this.n = 0; this.tick(); this.timer = setInterval(() => this.tick(), 250); }
+  },
+  stop() {
+    if (!this.ctx) return;
+    try { const t = this.ctx.currentTime; this.master.gain.cancelScheduledValues(t); this.master.gain.setTargetAtTime(0, t, 0.25); } catch (e) {}
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    this.dirty = true;
+  },
+  setStyle(s) {
+    if (s === this.style) return; this.style = s;
+    try { localStorage.setItem('merdeka_music_style', s); } catch (e) {}
+    if (!this.ctx) return;
+    const was = !!this.timer; this.stop();
+    if (was && this.on) setTimeout(() => this.start(), 500);
+  },
+  toggle() { this.on = !this.on; try { localStorage.setItem('merdeka_music', this.on ? '1' : '0'); } catch (e) {} this.on ? this.start() : this.stop(); return this.on; },
+};
+
+try { Music.on = localStorage.getItem('merdeka_music') !== '0'; Music.style = localStorage.getItem('merdeka_music_style') === 'ceria' ? 'ceria' : 'santai'; } catch (e) {}
 try { if ('serviceWorker' in navigator && !(window.claude && window.claude.use)) navigator.serviceWorker.register('/sw.js'); } catch (e) {}
 function start() {
   bind();
@@ -1364,7 +1568,7 @@ function start() {
   setInterval(loop, 50);
   document.addEventListener('visibilitychange', () => { if (document.hidden && S && started) save(); });
 }
-try { globalThis.__game = { step, compute, dispatch, endGame, newState, networth, annualTax, R, Z, fmt, calcScore, openTab, renderSheet, updateHUD, updateScene, refresh, tabDots, rankHTML, A, JOBS, INVS, BIZS, STAGES, TABS, get S() { return S; }, get MQ() { return MQ; }, drain, resolveModal(i) { const m = $('#modal'); return m && m.onclick ? m.onclick({ target: { closest: () => ({ dataset: { i: String(i) } }) } }) : null; }, get modalOn() { return modalOn; }, TOTAL, crisisStart, startGame, pick }; } catch (e) {}
+try { globalThis.__game = { Music, step, compute, dispatch, endGame, newState, networth, annualTax, R, Z, fmt, calcScore, openTab, renderSheet, updateHUD, updateScene, refresh, tabDots, rankHTML, A, JOBS, INVS, BIZS, STAGES, TABS, get S() { return S; }, get MQ() { return MQ; }, drain, resolveModal(i) { const m = $('#modal'); return m && m.onclick ? m.onclick({ target: { closest: () => ({ dataset: { i: String(i) } }) } }) : null; }, get modalOn() { return modalOn; }, TOTAL, crisisStart, startGame, pick }; } catch (e) {}
 start();
 })();
 </script>
