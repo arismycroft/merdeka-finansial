@@ -198,16 +198,7 @@ input{font-family:inherit}
       <path d="M0 372 Q200 360 400 374" stroke="#7fc84e" stroke-width="3" fill="none"/>
 
       <g id="gScenery"></g>
-      <g transform="translate(366,500)">
-        <ellipse cx="0" cy="4" rx="26" ry="6" fill="rgba(0,0,0,.16)"/>
-        <g class="bob">
-          <path class="tail" d="M16 -14 q26 -4 20 -30" stroke="#e8923a" stroke-width="7" fill="none" stroke-linecap="round"/>
-          <ellipse cx="0" cy="-14" rx="22" ry="14" fill="#f2a44b"/>
-          <circle cx="-16" cy="-28" r="12" fill="#f2a44b"/>
-          <polygon points="-27,-34 -25,-48 -17,-38" fill="#f2a44b"/><polygon points="-5,-34 -7,-48 -15,-38" fill="#f2a44b"/>
-          <circle cx="-20" cy="-29" r="2" fill="#222"/><circle cx="-11" cy="-29" r="2" fill="#222"/>
-        </g>
-      </g>
+      <g id="gPet" transform="translate(334,504)" style="cursor:pointer"></g>
       <g id="gKids"></g>
       <g id="gPartner" transform="translate(178,508) scale(0.86)"></g>
       <g id="gPlayer" transform="translate(98,510) scale(0.9)"></g>
@@ -882,15 +873,26 @@ function tabDots() {
 /* ====================== seni karakter ====================== */
 const SK = '#f7d1b0', SK2 = '#eab794';
 const BLING = (x, y, s) => '<path transform="translate(' + x + ',' + y + ') scale(' + (s || 1) + ')" d="M0 -5 L1.4 -1.4 L5 0 L1.4 1.4 L0 5 L-1.4 1.4 L-5 0 L-1.4 -1.4Z" fill="#fff6a8" stroke="#f2b705" stroke-width=".6"/>';
+function mixC(a, b, t) { const q = h => [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16)); const x = q(a), y = q(b); return '#' + x.map((v, i) => ('0' + Math.round(v + (y[i] - v) * t).toString(16)).slice(-2)).join(''); }
+function agingOf(g, o) {
+  const a = o.age || 0; if (a < 30 && !o.sick) return null;
+  const clamp01 = v => Math.max(0, Math.min(1, v)), prone = g === 'm' && (o.seed | 0) < 45;
+  return { a, gf: clamp01((a - 36) / 22), glass: a >= 42, fl: g === 'm' && a >= 48, nl: a >= 48, cf: a >= 52, bag: a >= 56,
+    bald: prone ? (a >= 50 ? 2 : a >= 42 ? 1 : 0) : 0, short: g === 'f' && a >= 52, bun: g === 'f' && a >= 58,
+    stoop: a >= 56 || o.sick ? (a >= 62 ? 5 : 3.5) : 0, cane: a >= 58 || !!o.sick, senior: a >= 50 };
+}
 function faceSVG(g, o) {
-  o = o || {}; const T = o.T || 0, hc = o.hairC || (g === 'f' ? '#2a1a14' : '#241a14'), hl = g === 'f' ? '#7b5440' : '#5b4636';
+  o = o || {}; let T = o.T || 0, hc = o.hairC || (g === 'f' ? '#2a1a14' : '#241a14'), hl = g === 'f' ? '#7b5440' : '#5b4636';
   const f = g === 'f', s = '';
+  const ag = o.ag || (o.age || o.sick ? agingOf(g, o) : null);
+  let hlc = hl; if (ag) { hc = mixC(hc, '#ecebf1', ag.gf); hlc = mixC(hl, '#ffffff', ag.gf); }
   let h = '';
   // rambut belakang
-  if (f && !o.kid) h += '<path d="M-27 -138 C-31 -166 -12 -173 0 -173 C12 -173 31 -166 27 -138 C33 -118 31 -92 25 -80 Q9 -72 0 -80 Q-9 -72 -25 -80 C-31 -92 -33 -118 -27 -138Z" fill="' + hc + '"/>';
+  if (f && !o.kid) h += (ag && ag.short ? '<path d="M-27 -138 C-31 -166 -12 -173 0 -173 C12 -173 31 -166 27 -138 C31 -126 29 -112 24 -106 Q9 -100 0 -104 Q-9 -100 -24 -106 C-29 -112 -31 -126 -27 -138Z" fill="' + hc + '"/>' : '<path d="M-27 -138 C-31 -166 -12 -173 0 -173 C12 -173 31 -166 27 -138 C33 -118 31 -92 25 -80 Q9 -72 0 -80 Q-9 -72 -25 -80 C-31 -92 -33 -118 -27 -138Z" fill="' + hc + '"/>') + (ag && ag.bun ? '<circle cx="0" cy="-174" r="9" fill="' + hc + '"/><path d="M-6 -176 Q0 -180 6 -176" stroke="' + hlc + '" stroke-width="1.4" fill="none"/>' : '');
   if (f && o.kid) h += '<circle cx="-25" cy="-128" r="8.5" fill="' + hc + '"/><circle cx="25" cy="-128" r="8.5" fill="' + hc + '"/>';
   // telinga (cowok)
   if (!f) h += '<circle cx="-22" cy="-132" r="4.2" fill="' + SK2 + '"/><circle cx="22" cy="-132" r="4.2" fill="' + SK2 + '"/>';
+  if (!f && ag && ag.bald === 2) h += '<path d="M-22.5 -140 C-27 -160 -10 -171 0 -171 C10 -171 27 -160 22.5 -140Z" fill="' + SK + '"/>';
   // wajah
   h += f
     ? '<path d="M-21 -137 C-21 -152 -12 -158 0 -158 C12 -158 21 -152 21 -137 C21 -124 14 -109 0 -105 C-14 -109 -21 -124 -21 -137Z" fill="' + SK + '"/>'
@@ -914,21 +916,37 @@ function faceSVG(g, o) {
   h += '<path d="M-1.6 -122.8 Q0 -120.6 1.8 -122.8" stroke="#d29a78" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
   if (f) h += '<path d="M-5.2 -114.6 Q0 -111.4 5.2 -114.6 Q0 -113.2 -5.2 -114.6Z" fill="#cf3f60"/><path d="M-4.6 -114.4 Q0 -108.6 4.6 -114.4 Q0 -112 -4.6 -114.4Z" fill="#ec6784"/>';
   else h += '<path d="M-5.8 -114.4 Q0 -109 5.8 -114.4" stroke="#8f4638" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M-4 -113 Q0 -110.4 4 -113" stroke="#fff" stroke-width="1.2" fill="none" opacity=".8" stroke-linecap="round"/>';
+  if (ag) {
+    const wl = '#c58f6d';
+    if (ag.nl) h += '<path d="M-7 -121 Q-10 -117 -9.5 -112.6 M7 -121 Q10 -117 9.5 -112.6" stroke="' + wl + '" stroke-width="1" fill="none" opacity=".7" stroke-linecap="round"/>';
+    if (ag.cf) h += '<path d="M-16.4 -133 l-3.4 -1.2 M-16.4 -131 l-3.6 0.6 M16.4 -133 l3.4 -1.2 M16.4 -131 l3.6 .6" stroke="' + wl + '" stroke-width=".9" opacity=".7" stroke-linecap="round"/>';
+    if (ag.bag) h += '<path d="M-14.4 -125.6 Q-9.5 -123.4 -4.8 -125.6 M4.8 -125.6 Q9.5 -123.4 14.4 -125.6" stroke="' + wl + '" stroke-width="1" fill="none" opacity=".6" stroke-linecap="round"/>';
+    if (ag.fl) h += '<path d="M-9 -146.4 Q0 -148.4 9 -146.4 M-7 -149.4 Q0 -151 7 -149.4" stroke="' + wl + '" stroke-width="1" fill="none" opacity=".6" stroke-linecap="round"/>';
+  }
   // rambut depan
   if (f) {
     h += o.kid
       ? '<path d="M-23 -138 C-25 -160 -9 -166 2 -165 C18 -164 26 -152 23 -138 C20 -147 14 -152 4 -152 C-8 -151 -18 -147 -23 -138Z" fill="' + hc + '"/>'
-      : '<path d="M-24 -136 C-28 -162 -9 -170 3 -168 C21 -167 28 -152 24 -136 C22 -147 16 -153 7 -155 C-1 -147 -14 -141 -24 -136Z" fill="' + hc + '"/><path d="M-15 -160 Q-4 -166 9 -164" stroke="' + hl + '" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".6"/>';
+      : '<path d="M-24 -136 C-28 -162 -9 -170 3 -168 C21 -167 28 -152 24 -136 C22 -147 16 -153 7 -155 C-1 -147 -14 -141 -24 -136Z" fill="' + hc + '"/><path d="M-15 -160 Q-4 -166 9 -164" stroke="' + hlc + '" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".6"/>';
   } else {
     h += o.kid
       ? '<path d="M-23 -140 C-24 -161 -8 -166 3 -165 C18 -164 25 -153 23 -140 C18 -146 10 -149 0 -148 C-10 -147 -18 -145 -23 -140Z" fill="' + hc + '"/>'
-      : '<path d="M-23.5 -139 C-28 -162 -10 -172 6 -168 C22 -165 28 -151 23.5 -139 L23 -133 C21 -142 15 -148 6 -149 C-6 -150 -16 -147 -22 -134Z" fill="' + hc + '"/><path d="M-12 -163 Q-2 -168 10 -165" stroke="' + hl + '" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>';
+      : (ag && ag.bald === 2
+        ? '<path d="M-23 -139 C-25.5 -147 -24.5 -153 -20.5 -158 L-17 -153.5 C-19.6 -150 -20.6 -145 -21 -137Z M23 -139 C25.5 -147 24.5 -153 20.5 -158 L17 -153.5 C19.6 -150 20.6 -145 21 -137Z" fill="' + hc + '"/><ellipse cx="-6" cy="-163" rx="6.5" ry="2.4" fill="#fff" opacity=".4" transform="rotate(-14 -6 -163)"/>'
+        : '<path d="M-23.5 -139 C-28 -162 -10 -172 6 -168 C22 -165 28 -151 23.5 -139 L23 -133 C21 -142 15 -148 6 -149 C-6 -150 -16 -147 -22 -134Z" fill="' + hc + '"/><path d="M-12 -163 Q-2 -168 10 -165" stroke="' + hlc + '" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>'
+          + (ag && ag.bald === 1 ? '<path d="M-24 -141 C-19 -152 -14 -153 -8.5 -148.6 C-13 -148 -16.4 -144.6 -19.6 -138.4Z M24 -141 C19 -152 14 -153 8.5 -148.6 C13 -148 16.4 -144.6 19.6 -138.4Z" fill="' + SK + '"/>' : ''));
   }
   return h;
 }
-function accessorySVG(g, T, kid) {
+function glassesSVG(g) {
+  return g === 'f'
+    ? '<g fill="rgba(200,230,255,.18)" stroke="#8a4a62" stroke-width="1.7"><path d="M-17.4 -135.6 Q-17 -139.4 -12 -139 L-5 -138 Q-2.6 -136 -3.4 -130 Q-4.6 -126 -9.6 -126 Q-16.4 -126 -17.4 -131Z"/><path d="M17.4 -135.6 Q17 -139.4 12 -139 L5 -138 Q2.6 -136 3.4 -130 Q4.6 -126 9.6 -126 Q16.4 -126 17.4 -131Z"/><path d="M-3 -134 Q0 -135.4 3 -134" fill="none"/><path d="M-17.4 -134 L-22 -136 M17.4 -134 L22 -136" fill="none"/></g>'
+    : '<g fill="rgba(200,230,255,.16)" stroke="#2b2b2b" stroke-width="1.8"><rect x="-16.4" y="-137.6" width="13.4" height="10.6" rx="2.6"/><rect x="3" y="-137.6" width="13.4" height="10.6" rx="2.6"/><path d="M-3 -134 H3" fill="none"/><path d="M-16.4 -135 L-22 -136.6 M16.4 -135 L22 -136.6" fill="none"/></g>';
+}
+function accessorySVG(g, T, kid, ag) {
   let h = '';
   if (kid) return h;
+  if (ag && ag.glass && !(g === 'm' && T === 2) && T < 4) h += glassesSVG(g);
   if (g === 'f') {
     if (T === 1) h += '<path d="M-17 -154 l6 -2 l-1 5 z" fill="#ff7fa5"/><circle cx="-13" cy="-154" r="1.6" fill="#fff"/>';
     if (T >= 2) h += '<path d="M-23 -142 C-18 -164 18 -164 23 -142" stroke="' + (T === 2 ? '#ff7fa5' : '#e9c46a') + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
@@ -976,7 +994,7 @@ function personF(o) {
   if (T >= 3) h += '<g transform="translate(-26,-52)"><path d="M-3 0 Q-9 -14 0 -16 Q9 -14 3 0" stroke="#7b2d3a" stroke-width="1.8" fill="none"/><rect x="-10" y="-2" width="20" height="14" rx="3" fill="' + (T === 3 ? '#b3243b' : '#161616') + '"/><rect x="-2" y="2" width="4" height="3" rx="1" fill="#f2c14e"/></g>';
   // leher + kepala
   h += '<rect x="-4.6" y="-111" width="9.2" height="13" rx="3" fill="' + SK2 + '"/>';
-  h += faceSVG('f', o) + accessorySVG('f', T);
+  h += faceSVG('f', o) + accessorySVG('f', T, false, o.ag);
   return h;
 }
 function faceBack(o) { return ''; }
@@ -1007,7 +1025,7 @@ function personM(o) {
   });
   if (T >= 1) h += '<g transform="translate(-24,-63)"><circle cx="0" cy="0" r="3.8" fill="none" stroke="' + (T >= 4 ? '#f2c14e' : '#444') + '" stroke-width="2"/><circle cx="0" cy="0" r="2.4" fill="' + (T >= 4 ? '#fff6c8' : '#fff') + '"/></g>';
   h += '<rect x="-5.4" y="-112" width="10.8" height="14" rx="3" fill="' + SK2 + '"/>';
-  h += faceSVG('m', o) + accessorySVG('m', T);
+  h += faceSVG('m', o) + accessorySVG('m', T, false, o.ag);
   return h;
 }
 /* tier gaya dari gaya hidup & jabatan */
@@ -1018,7 +1036,15 @@ function person(g, o) {
   o.T = Math.max(0, Math.min(4, o.T | 0));
   o.top = o.top || (g === 'f' ? TOP_F[o.T] : TOP_M[o.T]);
   if (o.uniform) return personUniform(g, o);
-  return g === 'f' ? personF(o) : personM(o);
+  const ag = o.ag = agingOf(g, o);
+  if (ag && ag.senior && o.T < 3 && !o.top0) o.top = g === 'f' ? ['#c9a3b8', '#9fb4c9', '#b9a7cf'][o.T] : '#a9814b';
+  let b = g === 'f' ? personF(o) : personM(o);
+  if (ag && ag.senior && o.T < 3) {
+    if (g === 'f') b += '<path d="M-15 -99 Q-17 -82 -14.4 -66 L-6.6 -66 L-3.6 -97Z M15 -99 Q17 -82 14.4 -66 L6.6 -66 L3.6 -97Z" fill="#6f5a86"/><circle cx="-5.2" cy="-84" r="1.3" fill="#e9d9f5"/><circle cx="-5.6" cy="-76" r="1.3" fill="#e9d9f5"/>';
+    else b += '<g fill="#e8cf9a" opacity=".85"><circle cx="-9" cy="-92" r="1.6"/><circle cx="2" cy="-86" r="1.6"/><circle cx="10" cy="-94" r="1.6"/><circle cx="-4" cy="-76" r="1.6"/><circle cx="8" cy="-72" r="1.6"/><circle cx="-11" cy="-70" r="1.6"/></g><path d="M-19 -99 L-7 -103 L0 -93 L7 -103 L19 -99" stroke="#7a5a2c" stroke-width="1.4" fill="none"/>';
+  }
+  if (ag && ag.cane) b += '<g stroke="#6b4a2b" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M' + (g === 'f' ? 27 : 31) + ' -62 V-1"/><path d="M' + (g === 'f' ? 27 : 31) + ' -62 q0 -6 -5.6 -5.6"/></g>';
+  return ag && ag.stoop ? '<g transform="rotate(' + ag.stoop + ' 0 -4)">' + b + '</g>' : b;
 }
 function personUniform(g, o) {
   const u = o.uniform, ph = Object.assign({}, o, { T: 1 });
@@ -1088,44 +1114,309 @@ function uniformFor(ay, edu, i) {
 
 /* ====================== rumah & kendaraan ====================== */
 const wheel = (x, y, r, rim) => '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#171717"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .55) + '" fill="' + (rim || '#c9ced6') + '"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .18) + '" fill="#555"/>';
-function carSVG(kind, col) {
-  let s = '<ellipse cx="0" cy="1" rx="52" ry="4" fill="rgba(0,0,0,.18)"/>';
-  const glass = '#bfe3f7', rim = kind === 'lux' || kind === 'sport' ? '#e0b43a' : '#c9ced6';
-  if (kind === 'hatch') {
-    s += '<path d="M-44 -4 L-44 -16 Q-43 -22 -35 -23 L-27 -35 Q-24 -39 -18 -39 L12 -39 Q18 -39 22 -34 L31 -24 L41 -22 Q46 -20 46 -14 L46 -4Z" fill="' + col + '"/>';
-    s += '<path d="M-24 -26 L-18 -35 H-4 V-26Z M0 -26 V-35 H11 Q15 -35 18 -31 L24 -26Z" fill="' + glass + '"/>';
-  } else if (kind === 'sedan') {
-    s += '<path d="M-52 -4 L-52 -16 Q-51 -21 -44 -22 L-34 -24 L-24 -36 Q-21 -39 -15 -39 L12 -39 Q18 -39 22 -35 L32 -25 L46 -22 Q52 -20 52 -14 L52 -4Z" fill="' + col + '"/>';
-    s += '<path d="M-30 -26 L-22 -35 H-6 V-26Z M-2 -26 V-35 H11 Q15 -35 18 -31 L26 -26Z" fill="' + glass + '"/>';
-  } else if (kind === 'suv') {
-    s += '<path d="M-50 -4 L-50 -22 Q-50 -27 -44 -28 L-40 -42 Q-38 -46 -32 -46 L16 -46 Q22 -46 26 -41 L33 -30 L46 -28 Q51 -26 51 -20 L51 -4Z" fill="' + col + '"/>';
-    s += '<path d="M-36 -31 L-33 -41 H-6 V-31Z M-2 -31 V-41 H14 Q18 -41 21 -37 L26 -31Z" fill="' + glass + '"/>';
-  } else if (kind === 'lux') {
-    s += '<path d="M-54 -4 L-54 -15 Q-53 -20 -46 -21 L-34 -23 L-22 -35 Q-19 -38 -13 -38 L12 -38 Q18 -38 22 -34 L34 -24 L48 -21 Q54 -19 54 -13 L54 -4Z" fill="' + col + '"/>';
-    s += '<path d="M-28 -25 L-20 -34 H-5 V-25Z M-1 -25 V-34 H11 Q15 -34 18 -30 L28 -25Z" fill="#8fb7d6"/><path d="M-50 -14 H50" stroke="#fff" stroke-width=".8" opacity=".35"/><circle cx="50" cy="-12" r="2" fill="#fff6c8"/>';
-  } else { // sport
-    s += '<path d="M-54 -4 L-54 -13 Q-52 -18 -44 -19 L-28 -22 Q-20 -34 -8 -35 L10 -35 Q18 -35 24 -27 L36 -22 L50 -19 Q55 -17 55 -11 L55 -4Z" fill="' + col + '"/>';
-    s += '<path d="M-22 -23 Q-17 -31 -8 -31 H6 Q12 -31 16 -26 L20 -23Z" fill="#8fb7d6"/><path d="M-44 -9 H-24" stroke="#fff" stroke-width="1.5" opacity=".5"/><circle cx="52" cy="-11" r="2" fill="#fff6c8"/>';
+/* ====== art2: rumah, kendaraan, hewan peliharaan (semi-realistis) ====== */
+const DEFS2 = '<linearGradient id="glassG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fa8dc"/><stop offset=".55" stop-color="#a9d8f2"/><stop offset="1" stop-color="#dff2fb"/></linearGradient>'
+  + '<linearGradient id="wallA" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fffaf0"/><stop offset=".6" stop-color="#f1e6cc"/><stop offset="1" stop-color="#dccfb0"/></linearGradient>'
+  + '<linearGradient id="wallB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#f0efea"/><stop offset="1" stop-color="#d9d8d1"/></linearGradient>'
+  + '<linearGradient id="wallC" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9e0cd"/><stop offset=".6" stop-color="#d8cdb6"/><stop offset="1" stop-color="#bfb398"/></linearGradient>'
+  + '<linearGradient id="woodG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c99560"/><stop offset=".5" stop-color="#a9743f"/><stop offset="1" stop-color="#7d5128"/></linearGradient>'
+  + '<linearGradient id="metalG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#aab3c4"/><stop offset=".5" stop-color="#7b869d"/><stop offset="1" stop-color="#5c6680"/></linearGradient>'
+  + '<linearGradient id="darkSlab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a6275"/><stop offset="1" stop-color="#2b303d"/></linearGradient>'
+  + '<linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>'
+  + '<linearGradient id="waterG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fe0f7"/><stop offset="1" stop-color="#2aa6d6"/></linearGradient>'
+  + '<linearGradient id="tankG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5fa3e0"/><stop offset=".5" stop-color="#2f7bc8"/><stop offset="1" stop-color="#1f5a9c"/></linearGradient>'
+  + '<linearGradient id="carGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e8aa3"/><stop offset=".6" stop-color="#2b3f55"/><stop offset="1" stop-color="#1b2a3a"/></linearGradient>'
+  + '<radialGradient id="rimG" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#fafafa"/><stop offset=".6" stop-color="#b9c0cb"/><stop offset="1" stop-color="#767e8c"/></radialGradient>'
+  + '<radialGradient id="glowG"><stop offset="0" stop-color="#fff3b0" stop-opacity=".95"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/></radialGradient>'
+  + '<radialGradient id="gShadow"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'
+  + '<pattern id="tileR" width="12" height="7" patternUnits="userSpaceOnUse"><rect width="12" height="7" fill="#c85c3c"/><path d="M0 6.4H12" stroke="#8c3321" stroke-width="1.5"/><path d="M6 0V6.4" stroke="#a9472c" stroke-width=".9"/><path d="M0 .8H12" stroke="#e58a68" stroke-width=".8" opacity=".6"/></pattern>'
+  + '<pattern id="tileD" width="12" height="7" patternUnits="userSpaceOnUse"><rect width="12" height="7" fill="#4c5366"/><path d="M0 6.4H12" stroke="#262b38" stroke-width="1.5"/><path d="M6 0V6.4" stroke="#363c4d" stroke-width=".9"/><path d="M0 .8H12" stroke="#79829a" stroke-width=".8" opacity=".5"/></pattern>'
+  + '<pattern id="brickP" width="14" height="7" patternUnits="userSpaceOnUse"><rect width="14" height="7" fill="#b4694a"/><path d="M0 3.5H14M0 0H14M7 0V3.5M0 3.5V7M14 3.5V7" stroke="#e7d2b8" stroke-width="1"/></pattern>'
+  + '<pattern id="stoneP" width="16" height="10" patternUnits="userSpaceOnUse"><rect width="16" height="10" fill="#c9bfa8"/><path d="M0 5H16M8 0V5M0 5V10M16 5V10" stroke="#a69c85" stroke-width="1"/></pattern>';
+
+/* kaca jendela dengan pantulan langit */
+function gWin(x, y, w, h, o) {
+  o = o || {}; const fr = o.fr || '#f7f7f3', cols = o.cols || 2, rows = o.rows || 1;
+  let s = '<rect x="' + (x - 1.5) + '" y="' + (y - 1) + '" width="' + (w + 3) + '" height="' + (h + 3) + '" fill="#000" opacity=".14"/>';
+  s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="url(#glassG)"/>';
+  s += '<path d="M' + (x + w * .1) + ' ' + (y + h) + ' L' + (x + w * .44) + ' ' + y + ' L' + (x + w * .64) + ' ' + y + ' L' + (x + w * .3) + ' ' + (y + h) + 'Z" fill="#fff" opacity=".32"/>';
+  if (o.curt) s += '<path d="M' + x + ' ' + y + ' h' + (w * .25) + ' q-2 ' + (h * .5) + ' 0 ' + h + ' h-' + (w * .25) + 'z" fill="' + o.curt + '" opacity=".6"/>';
+  if (o.warm) s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="#ffd27a" opacity=".28"/>';
+  s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="none" stroke="' + fr + '" stroke-width="2.2"/>';
+  for (let c = 1; c < cols; c++) s += '<path d="M' + (x + w * c / cols) + ' ' + y + 'v' + h + '" stroke="' + fr + '" stroke-width="1.6"/>';
+  for (let r = 1; r < rows; r++) s += '<path d="M' + x + ' ' + (y + h * r / rows) + 'h' + w + '" stroke="' + fr + '" stroke-width="1.6"/>';
+  if (!o.nosill) s += '<rect x="' + (x - 2) + '" y="' + (y + h) + '" width="' + (w + 4) + '" height="2.6" fill="#cfc7b2"/><rect x="' + (x - 2) + '" y="' + (y + h + 2.6) + '" width="' + (w + 4) + '" height="1.6" fill="#000" opacity=".15"/>';
+  return s;
+}
+function gDoor(x, y, w, h, col, o) {
+  o = o || {}; const g = col || 'url(#woodG)';
+  let s = '<rect x="' + (x - 2) + '" y="' + (y - 2) + '" width="' + (w + 4) + '" height="' + (h + 2) + '" fill="#f1ece0"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + g + '"/>';
+  s += '<rect x="' + (x + w * .14) + '" y="' + (y + h * .08) + '" width="' + (w * .72) + '" height="' + (h * .36) + '" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="1.3"/><rect x="' + (x + w * .14) + '" y="' + (y + h * .52) + '" width="' + (w * .72) + '" height="' + (h * .38) + '" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="1.3"/>';
+  s += '<rect x="' + x + '" y="' + y + '" width="' + (w * .3) + '" height="' + h + '" fill="#fff" opacity=".12"/>';
+  s += '<circle cx="' + (x + w * .82) + '" cy="' + (y + h * .55) + '" r="1.8" fill="#f2c14e" stroke="#9a7420" stroke-width=".5"/>';
+  return s;
+}
+function gLamp(x, y) { return '<circle cx="' + x + '" cy="' + y + '" r="9" fill="url(#glowG)"/><rect x="' + (x - 2) + '" y="' + (y - 3) + '" width="4" height="6" rx="1.5" fill="#fff6c8" stroke="#6a6a6a" stroke-width=".8"/>'; }
+function gBush(x, y, r) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + r + '" ry="' + (r * .72) + '" fill="#3d8f45"/><ellipse cx="' + (x - r * .25) + '" cy="' + (y - r * .22) + '" rx="' + (r * .62) + '" ry="' + (r * .44) + '" fill="#58b35a"/><ellipse cx="' + (x - r * .35) + '" cy="' + (y - r * .35) + '" rx="' + (r * .25) + '" ry="' + (r * .16) + '" fill="#9be08a" opacity=".7"/>'; }
+
+function houseSVG(housing, W) {
+  const style = housing === 'kos' ? 'kos' : housing === 'kontrak' ? 'kontrak' : (W >= 4 ? 'mansion' : W >= 3 ? 'villa' : W >= 2 ? 'modern' : 'cluster');
+  let s = '';
+  if (style === 'kos') {
+    s += '<rect x="22" y="236" width="176" height="126" fill="url(#wallA)"/>';
+    s += '<rect x="22" y="236" width="176" height="126" fill="none" stroke="#000" stroke-opacity=".08"/>';
+    // noda & kabel
+    s += '<path d="M22 238 Q110 244 198 238" stroke="#333" stroke-width=".8" fill="none" opacity=".5"/>';
+    s += '<rect x="14" y="224" width="192" height="12" fill="url(#metalG)"/><rect x="14" y="224" width="192" height="2.4" fill="#fff" opacity=".4"/><rect x="22" y="236" width="176" height="7" fill="url(#shade)"/>';
+    // tandon air
+    s += '<g><rect x="170" y="212" width="3" height="12" fill="#6b7384"/><rect x="186" y="212" width="3" height="12" fill="#6b7384"/><rect x="166" y="190" width="26" height="24" rx="5" fill="url(#tankG)"/><rect x="164" y="187" width="30" height="6" rx="3" fill="#1f5a9c"/><rect x="172" y="192" width="4" height="20" rx="2" fill="#fff" opacity=".25"/></g>';
+    [34, 78, 122, 166].forEach((x, i) => {
+      s += '<rect x="' + (x - 2) + '" y="248" width="30" height="40" fill="#e9e1cc"/>' + '<rect x="' + x + '" y="250" width="26" height="36" rx="1.5" fill="#718299"/><rect x="' + x + '" y="250" width="9" height="36" fill="#fff" opacity=".14"/>';
+      s += '<path d="M' + (x + 3) + ' 256 h20 M' + (x + 3) + ' 261 h20" stroke="rgba(0,0,0,.22)" stroke-width="1"/><circle cx="' + (x + 21) + '" cy="272" r="1.8" fill="#f2c14e"/>';
+      s += '<rect x="' + (x + 4) + '" y="238" width="18" height="7" rx="1" fill="#e8eef6" stroke="#9aa6ba" stroke-width=".8"/><path d="M' + (x + 6) + ' 241.5 h14" stroke="#9aa6ba" stroke-width=".8"/>';
+      s += '<rect x="' + (x + 5) + '" y="253" width="16" height="6" rx="1" fill="#f3f3ee" stroke="#8a95a8" stroke-width=".6"/><text x="' + (x + 13) + '" y="258" text-anchor="middle" font-size="5.2" font-weight="800" fill="#475069" font-family="Nunito,sans-serif">' + (i + 5) + '</text>';
+    });
+    s += '<rect x="20" y="287" width="180" height="6" fill="#d6c9a7"/><rect x="20" y="293" width="180" height="5" fill="url(#shade)"/>';
+    s += '<g stroke="#7b869d" stroke-width="2">' + Array.from({ length: 19 }, (_, i) => '<path d="M' + (26 + i * 9.4) + ' 274 v13"/>').join('') + '</g><rect x="22" y="272.4" width="178" height="3" fill="url(#metalG)"/>';
+    s += '<path d="M40 276 q8 7 16 0" stroke="#ff6f91" stroke-width="5" fill="none"/><rect x="58" y="270" width="10" height="9" fill="#58b8ff"/><rect x="132" y="269" width="9" height="9" fill="#ffd23f"/><path d="M36 272 H180" stroke="#8a8a8a" stroke-width=".6" opacity=".6"/>';
+    [34, 78, 122, 166].forEach((x, i) => {
+      const me = i === 0;
+      s += '<rect x="' + (x - 2) + '" y="308" width="30" height="54" fill="#e9e1cc"/>' + '<rect x="' + x + '" y="310" width="26" height="52" rx="1.5" fill="' + (me ? '#3a6fd0' : '#718299') + '"/><rect x="' + x + '" y="310" width="9" height="52" fill="#fff" opacity=".16"/>';
+      s += '<rect x="' + (x + 5) + '" y="316" width="16" height="12" fill="' + (me ? '#2c58ab' : '#5d6c82') + '"/><path d="M' + (x + 8) + ' 318 h10 M' + (x + 8) + ' 321.5 h10 M' + (x + 8) + ' 325 h10" stroke="rgba(255,255,255,.35)" stroke-width="1"/>';
+      s += '<circle cx="' + (x + 21) + '" cy="340" r="1.9" fill="#f2c14e"/><text x="' + (x + 13) + '" y="308" text-anchor="middle" font-size="7" font-weight="800" fill="#4a4a4a" font-family="Nunito,sans-serif" opacity="0">' + (i + 1) + '</text>';
+      s += '<rect x="' + (x + 8) + '" y="300" width="10" height="6" rx="1" fill="#f3f3ee" stroke="#8a95a8" stroke-width=".6"/><text x="' + (x + 13) + '" y="305" text-anchor="middle" font-size="5" font-weight="800" fill="#475069" font-family="Nunito,sans-serif">' + (i + 1) + '</text>';
+    });
+    s += '<rect x="76" y="224" width="68" height="18" rx="4" fill="#000" opacity=".18" transform="translate(1.5,2)"/><rect x="76" y="224" width="68" height="18" rx="4" fill="#fff"/><rect x="76" y="224" width="68" height="4" rx="2" fill="#c8553d" opacity=".9"/><text x="110" y="238" text-anchor="middle" font-size="9.5" font-weight="900" fill="#c8553d" font-family="Nunito,sans-serif">KOS PUTRA/I</text>';
+    s += '<rect x="14" y="356" width="192" height="8" fill="#bcb39b"/><rect x="14" y="356" width="192" height="2" fill="#fff" opacity=".4"/>';
+    s += '<rect x="194" y="288" width="9" height="7" rx="1" fill="#f3f3ee" stroke="#8a95a8" stroke-width=".7"/><circle cx="198.5" cy="291.5" r="2" fill="#9aa6ba"/>';
+  } else if (style === 'kontrak') {
+    s += '<rect x="30" y="286" width="158" height="76" fill="url(#wallA)"/><rect x="30" y="346" width="158" height="16" fill="#cbbd9c" opacity=".65"/>';
+    s += '<polygon points="14,296 109,234 204,296" fill="url(#tileR)"/><polygon points="14,296 109,234 204,296" fill="url(#shade)" opacity=".0"/>';
+    s += '<polygon points="109,234 204,296 109,262" fill="#000" opacity=".12"/>';
+    s += '<path d="M14 296 L109 234 L204 296" stroke="#7a2e1d" stroke-width="3" fill="none"/><rect x="14" y="295" width="190" height="5" fill="#8c3321"/><rect x="30" y="300" width="158" height="9" fill="url(#shade)"/>';
+    s += '<polygon points="96,252 109,243 122,252 122,268 96,268" fill="url(#wallA)" opacity="0"/>';
+    s += '<path d="M104 262 h10 v-5 q-5 -5 -10 0z" fill="#e8dcc0" stroke="#7a2e1d" stroke-width="1.2"/>';
+    // teras
+    s += '<polygon points="40,306 100,306 104,316 36,316" fill="#b5523b"/><polygon points="40,306 100,306 104,316 36,316" fill="url(#tileR)" opacity=".8"/><rect x="36" y="316" width="68" height="3" fill="#000" opacity=".18"/>';
+    s += '<rect x="38" y="316" width="4" height="42" fill="#efe7d3"/><rect x="98" y="316" width="4" height="42" fill="#efe7d3"/><rect x="38" y="316" width="1.4" height="42" fill="#fff"/><rect x="98" y="316" width="1.4" height="42" fill="#fff"/>';
+    s += gDoor(52, 322, 30, 40, 'url(#woodG)') + '<rect x="47" y="316" width="40" height="6" fill="#e8dcc0"/>';
+    s += gWin(112, 316, 54, 34, { cols: 2, rows: 1, curt: '#f4d4a8' });
+    s += '<rect x="105" y="316" width="7" height="34" fill="#5b8a72"/><rect x="166" y="316" width="7" height="34" fill="#5b8a72"/><path d="M107 320h3M107 324h3M107 328h3M107 332h3M107 336h3M107 340h3M107 344h3M168 320h3M168 324h3M168 328h3M168 332h3M168 336h3M168 340h3M168 344h3" stroke="#3d6552" stroke-width=".9"/>';
+    s += '<rect x="42" y="358" width="52" height="6" fill="#d7ccb0"/><rect x="42" y="358" width="52" height="1.6" fill="#fff" opacity=".6"/>';
+    s += '<g><path d="M176 360 l-3 -12 h16 l-3 12z" fill="#b5653e"/><ellipse cx="181" cy="346" rx="9" ry="7" fill="#3d8f45"/><ellipse cx="178" cy="343" rx="5" ry="3.4" fill="#6dc25c"/></g>';
+    s += gLamp(104, 322);
+  } else if (style === 'cluster') {
+    s += '<rect x="26" y="290" width="172" height="72" fill="url(#wallB)"/><rect x="40" y="240" width="124" height="52" fill="url(#wallC)"/>';
+    s += '<rect x="40" y="276" width="124" height="16" fill="url(#brickP)" opacity="0"/>';
+    s += '<rect x="20" y="283" width="184" height="9" fill="url(#darkSlab)"/><rect x="20" y="283" width="184" height="1.8" fill="#fff" opacity=".35"/><rect x="26" y="292" width="172" height="8" fill="url(#shade)"/>';
+    s += '<rect x="34" y="231" width="136" height="10" fill="url(#darkSlab)"/><rect x="34" y="231" width="136" height="1.8" fill="#fff" opacity=".35"/><rect x="40" y="241" width="124" height="8" fill="url(#shade)"/>';
+    s += gWin(54, 252, 40, 26, { cols: 2 }) + gWin(112, 252, 40, 26, { cols: 2, curt: '#f4d4a8' });
+    s += '<rect x="170" y="236" width="14" height="46" fill="url(#woodG)" opacity="0"/>';
+    s += gDoor(46, 312, 30, 50, 'url(#woodG)') + gWin(104, 306, 72, 42, { cols: 3, rows: 1, curt: '#f4d4a8' });
+    s += '<rect x="82" y="318" width="12" height="7" rx="1" fill="#fff" stroke="#9aa6ba" stroke-width=".7"/><text x="88" y="323.6" text-anchor="middle" font-size="5.2" font-weight="800" fill="#475069" font-family="Nunito,sans-serif">12</text>';
+    s += gBush(30, 358, 14) + gBush(196, 358, 14) + '<rect x="26" y="357" width="172" height="6" fill="#c3b99f"/><rect x="26" y="357" width="172" height="1.6" fill="#fff" opacity=".6"/>';
+    s += gLamp(82, 304);
+  } else if (style === 'modern') {
+    s += '<rect x="18" y="284" width="190" height="78" fill="url(#wallB)"/><rect x="38" y="222" width="142" height="64" fill="url(#wallC)"/>';
+    s += '<rect x="10" y="276" width="204" height="10" fill="url(#darkSlab)"/><rect x="10" y="276" width="204" height="1.8" fill="#fff" opacity=".4"/><rect x="18" y="286" width="190" height="9" fill="url(#shade)"/>';
+    s += '<rect x="28" y="213" width="158" height="10" fill="url(#darkSlab)"/><rect x="28" y="213" width="158" height="1.8" fill="#fff" opacity=".4"/><rect x="38" y="223" width="142" height="8" fill="url(#shade)"/>';
+    s += gWin(46, 232, 86, 44, { cols: 3, rows: 1, nosill: true, curt: '#f4d4a8' });
+    s += '<rect x="138" y="228" width="34" height="50" fill="url(#woodG)"/><g stroke="rgba(0,0,0,.28)" stroke-width="1.2">' + Array.from({ length: 12 }, (_, i) => '<path d="M138 ' + (232 + i * 4) + ' H172"/>').join('') + '</g><rect x="138" y="228" width="8" height="50" fill="#fff" opacity=".12"/>';
+    s += gDoor(44, 302, 34, 60, 'url(#woodG)') + gWin(98, 298, 98, 48, { cols: 3, rows: 1, nosill: true, warm: true });
+    s += '<rect x="46" y="294" width="30" height="7" fill="#e8dcc0"/>';
+    s += '<rect x="14" y="352" width="196" height="9" fill="#bfb7a1"/><rect x="14" y="352" width="196" height="2" fill="#fff" opacity=".5"/>';
+    s += gBush(20, 356, 12) + gBush(204, 356, 12);
+    [60, 100, 150].forEach(x => { s += '<circle cx="' + x + '" cy="288" r="7" fill="url(#glowG)"/>'; });
+    s += '<rect x="90" y="206" width="40" height="7" fill="#7d8aa3" opacity=".0"/>';
+  } else if (style === 'villa') {
+    s += '<rect x="14" y="276" width="198" height="86" fill="url(#wallB)"/><rect x="30" y="212" width="152" height="66" fill="url(#wallC)"/>';
+    s += '<rect x="14" y="276" width="26" height="86" fill="url(#stoneP)"/><rect x="14" y="276" width="26" height="86" fill="url(#shade)" opacity=".25"/>';
+    s += '<rect x="4" y="268" width="218" height="10" fill="url(#darkSlab)"/><rect x="4" y="268" width="218" height="2" fill="#fff" opacity=".4"/><rect x="14" y="278" width="198" height="9" fill="url(#shade)"/>';
+    s += '<rect x="20" y="201" width="170" height="11" fill="url(#darkSlab)"/><rect x="20" y="201" width="170" height="2" fill="#fff" opacity=".4"/><rect x="30" y="212" width="152" height="8" fill="url(#shade)"/>';
+    s += gWin(38, 224, 78, 48, { cols: 3, nosill: true, warm: true, curt: '#f4d4a8' });
+    s += '<rect x="124" y="222" width="50" height="52" fill="url(#woodG)"/><g stroke="rgba(0,0,0,.3)" stroke-width="1.2">' + Array.from({ length: 13 }, (_, i) => '<path d="M124 ' + (226 + i * 4) + ' H174"/>').join('') + '</g><rect x="124" y="222" width="10" height="52" fill="#fff" opacity=".12"/>';
+    s += gWin(46, 291, 90, 60, { cols: 4, rows: 1, nosill: true, warm: true });
+    s += gDoor(144, 292, 40, 70, 'url(#woodG)');
+    // panel surya
+    for (let i = 0; i < 5; i++) s += '<g transform="translate(' + (28 + i * 32) + ',189) skewX(-20)"><rect width="28" height="11" fill="#1f4c9a" stroke="#cfd8e8" stroke-width="1"/><path d="M9 0V11M18 0V11M0 5.5H28" stroke="#6f93d1" stroke-width=".6"/><rect width="28" height="3" fill="#fff" opacity=".25"/></g>';
+    s += '<g transform="translate(200,296)"><rect x="0" y="0" width="4" height="66" fill="#8b5a2b"/><rect x="0" y="0" width="1.4" height="66" fill="#c08a55"/><path d="M2 0 q-22 4 -26 22 M2 0 q20 2 26 18 M2 0 q-8 -14 -20 -16 M2 0 q10 -14 22 -14 M2 0 q-4 -16 4 -22" stroke="#2f9c4c" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M2 0 q-12 2 -18 12 M2 0 q12 0 18 10" stroke="#8be08f" stroke-width="1.6" fill="none" opacity=".7"/></g>';
+    s += '<rect x="4" y="360" width="76" height="9" rx="4" fill="url(#waterG)" stroke="#e8f8ff" stroke-width="1.6"/><path d="M12 364.5 q5 -2 10 0 t10 0 t10 0 t10 0" stroke="#fff" stroke-width="1" fill="none" opacity=".7"/>';
+    s += '<rect x="14" y="354" width="198" height="7" fill="#c8c0aa"/><rect x="14" y="354" width="198" height="1.8" fill="#fff" opacity=".5"/>';
+    [50, 96, 150].forEach(x => { s += '<circle cx="' + x + '" cy="282" r="8" fill="url(#glowG)"/>'; });
+  } else { // mansion
+    const colx = [58, 82, 126, 150];
+    s += '<rect x="6" y="250" width="50" height="112" fill="url(#wallA)"/><rect x="166" y="250" width="50" height="112" fill="url(#wallA)"/>';
+    s += '<rect x="0" y="238" width="62" height="14" fill="#6b3b2a"/><rect x="0" y="238" width="62" height="3" fill="#b9775a" opacity=".7"/><rect x="160" y="238" width="62" height="14" fill="#6b3b2a"/><rect x="160" y="238" width="62" height="3" fill="#b9775a" opacity=".7"/><rect x="6" y="252" width="50" height="8" fill="url(#shade)"/><rect x="166" y="252" width="50" height="8" fill="url(#shade)"/>';
+    s += '<rect x="48" y="214" width="126" height="148" fill="url(#wallA)"/>';
+    s += '<polygon points="32,218 111,160 190,218" fill="url(#tileR)"/><polygon points="32,218 111,160 190,218" fill="#4a1d10" opacity=".15"/><path d="M32 218 L111 160 L190 218" stroke="#6b2d1c" stroke-width="3" fill="none"/>';
+    s += '<polygon points="52,214 111,172 170,214" fill="#f3e6c8" stroke="#d9c79a" stroke-width="1.4"/><polygon points="62,212 111,177 160,212" fill="url(#wallA)" opacity=".7"/><circle cx="111" cy="196" r="9" fill="#fff4d6" stroke="#6b3b2a" stroke-width="3"/><circle cx="111" cy="196" r="5" fill="url(#glassG)"/><path d="M111 191v10M106 196h10" stroke="#fff" stroke-width="1"/>';
+    s += '<rect x="44" y="214" width="134" height="7" fill="#fff"/><rect x="44" y="221" width="134" height="6" fill="url(#shade)"/>';
+    // pilar
+    colx.forEach(x => { s += '<rect x="' + x + '" y="226" width="10" height="132" fill="url(#wallB)"/><rect x="' + (x + 7) + '" y="226" width="3" height="132" fill="#000" opacity=".1"/><rect x="' + (x - 3) + '" y="222" width="16" height="6" fill="#fff"/><rect x="' + (x - 3) + '" y="354" width="16" height="7" fill="#fff"/>'; });
+    s += '<rect x="92" y="298" width="38" height="64" rx="19" fill="url(#woodG)"/><rect x="92" y="298" width="38" height="64" rx="19" fill="none" stroke="#fff" stroke-width="3"/><path d="M111 306 V362" stroke="rgba(0,0,0,.3)" stroke-width="1.4"/><circle cx="106" cy="336" r="2" fill="#f2c14e"/><circle cx="116" cy="336" r="2" fill="#f2c14e"/><path d="M98 324 q13 -16 26 0" fill="url(#glassG)" opacity=".9"/>';
+    // jendela atas dengan balkon
+    s += gWin(70, 238, 22, 38, { cols: 2, rows: 2, warm: true }) + gWin(130, 238, 22, 38, { cols: 2, rows: 2, warm: true });
+    s += '<rect x="64" y="276" width="34" height="4" fill="#fff"/><g stroke="#fff" stroke-width="2">' + Array.from({ length: 9 }, (_, i) => '<path d="M' + (66 + i * 3.8) + ' 280 v8"/>').join('') + '</g><rect x="64" y="288" width="34" height="3" fill="#fff"/>';
+    s += '<rect x="124" y="276" width="34" height="4" fill="#fff"/><g stroke="#fff" stroke-width="2">' + Array.from({ length: 9 }, (_, i) => '<path d="M' + (126 + i * 3.8) + ' 280 v8"/>').join('') + '</g><rect x="124" y="288" width="34" height="3" fill="#fff"/>';
+    // sayap
+    [[16, 262], [176, 262], [16, 312], [176, 312]].forEach(a => { s += gWin(a[0], a[1], 30, 32, { cols: 2, rows: 2, warm: a[1] > 300 }); });
+    // tangga & air mancur
+    s += '<rect x="84" y="358" width="54" height="5" fill="#e9e4d6"/><rect x="78" y="362" width="66" height="4" fill="#d6d0bd"/>';
+    s += '<g transform="translate(111,372)"><ellipse cx="0" cy="2" rx="26" ry="7" fill="#cfd5dc"/><ellipse cx="0" cy="0" rx="23" ry="5.5" fill="url(#waterG)"/><rect x="-3" y="-16" width="6" height="16" fill="#d9dee5"/><ellipse cx="0" cy="-16" rx="9" ry="2.6" fill="#cfd5dc"/><path d="M0 -17 q-12 -14 -17 -2 M0 -17 q12 -14 17 -2 M0 -17 V-32 M0 -17 q-5 -10 -8 -9 M0 -17 q5 -10 8 -9" stroke="#e1f6ff" stroke-width="2" fill="none" stroke-linecap="round"/></g>';
+    s += gLamp(60, 292) + gLamp(162, 292) + BLING(32, 190, 1) + BLING(190, 188, .9);
   }
-  s += '<rect x="-52" y="-6" width="104" height="3" rx="1.5" fill="rgba(0,0,0,.18)"/>';
+  return s + '<ellipse cx="112" cy="364" rx="112" ry="4" fill="url(#gShadow)" opacity=".5"/>';
+}
+
+/* ====================== kendaraan ====================== */
+function shadeC(c, t) { return t >= 0 ? mixC(c, '#ffffff', t) : mixC(c, '#000000', -t); }
+function wheel2(x, y, r, rim, big) {
+  let s = '<circle cx="' + x + '" cy="' + y + '" r="' + (r + 2.2) + '" fill="#10131a"/><circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#1b1b1f"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .86) + '" fill="none" stroke="#3a3a42" stroke-width=".8"/>';
+  s += '<circle cx="' + x + '" cy="' + y + '" r="' + (r * .62) + '" fill="' + (rim && rim !== '#c9ced6' ? rim : 'url(#rimG)') + '"/>';
+  for (let i = 0; i < 5; i++) { const a = i * 72 * Math.PI / 180; s += '<path d="M' + x + ' ' + y + ' L' + (x + Math.cos(a) * r * .6).toFixed(1) + ' ' + (y + Math.sin(a) * r * .6).toFixed(1) + '" stroke="#6b7280" stroke-width="' + (big ? 1.8 : 1.4) + '" stroke-linecap="round"/>'; }
+  s += '<circle cx="' + x + '" cy="' + y + '" r="' + (r * .2) + '" fill="#4b5563"/><circle cx="' + (x - r * .25) + '" cy="' + (y - r * .3) + '" r="' + (r * .12) + '" fill="#fff" opacity=".6"/>';
+  return s;
+}
+function carSVG(kind, col) {
+  const id = 'cb' + col.slice(1);
+  let s = '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + shadeC(col, .38) + '"/><stop offset=".38" stop-color="' + col + '"/><stop offset=".8" stop-color="' + shadeC(col, -.28) + '"/><stop offset="1" stop-color="' + shadeC(col, -.5) + '"/></linearGradient></defs>';
+  s += '<ellipse cx="0" cy="1" rx="60" ry="5" fill="url(#gShadow)"/>';
+  const lux = kind === 'lux' || kind === 'sport', rim = lux ? '#e0b43a' : '#c9ced6', B = 'url(#' + id + ')';
+  let body, glass, belt, dh, fx, hl, tl;
+  if (kind === 'hatch') {
+    body = 'M-44 -4 L-44 -16 Q-43 -22 -35 -23 L-27 -35 Q-24 -39 -18 -39 L12 -39 Q18 -39 22 -34 L31 -24 L41 -22 Q46 -20 46 -14 L46 -4Z';
+    glass = 'M-25 -26 L-19 -35 H-4 V-26Z M0 -26 V-35 H11 Q15 -35 18 -31 L25 -26Z'; hl = [43, -17]; tl = [-43, -16]; dh = [[-10, -24], [14, -24]]; fx = [-4, 3];
+  } else if (kind === 'sedan') {
+    body = 'M-52 -4 L-52 -16 Q-51 -21 -44 -22 L-34 -24 L-24 -36 Q-21 -39 -15 -39 L12 -39 Q18 -39 22 -35 L32 -25 L46 -22 Q52 -20 52 -14 L52 -4Z';
+    glass = 'M-30 -26 L-22 -35 H-6 V-26Z M-2 -26 V-35 H11 Q15 -35 18 -31 L26 -26Z'; hl = [49, -16]; tl = [-50, -17]; dh = [[-14, -24], [12, -24]]; fx = [-4, 3];
+  } else if (kind === 'suv') {
+    body = 'M-50 -4 L-50 -22 Q-50 -27 -44 -28 L-40 -42 Q-38 -46 -32 -46 L16 -46 Q22 -46 26 -41 L33 -30 L46 -28 Q51 -26 51 -20 L51 -4Z';
+    glass = 'M-36 -31 L-33 -41 H-6 V-31Z M-2 -31 V-41 H14 Q18 -41 21 -37 L26 -31Z'; hl = [48, -22]; tl = [-48, -23]; dh = [[-14, -29], [12, -29]]; fx = [-4, 3];
+  } else if (kind === 'lux') {
+    body = 'M-54 -4 L-54 -15 Q-53 -20 -46 -21 L-34 -23 L-22 -35 Q-19 -38 -13 -38 L12 -38 Q18 -38 22 -34 L34 -24 L48 -21 Q54 -19 54 -13 L54 -4Z';
+    glass = 'M-28 -25 L-20 -34 H-5 V-25Z M-1 -25 V-34 H11 Q15 -34 18 -30 L28 -25Z'; hl = [51, -15]; tl = [-52, -16]; dh = [[-14, -23], [12, -23]]; fx = [-3, 4];
+  } else {
+    body = 'M-54 -4 L-54 -13 Q-52 -18 -44 -19 L-28 -22 Q-20 -34 -8 -35 L10 -35 Q18 -35 24 -27 L36 -22 L50 -19 Q55 -17 55 -11 L55 -4Z';
+    glass = 'M-22 -23 Q-17 -31 -8 -31 H6 Q12 -31 16 -26 L20 -23Z'; hl = [52, -11]; tl = [-53, -12]; dh = [[2, -20]]; fx = [0, 0];
+  }
+  s += '<path d="' + body + '" fill="' + B + '"/>';
+  // pantulan bodi & garis bahu
+  s += '<path d="' + body + '" fill="none" stroke="#000" stroke-opacity=".25" stroke-width=".8"/>';
+  s += '<path d="M-48 -19 Q0 -24 48 -19" stroke="#fff" stroke-width="1.6" fill="none" opacity=".42" stroke-linecap="round"/>';
+  s += '<path d="M-48 -9 H48" stroke="#000" stroke-width="2" opacity=".22"/>';
+  // kaca
+  s += '<path d="' + glass + '" fill="url(#carGlass)" stroke="#0f1722" stroke-width=".8"/><path d="' + glass + '" fill="#fff" opacity=".0"/><path d="M-18 -35 L-8 -26 M8 -35 L16 -27" stroke="#fff" stroke-width="1.6" opacity=".28"/>';
+  // pintu & gagang
+  dh.forEach(p => { s += '<rect x="' + p[0] + '" y="' + p[1] + '" width="6" height="1.8" rx=".9" fill="#e6e9ee" stroke="#555" stroke-width=".3"/>'; });
+  if (kind !== 'sport') s += '<path d="M-3 -24 V-6 M-27 -24 L-29 -6 M26 -22 L25 -6" stroke="#000" stroke-width=".7" opacity=".3" fill="none"/>';
+  // kaca spion
+  s += '<path d="M24 -27 l6 -1 l-1 4 l-6 0z" fill="' + shadeC(col, -.2) + '"/>';
+  // lampu
+  s += '<ellipse cx="' + hl[0] + '" cy="' + hl[1] + '" rx="3.4" ry="2.4" fill="#fff9d8" stroke="#aaa" stroke-width=".5"/><circle cx="' + (hl[0] + 6) + '" cy="' + hl[1] + '" r="8" fill="url(#glowG)" opacity=".5"/>';
+  s += '<rect x="' + (tl[0] - 1) + '" y="' + (tl[1] - 2) + '" width="3.4" height="5" rx="1.2" fill="#e5252a" stroke="#7a0e12" stroke-width=".5"/>';
+  if (kind !== 'sport') s += '<rect x="' + (hl[0] - 2) + '" y="' + (hl[1] + 4) + '" width="6" height="3.4" rx="1" fill="#2a2f3a"/>';
+  // bumper & sill
+  s += '<rect x="-52" y="-7" width="104" height="3.4" rx="1.6" fill="#10131a" opacity=".55"/>';
+  if (lux) s += '<path d="M-50 -14 H50" stroke="#fff" stroke-width=".8" opacity=".4"/>';
+  if (kind === 'sport') s += '<path d="M-52 -20 L-40 -23 H-8" stroke="#fff" stroke-width="2.4" opacity=".7" fill="none"/><path d="M-54 -14 L-58 -22 H-46" stroke="#171717" stroke-width="2.6" fill="none"/>';
+  if (kind === 'suv') s += '<path d="M-32 -47 H12" stroke="#cfd5de" stroke-width="2.2" stroke-linecap="round"/>';
   const wy = kind === 'sport' ? -8 : -9, r = kind === 'suv' ? 11 : kind === 'sport' ? 9 : 9.5;
-  s += wheel(-30, wy, r, rim) + wheel(30, wy, r, rim);
+  s += '<circle cx="-30" cy="' + wy + '" r="' + (r + 3.5) + '" fill="#0c0e13"/><circle cx="30" cy="' + wy + '" r="' + (r + 3.5) + '" fill="#0c0e13"/>';
+  s += wheel2(-30, wy, r, rim, kind === 'suv') + wheel2(30, wy, r, rim, kind === 'suv');
   return s;
 }
 function bikeSVG(kind) {
-  let s = '<ellipse cx="0" cy="1" rx="40" ry="4" fill="rgba(0,0,0,.18)"/>';
+  let s = '<ellipse cx="0" cy="1" rx="46" ry="4.5" fill="url(#gShadow)"/>';
+  const col = kind === 'matic' ? '#e8a23a' : kind === 'vespa' ? '#6fb6b0' : '#1c1c22';
+  const id = 'bk' + kind;
+  s += '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + shadeC(col, .4) + '"/><stop offset=".5" stop-color="' + col + '"/><stop offset="1" stop-color="' + shadeC(col, -.45) + '"/></linearGradient></defs>';
+  const B = 'url(#' + id + ')';
   if (kind === 'matic') {
-    s += '<path d="M-26 -9 L-18 -22 L10 -22 L18 -9 Z" fill="#e8a23a"/><path d="M10 -22 L20 -40 L28 -40 L20 -9 L12 -9Z" fill="#d68e22"/><rect x="-22" y="-30" width="30" height="8" rx="4" fill="#4a3220"/><path d="M20 -40 L16 -52 L26 -54" stroke="#bbb" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="28" cy="-38" r="3" fill="#fff6c8"/>';
-    s += wheel(-26, -9, 9) + wheel(26, -9, 9);
+    s += '<path d="M24 -8 L16 -24 L10 -26 L10 -9Z" fill="#2b2f38"/>';
+    s += '<path d="M-27 -9 Q-30 -22 -18 -24 L8 -24 L16 -9 Z" fill="' + B + '"/><path d="M-26 -16 Q-12 -20 12 -16" stroke="#fff" stroke-width="1.4" fill="none" opacity=".45"/>';
+    s += '<path d="M10 -24 Q14 -36 20 -44 L28 -44 Q24 -26 16 -9 L12 -9Z" fill="' + B + '"/>';
+    s += '<path d="M-22 -26 Q-22 -32 -14 -32 L6 -32 Q12 -32 12 -26Z" fill="#26211c"/><path d="M-20 -31 H8" stroke="#6b5a48" stroke-width="1" opacity=".7"/>';
+    s += '<path d="M22 -42 L18 -56 L28 -58" stroke="#c9ced6" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M18 -56 L12 -54" stroke="#222" stroke-width="3" stroke-linecap="round"/>';
+    s += '<path d="M24 -50 Q30 -54 30 -46Z" fill="#9fd1ee" stroke="#555" stroke-width=".6"/><ellipse cx="29" cy="-40" rx="3.6" ry="3" fill="#fff9d8" stroke="#999" stroke-width=".6"/><circle cx="33" cy="-40" r="7" fill="url(#glowG)" opacity=".5"/>';
+    s += '<rect x="-30" y="-20" width="5" height="3.4" rx="1" fill="#e5252a"/><path d="M-12 -9 H-30 L-34 -6 H-14Z" fill="#9aa1ad"/>';
+    s += '<path d="M24 -8 L28 -34" stroke="#c9ced6" stroke-width="2.6"/>';
+    s += wheel2(-26, -9, 9, '#9aa1ad') + wheel2(26, -9, 9, '#9aa1ad');
   } else if (kind === 'vespa') {
-    s += '<path d="M-28 -10 Q-30 -30 -14 -30 L8 -30 Q16 -28 18 -10 Z" fill="#f2e6c9"/><path d="M12 -32 Q22 -36 28 -12 L18 -10Z" fill="#f2e6c9"/><path d="M16 -34 Q24 -52 32 -50" stroke="#c9ced6" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="30" cy="-38" r="4" fill="#fff6c8" stroke="#bbb"/><rect x="-18" y="-38" width="28" height="8" rx="4" fill="#7a4b2b"/><path d="M-4 -24 H12" stroke="#d1c4a0" stroke-width="2"/>';
-    s += wheel(-26, -9, 8.5) + wheel(26, -9, 8.5);
-  } else { // big bike
-    s += '<path d="M-32 -14 L-20 -34 L8 -34 L22 -20 L26 -9 L-6 -9Z" fill="#1c1c22"/><rect x="-18" y="-40" width="26" height="8" rx="4" fill="#3a2a22"/><path d="M-4 -18 H12 L16 -9 H-8Z" fill="#c9ced6"/><path d="M22 -20 L34 -42 L42 -42" stroke="#d0d4dc" stroke-width="3.6" fill="none" stroke-linecap="round"/><circle cx="36" cy="-34" r="4" fill="#fff6c8"/><path d="M-34 -14 L-42 -12" stroke="#d0d4dc" stroke-width="4" stroke-linecap="round"/>';
-    s += wheel(-32, -10, 10.5, '#d4af37') + wheel(32, -10, 10.5, '#d4af37');
+    s += '<path d="M-29 -10 Q-32 -32 -14 -32 L8 -32 Q16 -30 18 -10 Z" fill="' + B + '"/><path d="M-26 -24 Q-8 -30 12 -24" stroke="#fff" stroke-width="1.4" fill="none" opacity=".5"/>';
+    s += '<path d="M12 -34 Q24 -38 30 -12 L18 -9Z" fill="' + B + '"/><path d="M16 -30 Q24 -32 27 -16" stroke="#fff" stroke-width="1.2" fill="none" opacity=".4"/>';
+    s += '<path d="M18 -36 Q26 -54 34 -52" stroke="#d6dae2" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="32" cy="-40" r="4.4" fill="#fff9d8" stroke="#b8b8b8" stroke-width="1"/><circle cx="36" cy="-40" r="8" fill="url(#glowG)" opacity=".5"/>';
+    s += '<path d="M-20 -40 Q-20 -45 -12 -45 L8 -45 Q14 -45 14 -40 L12 -33 L-18 -33Z" fill="#7a4b2b"/><path d="M-18 -42 H10" stroke="#a4703f" stroke-width="1" opacity=".7"/>';
+    s += '<path d="M-6 -24 H12" stroke="#d6dae2" stroke-width="2"/><rect x="-32" y="-22" width="4" height="3.6" rx="1" fill="#e5252a"/>';
+    s += wheel2(-26, -9, 8.5, '#d6dae2') + wheel2(26, -9, 8.5, '#d6dae2');
+  } else {
+    s += '<path d="M-34 -14 L-20 -34 L6 -34 L22 -20 L26 -9 L-8 -9Z" fill="' + B + '"/><path d="M-30 -18 L-18 -32 H0" stroke="#fff" stroke-width="1.4" fill="none" opacity=".4"/>';
+    s += '<path d="M-6 -17 H14 L18 -9 H-10Z" fill="#9aa1ad" stroke="#555" stroke-width=".6"/><path d="M-2 -13 H12" stroke="#fff" stroke-width="1.2" opacity=".6"/>';
+    s += '<path d="M-20 -41 Q-20 -45 -12 -45 L8 -45 Q12 -45 12 -40 L10 -34 L-18 -34Z" fill="#3a2a22"/><path d="M-16 -42 H8" stroke="#6a5040" stroke-width="1" opacity=".7"/>';
+    s += '<path d="M22 -20 L34 -42 L42 -43" stroke="#d6dae2" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M28 -34 L36 -40" stroke="#aeb4bf" stroke-width="2.4"/>';
+    s += '<circle cx="38" cy="-35" r="4.6" fill="#fff9d8" stroke="#b8b8b8" stroke-width="1"/><circle cx="43" cy="-35" r="9" fill="url(#glowG)" opacity=".55"/>';
+    s += '<path d="M-34 -14 L-46 -12 L-46 -8 L-30 -9" fill="#9aa1ad"/><path d="M-30 -12 L-48 -10" stroke="#e8e8e8" stroke-width="2"/>';
+    s += '<rect x="-38" y="-24" width="5" height="3.6" rx="1" fill="#e5252a"/>';
+    s += wheel2(-32, -10, 10.5, '#d4af37', true) + wheel2(32, -10, 10.5, '#d4af37', true);
   }
   return s;
 }
+
+/* ====================== hewan peliharaan ====================== */
+const PETS = [
+  { k: 'cat', n: 'Kucing oranye', b: '#f0a24a', s: '#d77f26', p: '#fff0d8', e: '#7ac943', names: ['Oyen', 'Mochi', 'Tiger'] },
+  { k: 'cat', n: 'Kucing hitam', b: '#33343c', s: '#1d1e24', p: '#4a4b55', e: '#ffd23f', names: ['Bagheera', 'Kopi', 'Shadow'] },
+  { k: 'cat', n: 'Kucing putih', b: '#f6f5f2', s: '#dedbd4', p: '#ffe0e0', e: '#4ab3e8', names: ['Salju', 'Mimi', 'Cotton'] },
+  { k: 'cat', n: 'Kucing abu-abu', b: '#9ca2ad', s: '#777d89', p: '#f0dede', e: '#e6b422', names: ['Abu', 'Smokey', 'Luna'] },
+  { k: 'cat', n: 'Kucing belang tiga', b: '#f6f5f2', s: '#d77f26', p: '#ffe0e0', e: '#7ac943', names: ['Belang', 'Pus', 'Calico'], calico: 1 },
+  { k: 'dog', n: 'Anjing cokelat', b: '#c98b4e', s: '#9a6531', p: '#f4e2c6', names: ['Bolt', 'Coklat', 'Rocky'] },
+  { k: 'dog', n: 'Anjing putih', b: '#f4f1ea', s: '#d8d3c6', p: '#ffffff', names: ['Snowy', 'Bobi', 'Marsha'] },
+  { k: 'dog', n: 'Anjing hitam-putih', b: '#3b3d45', s: '#23252b', p: '#f4f1ea', names: ['Oreo', 'Panda', 'Max'], husky: 1 },
+  { k: 'dog', n: 'Anjing emas', b: '#e3b256', s: '#c4912e', p: '#f6e3b0', names: ['Goldie', 'Bruno', 'Simba'] }
+];
+function petSVG(idx, o) {
+  o = o || {}; const P = PETS[idx % PETS.length], W = o.W | 0, sc = o.sc || 1, old = !!o.old, tail = 'tail';
+  let s = '<g transform="scale(' + sc + ')">';
+  if (W >= 2) s += '<ellipse cx="0" cy="-2" rx="34" ry="8" fill="' + (W >= 3 ? '#8e2b4a' : '#c97a8d') + '"/><ellipse cx="0" cy="-5" rx="32" ry="6.4" fill="' + (W >= 3 ? '#b0405f' : '#e7a1b3') + '"/><path d="M-26 -5 Q0 -1 26 -5" stroke="#fff" stroke-width=".8" fill="none" opacity=".4"/>' + (W >= 3 ? '<path d="M-30 -2 q3 6 0 6 M30 -2 q-3 6 0 6" stroke="#f2c14e" stroke-width="1.6" fill="none"/>' : '');
+  s += '<ellipse cx="0" cy="4" rx="28" ry="6" fill="url(#gShadow)"/>';
+  const collar = W >= 3 ? '#f2c14e' : W >= 1 ? '#d9304a' : null;
+  if (P.k === 'cat') {
+    s += '<path class="' + tail + '" d="M16 -14 q28 -6 20 -32" stroke="' + P.b + '" stroke-width="7.4" fill="none" stroke-linecap="round"/><path class="' + tail + '" d="M16 -14 q28 -6 20 -32" stroke="' + P.s + '" stroke-width="7.4" fill="none" stroke-linecap="round" stroke-dasharray="3 6" opacity=".7"/>';
+    s += '<g class="bob">';
+    s += '<ellipse cx="2" cy="-14" rx="22" ry="13" fill="' + P.b + '"/><ellipse cx="-2" cy="-8" rx="13" ry="6" fill="' + P.p + '" opacity=".6"/>';
+    s += '<path d="M-6 -24 q2 6 0 12 M2 -26 q2 7 0 14 M10 -25 q2 6 0 12" stroke="' + P.s + '" stroke-width="2" fill="none" opacity=".75" stroke-linecap="round"/>';
+    if (P.calico) s += '<ellipse cx="8" cy="-17" rx="8" ry="6" fill="#33343c" opacity=".9"/><ellipse cx="-6" cy="-10" rx="7" ry="5" fill="#f0a24a" opacity=".95"/>';
+    s += '<rect x="-12" y="-6" width="5" height="9" rx="2.5" fill="' + P.b + '"/><rect x="8" y="-6" width="5" height="9" rx="2.5" fill="' + P.b + '"/><ellipse cx="-9.5" cy="2" rx="4" ry="2" fill="' + P.p + '"/><ellipse cx="10.5" cy="2" rx="4" ry="2" fill="' + P.p + '"/>';
+    // kepala
+    s += '<circle cx="-17" cy="-28" r="12.5" fill="' + P.b + '"/>';
+    s += '<polygon points="-28,-33 -26,-49 -17,-38" fill="' + P.b + '"/><polygon points="-6,-33 -8,-49 -17,-38" fill="' + P.b + '"/><polygon points="-26.5,-36 -25.4,-45 -20,-38.5" fill="#f4a9b5"/><polygon points="-7.5,-36 -8.6,-45 -14,-38.5" fill="#f4a9b5"/>';
+    if (P.calico) s += '<path d="M-28 -33 L-26 -49 L-17 -38 Q-22 -30 -28 -33Z" fill="#33343c"/><circle cx="-12" cy="-30" r="6" fill="#f0a24a" opacity=".9"/>';
+    s += '<path d="M-23 -37 q2 3 0 5 M-17 -39 q1 3 0 5 M-11 -37 q-2 3 0 5" stroke="' + P.s + '" stroke-width="1.5" fill="none" opacity=".7" stroke-linecap="round"/>';
+    s += '<ellipse cx="-21" cy="-29" rx="2.9" ry="3.2" fill="' + P.e + '"/><ellipse cx="-12.5" cy="-29" rx="2.9" ry="3.2" fill="' + P.e + '"/><ellipse cx="-21" cy="-29" rx="1" ry="2.6" fill="#111"/><ellipse cx="-12.5" cy="-29" rx="1" ry="2.6" fill="#111"/><circle cx="-21.9" cy="-30.2" r=".8" fill="#fff"/><circle cx="-13.4" cy="-30.2" r=".8" fill="#fff"/>';
+    s += '<ellipse cx="-17" cy="-24" rx="5" ry="3.6" fill="' + P.p + '"/><path d="M-18.8 -25.4 h3.6 l-1.8 2.2z" fill="#e8798f"/><path d="M-17 -23.2 q-2 2.4 -4 1.4 M-17 -23.2 q2 2.4 4 1.4" stroke="#555" stroke-width=".8" fill="none"/>';
+    s += '<path d="M-23 -25 l-9 -2 M-23 -23.5 l-9 1 M-11 -25 l9 -2 M-11 -23.5 l9 1" stroke="#fff" stroke-width=".7" opacity=".85"/>';
+    if (old) s += '<ellipse cx="-17" cy="-23" rx="6" ry="3.4" fill="#fff" opacity=".45"/>';
+    if (collar) { s += '<path d="M-26 -19 Q-17 -14 -8 -19" stroke="' + collar + '" stroke-width="2.6" fill="none"/>'; if (W >= 1) s += '<circle cx="-17" cy="-15.6" r="2.2" fill="#f2c14e" stroke="#9a7420" stroke-width=".5"/>'; if (W >= 4) s += '<path d="M-17 -14 l-4 -3 v6z M-17 -14 l4 -3 v6z" fill="#7b2cbf"/>' + BLING(8, -38, .9); }
+    s += '</g>';
+  } else {
+    s += '<path class="' + tail + '" d="M22 -17 q14 -6 14 -22" stroke="' + P.b + '" stroke-width="7" fill="none" stroke-linecap="round"/>';
+    s += '<g class="bob">';
+    s += '<ellipse cx="4" cy="-17" rx="27" ry="14" fill="' + P.b + '"/><ellipse cx="0" cy="-10" rx="16" ry="6.4" fill="' + P.p + '" opacity=".75"/>';
+    if (P.husky) s += '<path d="M-6 -30 Q10 -34 28 -22 L28 -12 Q10 -22 -6 -30Z" fill="#23252b" opacity="0"/>';
+    s += '<rect x="-14" y="-8" width="6.4" height="11" rx="3" fill="' + P.b + '"/><rect x="12" y="-8" width="6.4" height="11" rx="3" fill="' + P.b + '"/><ellipse cx="-11" cy="2" rx="5" ry="2.2" fill="' + P.p + '"/><ellipse cx="15" cy="2" rx="5" ry="2.2" fill="' + P.p + '"/>';
+    s += '<circle cx="-20" cy="-30" r="12.6" fill="' + P.b + '"/>';
+    s += '<path d="M-28 -36 q-8 4 -6 16 q4 2 8 -4z" fill="' + P.s + '"/><path d="M-10 -38 q8 2 8 14 q-5 2 -8 -4z" fill="' + P.s + '"/>';
+    s += '<ellipse cx="-27" cy="-25" rx="8" ry="6" fill="' + P.p + '"/><path d="M-33 -29 q3 -4 7 -2" fill="' + P.p + '"/>';
+    if (P.husky) s += '<path d="M-26 -42 Q-20 -36 -14 -42 Q-17 -32 -20 -30 Q-23 -32 -26 -42Z" fill="#f4f1ea" opacity=".95"/>';
+    s += '<ellipse cx="-33" cy="-28" rx="2.8" ry="2.1" fill="#16171b"/><circle cx="-33.8" cy="-28.6" r=".7" fill="#fff"/>';
+    s += '<circle cx="-24" cy="-33" r="2.1" fill="#16171b"/><circle cx="-24.6" cy="-33.6" r=".7" fill="#fff"/><circle cx="-16" cy="-33" r="2.1" fill="#16171b"/><circle cx="-16.6" cy="-33.6" r=".7" fill="#fff"/>';
+    s += '<path d="M-31 -23.6 q4 3 8 0" stroke="#5a3a2a" stroke-width="1" fill="none"/><path d="M-28 -22.8 q1 4 4 3.6 q-1 -2 -1.4 -3.8z" fill="#ef7f9a"/>';
+    if (old) s += '<ellipse cx="-27" cy="-26" rx="7" ry="4.6" fill="#fff" opacity=".45"/>';
+    if (collar) { s += '<path d="M-28 -20 Q-18 -14 -8 -21" stroke="' + collar + '" stroke-width="3" fill="none"/>'; if (W >= 3) s += '<circle cx="-18" cy="-14.6" r="2.4" fill="#f2c14e" stroke="#9a7420" stroke-width=".5"/>'; if (W >= 4) s += BLING(10, -40, .9); }
+    s += '</g>';
+  }
+  return s + '</g>';
+}
+
 function carport(w) { return '<g><rect x="' + (214) + '" y="296" width="' + w + '" height="6" fill="#8a97b3"/><rect x="216" y="302" width="4" height="60" fill="#aab3c7"/><rect x="' + (214 + w - 6) + '" y="302" width="4" height="60" fill="#aab3c7"/></g>'; }
 function halteSVG() {
   return '<rect x="204" y="352" width="190" height="12" fill="#6b717d"/><path d="M210 358 H390" stroke="#f3f3f3" stroke-width="2" stroke-dasharray="14 10"/>'
@@ -1147,47 +1438,6 @@ function garageSVG(veh, V, W) {
   }
   return s;
 }
-function houseSVG(housing, W) {
-  const win = (x, y, w, h) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="#bfe6ff" stroke="#fff" stroke-width="3"/><path d="M' + (x + w / 2) + ' ' + y + 'v' + h + 'M' + x + ' ' + (y + h / 2) + 'h' + w + '" stroke="#fff" stroke-width="2"/>';
-  const style = housing === 'kos' ? 'kos' : housing === 'kontrak' ? 'kontrak' : (W >= 4 ? 'mansion' : W >= 3 ? 'villa' : W >= 2 ? 'modern' : 'cluster');
-  let s = '';
-  if (style === 'kos') {
-    s += '<rect x="22" y="236" width="176" height="126" fill="#f1dfbd"/><rect x="14" y="226" width="192" height="11" fill="#8a97b3"/>';
-    [34, 78, 122, 166].forEach((x, i) => { s += '<rect x="' + x + '" y="250" width="26" height="36" rx="2" fill="#6f7f95"/><circle cx="' + (x + 21) + '" cy="270" r="1.8" fill="#ffd23f"/><text x="' + (x + 13) + '" y="262" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">' + (i + 5) + '</text>'; });
-    s += '<rect x="20" y="286" width="180" height="5" fill="#d3bd8e"/><g stroke="#8a97b3" stroke-width="2">' + Array.from({ length: 19 }, (_, i) => '<path d="M' + (26 + i * 9.4) + ' 276 v10"/>').join('') + '<path d="M22 276 H198"/></g>';
-    s += '<path d="M40 276 q8 6 16 0" stroke="#ff6f91" stroke-width="5" fill="none"/><rect x="56" y="270" width="10" height="9" fill="#58b8ff"/><rect x="132" y="269" width="9" height="9" fill="#ffd23f"/>';
-    [34, 78, 122, 166].forEach((x, i) => { s += '<rect x="' + x + '" y="310" width="26" height="52" rx="2" fill="' + (i === 0 ? '#3b6fd4' : '#6f7f95') + '"/><circle cx="' + (x + 21) + '" cy="338" r="1.8" fill="#ffd23f"/><text x="' + (x + 13) + '" y="324" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="Nunito,sans-serif">' + (i + 1) + '</text>'; });
-    s += '<rect x="76" y="226" width="68" height="18" rx="4" fill="#fff" transform="translate(0,0)"/><text x="110" y="239" text-anchor="middle" font-size="10" font-weight="800" fill="#c8553d" font-family="Nunito,sans-serif">KOS PUTRA/I</text>';
-  } else if (style === 'kontrak') {
-    s += '<rect x="30" y="288" width="158" height="74" fill="#fbe8c8"/><polygon points="18,292 109,236 200,292" fill="#b5523b"/><polygon points="30,292 109,244 188,292" fill="#c8553d"/>';
-    s += '<rect x="52" y="312" width="30" height="50" rx="3" fill="#7a4b2b"/><circle cx="76" cy="338" r="2" fill="#ffd23f"/>' + win(110, 314, 52, 34);
-    s += '<rect x="44" y="358" width="46" height="5" fill="#cfc2a6"/><rect x="170" y="314" width="12" height="46" fill="#9aa4b5"/><path d="M104 300 h22 l-2 8 h-18z" fill="#fff" opacity=".0"/>';
-  } else if (style === 'cluster') {
-    s += '<rect x="26" y="290" width="172" height="72" fill="#f4f1ea"/><rect x="40" y="242" width="124" height="50" fill="#e6dfd0"/><rect x="20" y="284" width="184" height="8" fill="#5b6578"/><rect x="34" y="234" width="136" height="9" fill="#5b6578"/>';
-    s += win(54, 252, 40, 28) + win(112, 252, 40, 28) + '<rect x="48" y="312" width="30" height="50" rx="3" fill="#9a6a3f"/><circle cx="72" cy="338" r="2" fill="#ffd23f"/>' + win(106, 308, 70, 40);
-    s += '<path d="M18 360 Q30 346 44 360Z M170 360 Q184 346 198 360Z" fill="#43a047"/><rect x="14" y="352" width="190" height="10" fill="#b9c9a0" opacity=".0"/>';
-  } else if (style === 'modern') {
-    s += '<rect x="18" y="284" width="188" height="78" fill="#f6f3ec"/><rect x="38" y="222" width="140" height="64" fill="#e9e3d6"/><rect x="12" y="276" width="200" height="10" fill="#474f5f"/><rect x="30" y="214" width="156" height="10" fill="#474f5f"/>';
-    s += '<rect x="46" y="232" width="84" height="46" fill="#bfe6ff" stroke="#fff" stroke-width="3"/><path d="M74 232v46M102 232v46" stroke="#fff" stroke-width="2"/><rect x="138" y="228" width="34" height="52" fill="#a1744a"/>';
-    s += '<rect x="44" y="302" width="34" height="60" rx="3" fill="#a1744a"/><circle cx="72" cy="333" r="2" fill="#ffd23f"/><rect x="98" y="298" width="96" height="48" fill="#bfe6ff" stroke="#fff" stroke-width="3"/><path d="M130 298v48M162 298v48" stroke="#fff" stroke-width="2"/>';
-    s += '<g fill="#43a047"><ellipse cx="22" cy="358" rx="12" ry="9"/><ellipse cx="200" cy="358" rx="12" ry="9"/></g><rect x="82" y="214" width="40" height="4" fill="#ffd23f" opacity=".0"/>';
-  } else if (style === 'villa') {
-    s += '<rect x="14" y="276" width="196" height="86" fill="#f1ede3"/><rect x="30" y="212" width="150" height="66" fill="#e0d8c6"/><rect x="6" y="268" width="212" height="10" fill="#2e3340"/><rect x="22" y="202" width="166" height="11" fill="#2e3340"/>';
-    s += '<rect x="38" y="222" width="76" height="50" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="124" y="222" width="48" height="50" fill="#b48a5c"/><g stroke="#8e6a43" stroke-width="2">' + Array.from({ length: 6 }, (_, i) => '<path d="M124 ' + (230 + i * 8) + ' H172"/>').join('') + '</g>';
-    s += '<rect x="26" y="290" width="104" height="64" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><path d="M52 290v64M78 290v64M104 290v64" stroke="#fff" stroke-width="2"/><rect x="144" y="292" width="40" height="70" rx="3" fill="#b48a5c"/><circle cx="178" cy="330" r="2.4" fill="#ffd23f"/>';
-    s += '<rect x="26" y="194" width="30" height="6" fill="#3b82f6"/><rect x="60" y="194" width="30" height="6" fill="#3b82f6"/><g transform="translate(196,300)"><rect x="0" y="0" width="3" height="62" fill="#8b5a2b"/><path d="M1 0 q-18 4 -22 20 M1 0 q16 2 22 16 M1 0 q-6 -12 -16 -14 M1 0 q8 -12 18 -12" stroke="#2e9a4a" stroke-width="5" fill="none" stroke-linecap="round"/></g>';
-    s += '<rect x="8" y="358" width="60" height="8" rx="4" fill="#58c7f2"/>';
-  } else { // mansion
-    s += '<rect x="6" y="250" width="50" height="112" fill="#f3e9d2"/><rect x="166" y="250" width="50" height="112" fill="#f3e9d2"/><rect x="0" y="240" width="62" height="12" fill="#6b3b2a"/><rect x="160" y="240" width="62" height="12" fill="#6b3b2a"/>';
-    s += '<rect x="48" y="214" width="126" height="148" fill="#f8efd9"/><polygon points="36,216 111,164 186,216" fill="#6b3b2a"/><polygon points="52,214 111,174 170,214" fill="#8a4b34"/><circle cx="111" cy="200" r="8" fill="#fff4d6" stroke="#6b3b2a" stroke-width="3"/>';
-    s += '<g fill="#fff">' + [58, 82, 126, 150].map(x => '<rect x="' + x + '" y="226" width="10" height="136"/><rect x="' + (x - 3) + '" y="222" width="16" height="5"/>').join('') + '</g>';
-    s += '<rect x="92" y="300" width="38" height="62" rx="19" fill="#5b3a29"/><circle cx="124" cy="334" r="2.4" fill="#ffd23f"/><rect x="70" y="240" width="22" height="36" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="130" y="240" width="22" height="36" fill="#9fd4f5" stroke="#fff" stroke-width="3"/>';
-    s += '<rect x="16" y="268" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="176" y="268" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="16" y="318" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/><rect x="176" y="318" width="30" height="30" fill="#9fd4f5" stroke="#fff" stroke-width="3"/>';
-    s += '<g transform="translate(111,366)"><ellipse cx="0" cy="0" rx="22" ry="6" fill="#7fd3f2"/><rect x="-2" y="-14" width="4" height="14" fill="#c9ced6"/><path d="M0 -14 q-10 -10 -14 0 M0 -14 q10 -10 14 0 M0 -14 V-26" stroke="#cdeefc" stroke-width="2.4" fill="none"/></g>';
-    s += BLING(32, 190, 1) + BLING(190, 188, .9);
-  }
-  return s;
-}
 function sceneryExtra(W) {
   let s = '';
   if (W >= 2) s += '<g><rect x="2" y="316" width="4" height="46" fill="#4b4f5a"/><circle cx="4" cy="312" r="6" fill="#fff6c8"/></g>';
@@ -1198,23 +1448,29 @@ function sceneryExtra(W) {
 function wealthTier() { const r = networth() / PI(S.m); return r >= 5e9 ? 4 : r >= 1.8e9 ? 3 : r >= 0.6e9 ? 2 : r >= 0.15e9 ? 1 : 0; }
 function styleTier(W) { return Math.max(S.life, [0, 0, 1, 1, 2, 2, 3, 3][S.job] || 0, Math.min(W, 3)); }
 let sceneSig = '';
+try { $('#svg defs').insertAdjacentHTML('beforeend', DEFS2); } catch (e) { }
+function petOf() { const sd = nameSeed(S.name + S.gender + 'pet'), idx = sd < 55 ? sd % 5 : 5 + sd % 4, P = PETS[idx]; return { idx, name: P.names[(sd * 7) % 3], kind: P.n, dog: P.k === 'dog' }; }
+function nameSeed(t) { let x = 7; for (let i = 0; i < t.length; i++) x = (x * 31 + t.charCodeAt(i)) % 1000; return x % 100; }
 function updateScene() {
   const W = wealthTier(), T = styleTier(W), V = Math.max(S.life, W);
-  const sig = [S.gender, T, W, V, S.married, S.partner && S.partner.g, S.kids.map(c => c.g + kidAgeY(c)).join(','), S.edu, S.housing, S.vehicle].join('|');
+  const sig = [S.gender, T, W, V, S.married, S.partner && S.partner.g, S.kids.map(c => c.g + kidAgeY(c)).join(','), S.edu, S.housing, S.vehicle, Math.floor((age() - 22) / 2), S.health < 30 ? 1 : 0, S.name, S.m < 12 ? 0 : S.m < 30 ? 1 : S.m >= 180 ? 3 : 2].join('|');
   if (sig === sceneSig) return; sceneSig = sig;
-  $('#gPlayer').innerHTML = '<ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(0,0,0,.18)"/><g class="bob">' + person(S.gender, { T }) + '</g>';
-  $('#gPartner').innerHTML = (S.partner && S.married) ? '<ellipse cx="0" cy="4" rx="32" ry="7" fill="rgba(0,0,0,.16)"/><g class="bob">' + person(S.partner.g, { T: Math.max(0, T - (T >= 3 ? 1 : 0)), top: S.partner.g === 'f' ? ['#ff7fa5', '#8fd0ff', '#c4a4ff', '#8e2b6a', '#f2c14e'][T] : ['#58b368', '#ffb347', '#e6e2d8', '#3c5a47', '#222'][T] }) + '</g>' : '';
+  $('#gPlayer').innerHTML = '<ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(0,0,0,.18)"/><g class="bob">' + person(S.gender, { T, age: age(), sick: S.health < 30, seed: nameSeed(S.name + S.gender) }) + '</g>';
+  $('#gPartner').innerHTML = (S.partner && S.married) ? '<ellipse cx="0" cy="4" rx="32" ry="7" fill="rgba(0,0,0,.16)"/><g class="bob">' + person(S.partner.g, { T: Math.max(0, T - (T >= 3 ? 1 : 0)), age: Math.max(22, age() - 1), seed: nameSeed(S.partner.name + S.partner.g), top0: 1, top: S.partner.g === 'f' ? ['#ff7fa5', '#8fd0ff', '#c4a4ff', '#8e2b6a', '#f2c14e'][T] : ['#58b368', '#ffb347', '#e6e2d8', '#3c5a47', '#222'][T] }) + '</g>' : '';
+  const pt = petOf(), psc = S.m < 12 ? .62 : S.m < 30 ? .82 : 1;
+  $('#gPet').innerHTML = petSVG(pt.idx, { W, sc: psc * .95, old: S.m >= 180 });
   $('#gKids').innerHTML = S.kids.map((c, i) => {
     const ay = kidAgeY(c), sc = Math.min(0.8, 0.34 + ay * 0.028);
     const body = kidSVG(c.g, ay, S.edu, i) || person(c.g, ay >= 22 ? { T: Math.min(T, 2) } : { T: 0, uniform: uniformFor(ay, S.edu, i) });
     return '<g transform="translate(' + (244 + i * 32) + ',508) scale(' + sc.toFixed(2) + ')"><ellipse cx="0" cy="4" rx="30" ry="7" fill="rgba(0,0,0,.14)"/><g class="bob">' + body + '</g></g>';
   }).join('');
   $('#miniAv').setAttribute('viewBox', '-36 -178 72 76');
-  $('#miniAv').innerHTML = '<rect x="-36" y="-178" width="72" height="76" fill="#cfe8ff"/>' + faceSVG(S.gender, { T }) + accessorySVG(S.gender, T);
+  $('#miniAv').innerHTML = '<rect x="-36" y="-178" width="72" height="76" fill="#cfe8ff"/>' + faceSVG(S.gender, { T, age: age(), sick: S.health < 30, seed: nameSeed(S.name + S.gender) }) + accessorySVG(S.gender, T, false, agingOf(S.gender, { age: age(), sick: S.health < 30, seed: nameSeed(S.name + S.gender) }));
   $('#gHouse').innerHTML = houseSVG(S.housing, W);
   $('#gGarage').innerHTML = garageSVG(S.vehicle, V, W);
   $('#gScenery').innerHTML = sceneryExtra(W);
 }
+try { $('#gPet').addEventListener('click', () => { if (!S) return; const pt = petOf(); toast('🐾 ' + pt.name + (pt.dog ? ': guk guk!' : ': meong~'), 'gold'); }); } catch (e) { }
 function refresh() { S.flow = compute(); updateScene(); updateHUD(true); renderSheet(true); }
 let hudN = 0;
 function updateHUD(force) {
@@ -1323,7 +1579,7 @@ function startGame() {
   toast('👋 Halo ' + nm + '! Pendapatan pasif harus menutup semua kebutuhanmu. Mulai dari tab 💼 Karier.', 'gold');
 }
 function settings() {
-  modal('<h2>⚙️ Pengaturan</h2><div class="stat"><span>Karakter</span><b>' + S.name + '</b></div><div class="stat"><span>Percobaan ke-</span><b>' + S.lives + '</b></div><div class="stat"><span>Kekayaan bersih</span><b>' + fmt(networth()) + '</b></div><p style="font-size:12px;color:#5a6a92">Pajak & aturan disederhanakan untuk game. Ini bukan nasihat keuangan.</p>',
+  modal('<h2>⚙️ Pengaturan</h2><div class="stat"><span>Karakter</span><b>' + S.name + '</b></div><div class="stat"><span>Peliharaan</span><b>' + petOf().name + ' (' + petOf().kind.toLowerCase() + ')</b></div><div class="stat"><span>Percobaan ke-</span><b>' + S.lives + '</b></div><div class="stat"><span>Kekayaan bersih</span><b>' + fmt(networth()) + '</b></div><p style="font-size:12px;color:#5a6a92">Pajak & aturan disederhanakan untuk game. Ini bukan nasihat keuangan.</p>',
     [{ t: 'Gaya musik: ' + (Music.style === 'ceria' ? 'Ceria (adaptif)' : 'Santai (lo-fi)'), cls: 'pri', fn: () => { Music.setStyle(Music.style === 'ceria' ? 'santai' : 'ceria'); setTimeout(settings, 0); } }, { t: 'Musik: ' + (Music.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { $('#music').textContent = Music.toggle() ? '🎵' : '🔇'; setTimeout(settings, 0); } }, { t: 'Jeda otomatis saat panel terbuka: ' + (autoPause ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { autoPause = !autoPause; try { localStorage.setItem('merdeka_ap', autoPause ? '1' : '0'); } catch (e) {} setTimeout(settings, 0); } }, { t: 'Tutup' }, { t: 'Mulai ulang', cls: 'dng', fn: () => modal('<h2>Mulai ulang?</h2><p>Progres hidup ini akan dihapus. Musim dan kejadian acak tetap sama.</p>', [{ t: 'Batal' }, { t: 'Ya, ulang', cls: 'dng', fn: showStart }]) }]);
 }
 function bind() {
