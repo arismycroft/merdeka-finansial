@@ -2,16 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Papan peringkat musim 1: satu dokumen per pemain, nama dokumen = uid login anonim.
-    match /season1/{uid} {
-      allow read: if true;
+    // Papan peringkat: satu dokumen per pemain, nama dokumen = uid login anonim. Musim 1 (arsip) dan Musim 2 (aktif).
+    match /{season}/{uid} {
+      allow read: if season in ['season1','season2'];
 
-      allow create: if request.auth != null
+      allow create: if season == 'season2'
+                    && request.auth != null
                     && request.auth.uid == uid
                     && skorValid(request.resource.data);
 
       // Boleh memperbarui hanya milik sendiri, dan skor tidak boleh turun.
-      allow update: if request.auth != null
+      allow update: if season == 'season2'
+                    && request.auth != null
                     && request.auth.uid == uid
                     && skorValid(request.resource.data)
                     && request.resource.data.score >= resource.data.score;
