@@ -1,6 +1,6 @@
 /* Service worker sederhana: cache aset statis agar game bisa dibuka tanpa internet.
    Naikkan VERSI setiap kali index.html diperbarui supaya pemain mendapat versi baru. */
-const VERSI = 'merdeka-v7';
+const VERSI = 'merdeka-v8';
 const ASET = ['/', '/index.html', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png', '/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSI).then(c => c.addAll(ASET)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSI).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

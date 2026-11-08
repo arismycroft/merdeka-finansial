@@ -535,9 +535,20 @@ function evOrtu(m, p) {
 }
 function evPHK(m, p) {
   const sal = JOBS[S.job].sal * p, years = Math.min(6, 1 + Math.floor(m / 36)), pes = sal * years;
-  const js = Math.max(1, 4 - Math.min(3, Math.floor(S.skills.comm / 4))) + (inCrisis(m) ? 2 : 0);
+  const a = ageY(m), crisis = inCrisis(m), old = a >= 45;
+  // lama cari kerja: tidak pasti, makin tinggi jabatan & makin tua makin lama, krisis memperlama (acak sama untuk semua pemain)
+  let js = 2 + Math.floor(R('phkjs', m) * 5) + Math.floor(S.job / 2) + (crisis ? 3 : 0) + (old ? 2 : 0);
+  js -= Math.min(3, Math.floor(S.skills.comm / 5)) + (S.friends >= 60 ? 1 : 0) + (S.skills.work >= 12 ? 1 : 0);
+  js = Math.max(2, js);
+  // peluang turun jabatan
+  let down = 0.28 + (crisis ? 0.22 : 0) + (old ? 0.12 : 0) + (S.job >= 5 ? 0.1 : 0) - Math.min(0.25, S.skills.work * 0.015 + S.skills.comm * 0.01) - (S.friends >= 60 ? 0.08 : 0);
+  const roll = R('phkdown', m);
+  let drop = 0;
+  if (roll < down) drop = 1 + (R('phkdrop', m) < (crisis ? 0.45 : 0.25) ? 1 : 0);
+  S.rehire = Math.max(0, S.job - drop);
   S.cash += pes; S.jobless = js;
-  ask('📉 Kena PHK', 'Perusahaan melakukan efisiensi. Kamu menerima pesangon ' + fmt(pes) + '. Mencari kerja baru butuh sekitar <b>' + js + ' bulan</b> (komunikasi yang baik mempercepat). Selama itu tidak ada gaji, tapi pengeluaran jalan terus. Dana darurat dan penghasilan pasif sangat menolong.', [{ t: 'Oke, bangkit lagi', cls: 'pri' }]);
+  const warn = drop ? '<br><b style="color:#d03b3b">Pasar kerja sedang ketat: kemungkinan besar kamu harus menerima posisi yang lebih rendah.</b>' : '';
+  ask('📉 Kena PHK', 'Perusahaan melakukan efisiensi. Kamu menerima pesangon ' + fmt(pes) + '. Mencari kerja baru bisa memakan waktu <b>sekitar ' + js + ' bulan</b>' + (crisis ? ' (krisis membuat lowongan sepi)' : '') + ', dan belum tentu dapat jabatan yang sama. Selama itu tidak ada gaji, tapi pengeluaran jalan terus. Dana darurat dan penghasilan pasif sangat menolong.' + warn, [{ t: 'Oke, bangkit lagi', cls: 'pri' }]);
 }
 function evBonus(m, p) {
   const b = JOBS[S.job].sal * p * (0.5 + R('bonus', m));
@@ -547,10 +558,19 @@ function evBonus(m, p) {
 const rr = (v, u) => Math.round(v / (u || 1e5)) * (u || 1e5);
 function evMudik(m, p) {
   const c = rr((1.5e6 + (S.married ? 0.6e6 : 0) + 0.4e6 * S.kids.length) * p);
-  ask('🕌 Libur Lebaran: Mudik?', 'Kampung halaman memanggil. Ongkos mudik dan oleh-oleh sekitar ' + fmt(c) + '. Orang tua pasti senang.', [
-    { t: 'Mudik (' + fmt(c) + ')', ev: 'mudik:yes', fn: () => { S.cash -= c; S.happy = clamp(S.happy + 8); S.friends = clamp(S.friends + 2); floatText('+8 😊'); } },
-    { t: 'Video call saja', ev: 'mudik:no', fn: () => { S.happy = clamp(S.happy - (S.support > 0 ? 2 : 4)); toast('Rindu kampung, tapi dompet aman.', ''); } },
+  const a = ageY(m), lines = [], says = []; let pen = 0, fpen = 0;
+  if (!S.married && a >= 27) { lines.push('Om dan tante pasti bertanya: <i>"Kapan nikah? Teman seumuranmu sudah pada gendong anak lho."</i>'); says.push(['Nak, kapan nikah? Teman seumuranmu sudah pada gendong anak lho.', 'tante']); pen += 3; }
+  if (S.married && S.kids.length === 0 && m >= 30) { lines.push('Keluarga besar menepuk bahu: <i>"Sudah nikah lama, kapan punya momongan?"</i>'); says.push(['Sudah nikah lama, kapan punya momongan? Jangan kelamaan nunda lho.', 'tante']); pen += 3; }
+  if (S.vehicle !== 'mobil' && S.m >= 60 && S.job >= 2) { lines.push('Tetangga membandingkan: <i>"Anak Bu Ani di kota sudah beli mobil, kamu kok belum? Kerja di kota kan lumayan lama."</i>'); says.push(['Anak Bu Ani di kota sudah beli mobil lho, kamu kok belum? Kerja di kota kan sudah lama.', 'om']); pen += 2; fpen += 1; }
+  if (S.job === 0 && S.m >= 48) { lines.push('Ada yang nyeletuk: <i>"Masih jadi staf junior? Sepupumu sudah jadi manajer."</i>'); pen += 2; }
+  const ease = Math.min(2, Math.floor(S.skills.comm / 6)) + (S.support > 0 ? 1 : 0);
+  pen = Math.max(0, pen - ease);
+  const body = 'Kampung halaman memanggil. Ongkos mudik dan oleh-oleh sekitar ' + fmt(c) + '. Orang tua pasti senang.' + (lines.length ? '<br><br>' + lines.join('<br>') : '');
+  ask('🕌 Libur Lebaran: Mudik?', body, [
+    { t: 'Mudik (' + fmt(c) + ')', ev: 'mudik:yes', fn: () => { S.cash -= c; S.happy = clamp(S.happy + 8 - pen); S.friends = clamp(S.friends + 2); floatText(pen ? '+' + (8 - pen) + ' 😊' : '+8 😊'); if (pen) toast('😅 Pulang kampung menyenangkan, tapi pertanyaan "kapan..." menguras mental.', ''); } },
+    { t: 'Video call saja', ev: 'mudik:no', fn: () => { S.happy = clamp(S.happy - (S.support > 0 ? 2 : 4)); toast('Rindu kampung, tapi dompet aman' + (pen ? ' (dan terhindar dari pertanyaan "kapan...").' : '.'), ''); } },
   ]);
+  if (says.length) { Voice.stop(); says.forEach(x => Voice.say(x[0], x[1])); }
 }
 function evScam(m, p) {
   if (S.skills.fin >= 4) { toast('🛡️ Telepon "petugas bank" kamu tutup begitu saja. Kamu paham itu penipuan.', 'good'); return; }
@@ -735,7 +755,7 @@ function step() {
     else { S.friends = clamp(S.friends - 5); toast('🤝 Pinjaman ' + fmt(l.amt) + ' tak kembali. Temanmu menghilang.', 'bad'); }
     return false;
   });
-  if (S.jobless > 0) { S.jobless--; if (S.jobless === 0) { S.jobSince = S.m; toast('💼 Kamu mendapat pekerjaan baru sebagai ' + JOBS[S.job].name + ' (masa kerja dihitung ulang).', 'good'); } }
+  if (S.jobless > 0) { S.jobless--; if (S.jobless === 0) { const was = S.job; if (S.rehire != null) { S.job = Math.min(S.job, S.rehire); S.rehire = null; } S.jobSince = S.m; S.promoCd = 0; toast(S.job < was ? '💼 Dapat kerja lagi, tapi turun jabatan jadi ' + JOBS[S.job].name + ' (gaji lebih kecil, masa kerja dihitung ulang).' : '💼 Kamu mendapat pekerjaan baru sebagai ' + JOBS[S.job].name + ' (masa kerja dihitung ulang).', S.job < was ? '' : 'good'); } }
 
   const f = compute();
   S.cash += f.net + f.thr; S.ytdGross += f.salary + f.thr; S.ytdWith += f.pph;
@@ -2040,6 +2060,20 @@ const Music = {
 
 try { Music.on = localStorage.getItem('merdeka_music') !== '0'; Music.style = localStorage.getItem('merdeka_music_style') === 'ceria' ? 'ceria' : 'santai'; } catch (e) {}
 /* ====================== efek suara & animasi (v6) ====================== */
+const Voice = {
+  say(text, who) {
+    try {
+      if (!SFX.on || !window.speechSynthesis) return;
+      const u = new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g, ''));
+      u.lang = 'id-ID'; u.rate = 0.92;
+      u.pitch = who === 'om' ? 0.7 : who === 'tante' ? 1.35 : 1.1;
+      const vs = speechSynthesis.getVoices().filter(x => /^id/i.test(x.lang));
+      if (vs.length) u.voice = vs[who === 'om' && vs.length > 1 ? 1 : 0];
+      speechSynthesis.speak(u);
+    } catch (e) { }
+  },
+  stop() { try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { } }
+};
 const SFX = {
   on: true, ctx: null,
   get() {
