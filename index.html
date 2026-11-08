@@ -956,11 +956,12 @@ function shareCard(T, f, nw, back) {
   ctr('Bisakah kamu merdeka lebih cepat?', H - 120, 40, '700', 'rgba(255,255,255,.95)');
   ctr(/^https?:/.test(location.href) ? location.host : 'Merdeka Finansial', H - 62, 32, '600', 'rgba(255,255,255,.7)');
   const text = (ok ? 'Aku merdeka finansial di umur ' + (START_AGE + Math.floor(S.ffAt / 12)) + (MODE === 'harian' ? ' (tantangan harian ' + DAY + ')' : '') : T[0].replace(/^\S+\s/, '') + ' di umur ' + age()) + ' di game Merdeka Finansial, skor ' + S.ended.score.toLocaleString('id-ID') + '. Bisa ngalahin aku? ' + (/^https?:/.test(location.href) ? location.origin : '');
+  track('kartu');
   c.toBlob(blob => {
     if (!blob) { toast('Gagal membuat kartu.', 'bad'); back(); return; }
     const url = URL.createObjectURL(blob), file = new File([blob], 'merdeka-finansial.png', { type: 'image/png' });
-    const btns = [{ t: 'Kembali', fn: () => { URL.revokeObjectURL(url); back(); } }, { t: '💾 Simpan gambar', fn: () => { const a = document.createElement('a'); a.href = url; a.download = 'merdeka-finansial.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => back(), 0); } }];
-    if (navigator.canShare && navigator.canShare({ files: [file] })) btns.unshift({ t: '📤 Bagikan', cls: 'pri', fn: () => { navigator.share({ files: [file], text }).catch(() => { }); setTimeout(() => back(), 0); } });
+    const btns = [{ t: 'Kembali', fn: () => { URL.revokeObjectURL(url); back(); } }, { t: '💾 Simpan gambar', fn: () => { track('simpan'); const a = document.createElement('a'); a.href = url; a.download = 'merdeka-finansial.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => back(), 0); } }];
+    if (navigator.canShare && navigator.canShare({ files: [file] })) btns.unshift({ t: '📤 Bagikan', cls: 'pri', fn: () => { track('bagikan'); navigator.share({ files: [file], text }).catch(() => { }); setTimeout(() => back(), 0); } });
     else if (navigator.share) btns.unshift({ t: '📤 Bagikan teks', cls: 'pri', fn: () => { navigator.share({ text }).catch(() => { }); setTimeout(() => back(), 0); } });
     modal('<h2>Kartu hasilmu</h2><img src="' + url + '" style="width:100%;border-radius:12px;display:block" alt="Kartu hasil">', btns);
   }, 'image/png');
@@ -968,7 +969,7 @@ function shareCard(T, f, nw, back) {
 function endGame(kind) {
   S.ffAt = kind === 'ff' ? S.m - 5 : S.m;
   S.ended = { kind, m: S.m, score: 0 };
-  S.ended.score = calcScore(kind);
+  S.ended.score = calcScore(kind); track('tamat_' + kind);
   MQ.length = 0; save();
   const f = compute(), nw = networth(), yrs = Math.floor(S.ffAt / 12), mo = S.ffAt % 12;
   let T = { ff: ['🏁 MERDEKA FINANSIAL!', 'Kamu merdeka finansial di umur ' + (START_AGE + yrs) + ' tahun ' + mo + ' bulan. Penghasilan pasifmu menutup semua kebutuhan, kamu tidak lagi bergantung pada gaji.'],
@@ -1848,7 +1849,28 @@ async function initFirebase() {
   const [app, fs, au] = await Promise.all([import(B + 'firebase-app.js'), import(B + 'firebase-firestore.js'), import(B + 'firebase-auth.js')]);
   const a = app.initializeApp(FB_CONFIG), auth = au.getAuth(a);
   const cred = await au.signInAnonymously(auth);
-  uid = cred.user.uid; db = makeShim(fs, fs.getFirestore(a));
+  uid = cred.user.uid; const store = fs.getFirestore(a); db = makeShim(fs, store);
+  statFS = { fs, store };
+}
+/* ---- statistik anonim (hitungan harian, tanpa data pribadi) ---- */
+let statFS = null; const statQ = [];
+function track(k) {
+  try {
+    if (k === 'sesi') {
+      const t = todayJkt();
+      if (localStorage.getItem('merdeka_seen') !== '1') { localStorage.setItem('merdeka_seen', '1'); statQ.push('baru'); }
+      if (localStorage.getItem('merdeka_active') !== t) { localStorage.setItem('merdeka_active', t); statQ.push('aktif'); }
+    }
+    statQ.push(k); flushStat();
+  } catch (e) { }
+}
+async function flushStat() {
+  try {
+    if (!statFS || !statQ.length || inArtifact()) return;
+    const { fs, store } = statFS, o = {};
+    statQ.splice(0).forEach(k => { o[k] = fs.increment(1); });
+    await fs.setDoc(fs.doc(store, 'stat', todayJkt()), o, { merge: true });
+  } catch (e) { }
 }
 async function initDB() {
   try {
@@ -1857,7 +1879,7 @@ async function initDB() {
       const user = await withTimeout(window.claude.use('user'), 10000);
       if (user && user.id) uid = await user.id();
     } else if (FB_CONFIG) await withTimeout(initFirebase(), 15000);
-    boardState = db && uid ? 'ready' : 'none';
+    boardState = db && uid ? 'ready' : 'none'; flushStat();
   } catch (e) { boardState = 'none'; }
   if (tab === 'rank') { renderSheet(true); loadBoard(); }
 }
@@ -1910,7 +1932,7 @@ function showStart() {
   $('#start').classList.add('on'); started = false; closeSheet();
 }
 function startGame(mode) {
-  setMode(mode === 'harian' ? 'harian' : 'musim');
+  setMode(mode === 'harian' ? 'harian' : 'musim'); track(mode === 'harian' ? 'mulaiHarian' : 'mulai');
   const nm = ($('#nm').value || '').trim() || (pick.gender === 'f' ? 'Rani' : 'Rian');
   newState({ name: nm, gender: pick.gender, bg: pick.bg }); sceneSig = '';
   $('#start').classList.remove('on'); started = true; MQ.length = 0; board = null;
@@ -2258,7 +2280,7 @@ const Walk = {
 };
 try { if ('serviceWorker' in navigator && !(window.claude && window.claude.use)) navigator.serviceWorker.register('/sw.js'); } catch (e) {}
 function start() {
-  bind();
+  bind(); track('sesi');
   const d = load();
   if (d && !d.ended) { S = d; setMode(S.mode, S.day); started = true; shownCash = S.cash; S.flow = compute(); updateScene(); updateHUD(true); }
   else showStart();
