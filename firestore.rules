@@ -4,21 +4,26 @@ service cloud.firestore {
 
     // Papan peringkat: satu dokumen per pemain, nama dokumen = uid login anonim. Musim 1 (arsip) dan Musim 2 (aktif).
     match /{season}/{uid} {
-      allow read: if season in ['season1','season2'];
+      allow read: if season in ['season1','season2'] || isDaily(season);
 
-      allow create: if season == 'season2'
+      allow create: if (season == 'season2' || isDaily(season))
                     && request.auth != null
                     && request.auth.uid == uid
                     && skorValid(request.resource.data);
 
       // Boleh memperbarui hanya milik sendiri, dan skor tidak boleh turun.
-      allow update: if season == 'season2'
+      allow update: if (season == 'season2' || isDaily(season))
                     && request.auth != null
                     && request.auth.uid == uid
                     && skorValid(request.resource.data)
                     && request.resource.data.score >= resource.data.score;
 
       allow delete: if false;
+    }
+
+    // Tantangan harian: koleksi per hari, misal harian-2026-11-09
+    function isDaily(c) {
+      return c.matches('^harian-20[0-9][0-9]-[01][0-9]-[0-3][0-9]$');
     }
 
     function skorValid(d) {

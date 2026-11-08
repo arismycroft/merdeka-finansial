@@ -150,6 +150,7 @@ input{font-family:inherit}
 .bgc{display:block;width:100%;text-align:left;border:3px solid var(--panel);background:#fff;border-radius:14px;padding:9px 11px;margin-bottom:8px;color:var(--ink)}
 .bgc.on{background:#fff3c4;box-shadow:0 3px 0 #b8860b}
 .bgc b{font-size:15px;font-weight:900}.bgc span{display:block;font-size:12px;font-weight:700;color:var(--soft);margin-top:2px}
+#goDaily{width:100%;margin-top:8px;border:0;border-radius:16px;padding:12px;font-weight:900;font-size:15px;color:#fff;background:linear-gradient(#5aa0ff,#3470d6);box-shadow:0 4px 0 #234f9c}
 #go{width:100%;margin-top:10px;border:0;border-radius:16px;padding:14px;font-weight:900;font-size:17px;color:#fff;background:linear-gradient(#58d86e,#2fae48);box-shadow:0 4px 0 #1e7a30}
 @media (min-width:481px){#app{border-left:4px solid #0d1630;border-right:4px solid #0d1630}}
 </style>
@@ -243,6 +244,8 @@ input{font-family:inherit}
     <label>Latar belakang</label>
     <div id="bgList"></div>
     <button id="go">Mulai Hidup (Umur 22)</button>
+    <button id="goDaily">📅 Tantangan Harian <span id="dayLbl"></span></button>
+    <p class="lead" style="margin:6px 0 0;font-size:12px">Tantangan harian: kejadian acak baru tiap hari (WIB), papan peringkat terpisah, sama untuk semua pemain.</p>
     <p class="lead" style="margin-top:12px;font-size:12px">Musim 2: semua pemain menghadapi kejadian acak yang sama (krisis, PHK, sakit, godaan). Yang beda hanya keputusanmu.</p>
   </div>
 </div>
@@ -256,7 +259,9 @@ const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 
 /* ====================== konstanta & RNG musim ====================== */
-const SEED = 'MUSIM-3', SEASON_COL = 'season2', VER = 3, SAVE_KEY = 'merdeka_v3';
+const MAIN_SEED = 'MUSIM-3', MAIN_COL = 'season2', VER = 3, SAVE_KEY = 'merdeka_v3';
+let SEED = MAIN_SEED, SEASON_COL = MAIN_COL, MODE = 'musim', DAY = '';
+const todayJkt = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const START_AGE = 22, END_AGE = 60, TOTAL = (END_AGE - START_AGE) * 12, MONTH_MS = 10000;
 const MONTHS = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
 function cyrb53(str) {
@@ -356,7 +361,7 @@ function mkDebt(kind, name, bal, rate, n) {
 }
 function newState(o) {
   const b = BGS[o.bg];
-  S = { v: VER, name: o.name, gender: o.gender, bg: o.bg, m: 0, cash: b.cash, happy: b.happy, health: 90,
+  S = { v: VER, mode: MODE, day: DAY, name: o.name, gender: o.gender, bg: o.bg, m: 0, cash: b.cash, happy: b.happy, health: 90,
     skills: { work: 0, comm: 0, fin: 0 }, job: b.job, jobSince: 0, promoCd: 0, cd: { fun: 0, doc: 0, fr: 0 }, jobless: 0, side: false, debts: [], inv: {}, biz: {},
     life: b.life, housing: b.housing, vehicle: b.vehicle, houseVal: 0, gym: false, ins: false,
     partner: null, married: false, pregDue: null, kids: [], edu: 0, support: b.support, friends: 60,
@@ -370,7 +375,13 @@ function load() {
 }
 
 /* ====================== ekonomi ====================== */
-const crisisStart = 108 + Math.floor(R('crisis') * 36);
+let crisisStart = 108 + Math.floor(R('crisis') * 36);
+function setMode(mode, day) {
+  MODE = mode === 'harian' ? 'harian' : 'musim'; DAY = MODE === 'harian' ? (day || todayJkt()) : '';
+  SEED = MODE === 'harian' ? 'HARI-' + DAY : MAIN_SEED; SEASON_COL = MODE === 'harian' ? 'harian-' + DAY : MAIN_COL;
+  crisisStart = 108 + Math.floor(R('crisis') * 36);
+  board = null; try { if (typeof unsub === 'function') unsub(); } catch (e) { } unsub = null;
+}
 const inCrisis = m => m >= crisisStart && m < crisisStart + 14;
 const shk1 = 84 + Math.floor(R('shk1') * 24), shk2 = 228 + Math.floor(R('shk2') * 36);
 const PI = m => Math.pow(1.0033, m) * (m >= shk1 ? 1.05 : 1) * (m >= shk2 ? 1.06 : 1);
@@ -698,6 +709,42 @@ function evKoneksi(m, p) {
     ]);
   }
 }
+/* ---- kejadian khas Indonesia + generasi sandwich (v8) ---- */
+function evTHR(m, p) {
+  const thr = JOBS[S.job].sal * p; S.cash += thr; S.ytdGross += thr;
+  ask('💰 THR Cair!', 'THR sebesar <b>' + fmt(thr) + '</b> masuk rekening (dipotong pajak saat rekonsiliasi). Keluarga besar sudah menanti: ponakan, sepupu, dan tetangga berharap angpao.', [
+    { t: 'Bagi-bagi royal (' + fmt(thr * 0.15) + ')', ev: 'thr:big', fn: () => { S.cash -= thr * 0.15; S.happy = clamp(S.happy + 3); S.friends = clamp(S.friends + 3); toast('🧧 Lebaranmu meriah. Keluarga senang.', 'good'); } },
+    { t: 'Secukupnya (' + fmt(thr * 0.05) + ')', cls: 'pri', ev: 'thr:mid', fn: () => { S.cash -= thr * 0.05; } },
+    { t: 'Tidak bagi-bagi', ev: 'thr:no', fn: () => { S.happy = clamp(S.happy - 2); S.friends = clamp(S.friends - 2); toast('Kamu dicap pelit oleh beberapa kerabat.', ''); } },
+  ]);
+}
+function evArisan(m, p) {
+  if (S.skills.fin >= 4) { toast('🛡️ Kamu menolak ikut arisan online berbunga tinggi: aturannya tidak masuk akal.', 'good'); return; }
+  const stake = Math.round(clamp(S.cash * 0.25, 0.8e6 * p, 30e6 * p) / 1e5) * 1e5;
+  const warn = S.skills.fin >= 2 ? '<br><b style="color:#d03b3b">Literasimu berbisik: arisan yang menjanjikan untung di luar kewajaran itu mencurigakan.</b>' : '';
+  ask('🎭 Arisan Online "Sultan"', 'Teman satu grup WhatsApp mengajak arisan besar: <i>"Setor ' + fmt(stake) + ', dapat balik lebih banyak tiap bulan. Bandarnya terpercaya, sudah putaran ke-5!"</i>' + warn, [
+    { t: 'Ikut (' + fmt(stake) + ')', cls: 'dng', ev: 'arisan:yes', fn: () => { if (S.cash < stake) { toast('Uangmu tidak cukup.', ''); return; } S.cash -= stake; S.ponzi.push({ stake, collapse: m + 3 + Math.floor(R('arisan', m) * 4), label: 'Arisan Sultan', rate: 0.05 }); toast('Kamu ikut arisan. Setoran awal terkirim.', ''); } },
+    { t: 'Tidak ikut', cls: 'pri', ev: 'arisan:no', fn: () => toast('Arisan tanpa kejelasan itu bukan investasi.', 'good') },
+  ]);
+}
+function evHajatan(m, p) {
+  const c = rr(clamp(1.2e6 + JOBS[S.job].sal * 0.25, 1e6, 20e6) * p);
+  const kind = ['Sunatan keponakan', 'Pernikahan sepupu di kampung', 'Syukuran rumah baru paman', 'Aqiqah anak tetangga dekat'][Math.floor(R('hajat', m) * 4)];
+  ask('🎪 ' + kind, 'Keluarga besar mengundang dan berharap kamu hadir sekaligus ikut membantu biaya. Perkiraan: transport, amplop, dan bantu-bantu sekitar ' + fmt(c) + '.', [
+    { t: 'Datang dan bantu (' + fmt(c) + ')', ev: 'hajat:full', fn: () => { S.cash -= c; S.friends = clamp(S.friends + 3); S.happy = clamp(S.happy + 2); } },
+    { t: 'Kirim amplop saja (' + fmt(c * 0.4) + ')', cls: 'pri', ev: 'hajat:env', fn: () => { S.cash -= c * 0.4; S.friends = clamp(S.friends - 1); } },
+    { t: 'Tidak datang', ev: 'hajat:no', fn: () => { S.friends = clamp(S.friends - 5); S.happy = clamp(S.happy - 3); toast('Kamu jadi bahan omongan keluarga besar.', 'bad'); } },
+  ]);
+}
+function evSandwich(m, p) {
+  S.flags.sand = (S.flags.sand || 0) + 1;
+  const c1 = rr(18e6 * p * (S.ins ? 0.6 : 1)), c2 = rr(10e6 * p);
+  ask('🥪 Generasi Sandwich', 'Orang tuamu sakit dan butuh biaya sekitar <b>' + fmt(c1) + '</b>' + (S.ins ? ' (asuransimu menanggung sebagian)' : '') + ', di saat yang sama biaya sekolah anak naik <b>' + fmt(c2) + '</b>. Kamu terhimpit di tengah.', [
+    { t: 'Utamakan orang tua (' + fmt(c1) + ')', ev: 'sand:ortu', fn: () => { S.cash -= c1; S.happy = clamp(S.happy - 4); toast('Anak pindah ke sekolah yang lebih murah. Kamu merasa bersalah.', ''); } },
+    { t: 'Utamakan anak (' + fmt(c2) + ')', ev: 'sand:anak', fn: () => { S.cash -= c2; S.happy = clamp(S.happy - 9); toast('Orang tua dirawat seadanya. Beban batinmu berat.', 'bad'); } },
+    { t: 'Dua-duanya, kerja ekstra (' + fmt((c1 + c2) * 0.7) + ')', cls: 'pri', ev: 'sand:both', fn: () => { S.cash -= (c1 + c2) * 0.7; S.health = clamp(S.health - 5); S.happy = clamp(S.happy - 4); toast('Kamu lembur dan irit habis-habisan demi dua-duanya.', ''); } },
+  ]);
+}
 const EV2 = [
   { id: 'koneksi', w: 1.5, ok: () => S.friends >= 45 || S.life >= 2, run: evKoneksi },
   { id: 'scam', w: 1.4, ok: () => true, run: evScam },
@@ -714,10 +761,14 @@ const EV2 = [
   { id: 'anak', w: 1.4, ok: () => S.kids.some(c => kidAgeY(c) <= 12), run: evAnakSakit },
   { id: 'lembur', w: 0.9, ok: () => S.jobless <= 0 && S.job >= 1, run: evLembur },
   { id: 'hp', w: 0.8, ok: () => true, run: evGadget },
+  { id: 'arisan', w: 0.9, ok: (m, a) => a >= 24 && S.friends >= 35 && S.cash >= 1e6 * PI(m), run: evArisan },
+  { id: 'hajat', w: 1.1, ok: (m, a) => a >= 24, run: evHajatan },
+  { id: 'sandwich', w: 1.6, ok: (m, a) => (S.flags.sand || 0) < 2 && a >= 33 && S.kids.some(c => kidAgeY(c) >= 5 && kidAgeY(c) <= 17), run: evSandwich },
 ];
 function randomEvents(m) {
   const p = PI(m), a = ageY(m), employed = S.jobless <= 0;
   if (employed && R('phk', m) < (inCrisis(m) ? 0.02 : 0.004)) { evPHK(m, p); return; }
+  if (m % 12 === 2 && a >= 23 && employed && R('thr', m) < 0.9) { evTHR(m, p); return; }
   if (m % 12 === 3 && a >= 23 && R('mudik', m) < 0.85) { evMudik(m, p); return; }
   if (R('ev', m) >= 0.30) return;
   const W = [['judol', 3 * (1 + S.addict / 40) * (1 + 0.1 * S.life), true], ['pinjam', 2.5, S.cash >= 0.6e6 * p], ['bodong', 1.6 * (1 + 0.12 * S.life), a >= 24 && S.cash >= 1e6 * p], ['ortu', 1.4, a >= 28 || S.support > 0], ['bonus', 1.3, employed]].map(x => [x[0], x[1] * 1.25, x[2]]).concat(EV2.filter(e => e.ok(m, a)).map(e => [e.id, e.w, true]));
@@ -744,8 +795,8 @@ function step() {
   S.friends = clamp(S.friends - 0.12 + [-0.1, 0, 0.04, 0.07, 0.1][S.life] + (S.vehicle === 'mobil' ? 0.03 : 0) - (S.addict >= 40 ? 0.2 : 0));
   S.kids.forEach(c => { const ay = kidAgeY(c); if (ay >= 3 && ay <= 21) c.q = (c.q || 0) + EDUQ[S.edu]; });
   S.ponzi = S.ponzi.filter(z => {
-    if (m >= z.collapse) { toast('💥 Investasi "AI Trading" ternyata penipuan. Modal ' + fmt(z.stake) + ' lenyap.', 'bad'); S.happy = clamp(S.happy - 10); return false; }
-    S.cash += z.stake * 0.08; toast('Dana "AI Trading" cair ' + fmt(z.stake * 0.08, true) + ' (jangan percaya dulu...)', ''); return true;
+    if (m >= z.collapse) { toast('💥 ' + (z.label || 'Investasi "AI Trading"') + ' ternyata penipuan. Modal ' + fmt(z.stake) + ' lenyap.', 'bad'); S.happy = clamp(S.happy - 10); return false; }
+    const rt = z.rate || 0.08; S.cash += z.stake * rt; toast('Dana ' + (z.label ? '"' + z.label + '"' : '"AI Trading"') + ' cair ' + fmt(z.stake * rt, true) + ' (jangan percaya dulu...)', ''); return true;
   });
   S.loans = S.loans.filter(l => {
     if (m < l.due) return true;
@@ -874,6 +925,46 @@ function endVariant(kind, f, nw) {
   }
   return null;
 }
+/* ---- kartu bagikan hasil ---- */
+function shareCard(T, f, nw, back) {
+  const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
+  if (!c.getContext) { back(); return; }
+  const x = c.getContext('2d'), kind = S.ended.kind, ok = kind === 'ff';
+  const cols = { ff: ['#1f8a5b', '#0d3b4f'], retire: ['#c48a1a', '#4a3a1c'], bankrupt: ['#b3363a', '#2b1220'], dead: ['#4a5470', '#171b2b'] }[kind] || ['#3a5a9a', '#14182a'];
+  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, cols[0]); g.addColorStop(1, cols[1]);
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.globalAlpha = 0.08; x.fillStyle = '#fff';
+  for (let i = 0; i < 14; i++) { x.beginPath(); x.arc((i * 197) % W, (i * 331) % H, 60 + (i * 37) % 120, 0, 7); x.fill(); }
+  x.globalAlpha = 1;
+  const F = '"Segoe UI", Roboto, "Noto Sans", Arial, sans-serif', ctr = (t, y, sz, w, col) => { x.fillStyle = col || '#fff'; x.font = (w || '700') + ' ' + sz + 'px ' + F; x.textAlign = 'center'; x.fillText(t, W / 2, y); };
+  ctr(MODE === 'harian' ? 'TANTANGAN HARIAN ' + DAY : 'MERDEKA FINANSIAL', 110, 44, '800', 'rgba(255,255,255,.75)');
+  ctr(S.name, 200, 64, '800');
+  // judul ending (bisa panjang): pecah per kata
+  const title = T[0], words = title.split(' '); let lines = [''], mx = 880;
+  x.font = '800 72px ' + F;
+  words.forEach(w => { const t = (lines[lines.length - 1] + ' ' + w).trim(); if (x.measureText(t).width > mx && lines[lines.length - 1]) lines.push(w); else lines[lines.length - 1] = t; });
+  lines.slice(0, 3).forEach((l, i) => ctr(l, 360 + i * 90, 72, '800'));
+  const y0 = 360 + Math.min(3, lines.length) * 90 + 40;
+  ctr(ok ? 'Merdeka di umur ' + (START_AGE + Math.floor(S.ffAt / 12)) : 'Berakhir di umur ' + age(), y0, 46, '600', 'rgba(255,255,255,.9)');
+  const rows = [['SKOR MUSIM', S.ended.score.toLocaleString('id-ID')], ['KEKAYAAN BERSIH', fmt(nw)], ['PASIF / BULAN', fmt(f.passive)], ['ANAK', String(S.kids.length)]];
+  rows.forEach((r, i) => {
+    const y = y0 + 80 + i * 150;
+    x.fillStyle = 'rgba(255,255,255,.13)'; x.beginPath(); x.roundRect ? x.roundRect(100, y, W - 200, 120, 28) : x.rect(100, y, W - 200, 120); x.fill();
+    x.textAlign = 'left'; x.fillStyle = 'rgba(255,255,255,.7)'; x.font = '600 28px ' + F; x.fillText(r[0], 140, y + 48);
+    x.fillStyle = '#fff'; x.font = '800 44px ' + F; x.fillText(r[1], 140, y + 98);
+  });
+  ctr('Bisakah kamu merdeka lebih cepat?', H - 120, 40, '700', 'rgba(255,255,255,.95)');
+  ctr(/^https?:/.test(location.href) ? location.host : 'Merdeka Finansial', H - 62, 32, '600', 'rgba(255,255,255,.7)');
+  const text = (ok ? 'Aku merdeka finansial di umur ' + (START_AGE + Math.floor(S.ffAt / 12)) + (MODE === 'harian' ? ' (tantangan harian ' + DAY + ')' : '') : T[0].replace(/^\S+\s/, '') + ' di umur ' + age()) + ' di game Merdeka Finansial, skor ' + S.ended.score.toLocaleString('id-ID') + '. Bisa ngalahin aku? ' + (/^https?:/.test(location.href) ? location.origin : '');
+  c.toBlob(blob => {
+    if (!blob) { toast('Gagal membuat kartu.', 'bad'); back(); return; }
+    const url = URL.createObjectURL(blob), file = new File([blob], 'merdeka-finansial.png', { type: 'image/png' });
+    const btns = [{ t: 'Kembali', fn: () => { URL.revokeObjectURL(url); back(); } }, { t: '💾 Simpan gambar', fn: () => { const a = document.createElement('a'); a.href = url; a.download = 'merdeka-finansial.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => back(), 0); } }];
+    if (navigator.canShare && navigator.canShare({ files: [file] })) btns.unshift({ t: '📤 Bagikan', cls: 'pri', fn: () => { navigator.share({ files: [file], text }).catch(() => { }); setTimeout(() => back(), 0); } });
+    else if (navigator.share) btns.unshift({ t: '📤 Bagikan teks', cls: 'pri', fn: () => { navigator.share({ text }).catch(() => { }); setTimeout(() => back(), 0); } });
+    modal('<h2>Kartu hasilmu</h2><img src="' + url + '" style="width:100%;border-radius:12px;display:block" alt="Kartu hasil">', btns);
+  }, 'image/png');
+}
 function endGame(kind) {
   S.ffAt = kind === 'ff' ? S.m - 5 : S.m;
   S.ended = { kind, m: S.m, score: 0 };
@@ -886,14 +977,15 @@ function endGame(kind) {
     dead: ['🕊️ Meninggal Dunia', 'Kesehatanmu habis di umur ' + age() + '. Uang tidak ada artinya kalau tubuh tidak dijaga. Pendapatan pasifmu baru ' + pct(f.ff) + ' kebutuhan.'] }[kind];
   const EV_ = endVariant(kind, f, nw); if (EV_) T = EV_; S.ended.variant = T[0];
   const petLine = '<p style="font-size:12px;color:#5a6a92">🐾 ' + petOf().name + (S.m >= 180 ? ' menemanimu bertahun-tahun.' : ' ada di sisimu sepanjang perjalanan.') + '</p>';
-  modal('<h2>' + T[0] + '</h2><p>' + T[1] + '</p>' + petLine +
+  const showEnd = () => modal('<h2>' + T[0] + '</h2><p>' + T[1] + '</p>' + petLine +
     '<div class="stat"><span>Skor musim</span><b>' + S.ended.score.toLocaleString('id-ID') + '</b></div>' +
     '<div class="stat"><span>Pendapatan pasif / bulan</span><b>' + fmt(f.passive) + '</b></div>' +
     '<div class="stat"><span>Kebutuhan / bulan</span><b>' + fmt(f.needsFF) + '</b></div>' +
     '<div class="stat"><span>Kekayaan bersih</span><b>' + fmt(nw) + '</b></div>' +
     '<div class="stat"><span>Kebahagiaan / Kesehatan</span><b>' + Math.round(S.happy) + ' / ' + Math.round(S.health) + '</b></div>' +
     '<div class="stat"><span>Anak</span><b>' + S.kids.length + '</b></div>',
-    [{ t: 'Lihat peringkat', fn: () => { openTab('rank'); } }, { t: 'Main lagi (musim sama)', cls: 'pri', fn: () => { showStart(); } }]);
+    [{ t: '📤 Bagikan hasil', cls: 'pri', fn: () => shareCard(T, f, nw, showEnd) }, { t: 'Lihat peringkat', fn: () => { openTab('rank'); } }, { t: 'Main lagi', fn: () => { showStart(); } }]);
+  showEnd();
   submitScore();
   try { FX.end(kind); } catch (e) { }
 }
@@ -1800,7 +1892,7 @@ async function submitScore() {
 }
 const END_ICON = { ff: '🏁', retire: '🧓', dead: '🕊️', bankrupt: '📉' };
 function rankHTML() {
-  let h = '<div class="card"><b>Musim 2</b><div class="rs">Semua pemain menghadapi kejadian acak yang sama. Peringkat: yang <b>paling cepat merdeka finansial</b> menang; yang belum merdeka diurutkan dari persentase pasif tertinggi.</div></div>';
+  let h = '<div class="card"><b>' + (MODE === 'harian' ? '📅 Tantangan Harian ' + DAY : 'Musim 2') + '</b><div class="rs">Semua pemain' + (MODE === 'harian' ? ' hari ini' : '') + ' menghadapi kejadian acak yang sama. Peringkat: yang <b>paling cepat merdeka finansial</b> menang; yang belum merdeka diurutkan dari persentase pasif tertinggi.</div></div>';
   if (S.ended) h += '<div class="card"><b>Hasilmu: ' + S.ended.score.toLocaleString('id-ID') + '</b> ' + END_ICON[S.ended.kind] + '<div class="rs">Pengiriman skor: ' + (S.flags.submitted || (boardState === 'ready' ? 'sedang dikirim…' : 'tidak tersedia di tampilan ini')) + '</div></div>';
   if (boardState !== 'ready') return h + '<div class="card">' + (inArtifact() ? 'Peringkat bersama belum aktif di tampilan ini (butuh login & akses dari pemilik game).' : 'Peringkat bersama belum tersambung. Cek koneksi internetmu lalu buka ulang game.') + ' Skor tetap tersimpan lokal.</div>';
   if (board === null) return h + '<div class="card">Memuat peringkat…</div>';
@@ -1814,9 +1906,11 @@ let pick = { gender: 'm', bg: 'fresh' };
 function showStart() {
   $('#bgList').innerHTML = Object.keys(BGS).map(k => '<button class="bgc ' + (pick.bg === k ? 'on' : '') + '" data-bg="' + k + '"><b>' + BGS[k].icon + ' ' + BGS[k].name + '</b><span>' + BGS[k].desc + '</span></button>').join('');
   $$('#start .chip').forEach(c => c.classList.toggle('on', c.dataset.g === pick.gender));
+  $('#dayLbl').textContent = '(' + todayJkt() + ')';
   $('#start').classList.add('on'); started = false; closeSheet();
 }
-function startGame() {
+function startGame(mode) {
+  setMode(mode === 'harian' ? 'harian' : 'musim');
   const nm = ($('#nm').value || '').trim() || (pick.gender === 'f' ? 'Rani' : 'Rian');
   newState({ name: nm, gender: pick.gender, bg: pick.bg }); sceneSig = '';
   $('#start').classList.remove('on'); started = true; MQ.length = 0; board = null;
@@ -1843,7 +1937,7 @@ function bind() {
     const c = e.target.closest('.chip'); if (c) { pick.gender = c.dataset.g; $$('#start .chip').forEach(x => x.classList.toggle('on', x === c)); }
     const b = e.target.closest('.bgc'); if (b) { pick.bg = b.dataset.bg; $$('#start .bgc').forEach(x => x.classList.toggle('on', x === b)); }
   });
-  $('#go').addEventListener('click', startGame);
+  $('#go').addEventListener('click', () => startGame('musim')); $('#goDaily').addEventListener('click', () => startGame('harian'));
 }
 let last = performance.now(), saveT = 0, uiT = 0;
 function loop() {
@@ -2166,7 +2260,7 @@ try { if ('serviceWorker' in navigator && !(window.claude && window.claude.use))
 function start() {
   bind();
   const d = load();
-  if (d && !d.ended) { S = d; started = true; shownCash = S.cash; S.flow = compute(); updateScene(); updateHUD(true); }
+  if (d && !d.ended) { S = d; setMode(S.mode, S.day); started = true; shownCash = S.cash; S.flow = compute(); updateScene(); updateHUD(true); }
   else showStart();
   initDB();
   setInterval(loop, 50);
@@ -2174,7 +2268,7 @@ function start() {
   document.addEventListener('pointerdown', e => { try { if (e.target.closest && e.target.closest('button')) SFX.play('tap'); } catch (er) { } }, true);
   document.addEventListener('visibilitychange', () => { if (document.hidden && S && started) save(); });
 }
-try { globalThis.__game = { Music, SFX, FX, Walk, step, compute, dispatch, endGame, newState, networth, annualTax, R, Z, fmt, calcScore, openTab, renderSheet, updateHUD, updateScene, refresh, tabDots, rankHTML, A, JOBS, INVS, BIZS, STAGES, TABS, get S() { return S; }, get MQ() { return MQ; }, drain, resolveModal(i) { const m = $('#modal'); return m && m.onclick ? m.onclick({ target: { closest: () => ({ dataset: { i: String(i) } }) } }) : null; }, get modalOn() { return modalOn; }, TOTAL, crisisStart, startGame, pick }; } catch (e) {}
+try { globalThis.__game = { setMode, getMode: () => [MODE, DAY, SEED, SEASON_COL], Music, SFX, FX, Walk, step, compute, dispatch, endGame, newState, networth, annualTax, R, Z, fmt, calcScore, openTab, renderSheet, updateHUD, updateScene, refresh, tabDots, rankHTML, A, JOBS, INVS, BIZS, STAGES, TABS, get S() { return S; }, get MQ() { return MQ; }, drain, resolveModal(i) { const m = $('#modal'); return m && m.onclick ? m.onclick({ target: { closest: () => ({ dataset: { i: String(i) } }) } }) : null; }, get modalOn() { return modalOn; }, TOTAL, crisisStart, startGame, pick }; } catch (e) {}
 start();
 })();
 </script>
