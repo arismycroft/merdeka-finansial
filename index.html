@@ -263,7 +263,8 @@ const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 
 /* ====================== konstanta & RNG musim ====================== */
-const MAIN_SEED = 'MUSIM-5', MAIN_COL = 'season3', VER = 4, SAVE_KEYS = { musim: 'merdeka_v3', harian: 'merdeka_v3_h' };
+// Musim 3 memakai koleksi season4 (papan baru setelah penyesuaian aturan di hari pertama; season3 tidak dipakai)
+const MAIN_SEED = 'MUSIM-6', MAIN_COL = 'season4', VER = 5, SAVE_KEYS = { musim: 'merdeka_v3', harian: 'merdeka_v3_h' };
 /* periode musim (WIB). Ganti saat musim baru: SEED, koleksi, dan tanggal di sini */
 const SEASON = { name: 'Musim 3', start: '2026-11-09', end: '2026-12-08' };
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -306,6 +307,8 @@ const SKILLS = [
   { id: 'comm', name: 'Komunikasi',     icon: '🗣️', base: 0.9e6, desc: 'Syarat jabatan manajerial, cari kerja lebih cepat, relasi' },
   { id: 'fin',  name: 'Literasi Finansial', icon: '📚', base: 0.7e6, desc: 'Membuka instrumen investasi & bisnis, mengenali penipuan' },
 ];
+const sideTime = j => [1, 1, 0.85, 0.65, 0, 0, 0, 0][j] || 0; // waktu luang untuk kerja sampingan; Asisten Manajer ke atas tidak punya
+const sideFatigue = j => 1 + 0.3 * Math.max(0, j - 1);
 const JOBS = [
   { name: 'Staf Junior',     sal: 5e6,   minM: 0,  req: {}, color: '#7a8aa0' },
   { name: 'Staf',            sal: 8e6,   minM: 12, req: { work: 2 }, color: '#4a90d9' },
@@ -428,7 +431,7 @@ function debtPay(d) {
 function compute() {
   const m = S.m, p = PI(m), employed = S.jobless <= 0, job = JOBS[S.job];
   const salary = employed ? job.sal * p * (S.happy < 25 ? 0.85 : 1) : 0;
-  const hustle = S.side ? 1.5e6 * p * (1 + 0.08 * S.skills.work) * (S.vehicle !== 'none' ? 1.3 : 1) * (1 + netBonus()) : 0;
+  const hustle = S.side ? 1.5e6 * p * (1 + 0.08 * S.skills.work) * (S.vehicle !== 'none' ? 1.3 : 1) * (1 + netBonus()) * sideTime(S.job) : 0;
   const thr = (employed && m % 12 === 2 && m > 0) ? salary : 0;
   const pph = employed ? annualTax(salary * 13) / 12 : 0;
   const bpjsMandiri = 0.15e6 * p * (1 + (S.married ? 1 : 0) + Math.min(3, S.kids.length));
@@ -451,6 +454,7 @@ function compute() {
   const creep = [0.012, 0.05, 0.10, 0.15, 0.20][S.life] * Math.max(0, salary + partnerNet - 9e6 * p);
   if (creep > 0) L['Tuntutan kelas menengah'] = creep;
   if ((S.chronic || 0) > 0) L['Kontrol & obat rutin'] = 0.6e6 * p;
+  if ((S.gerd || 0) > 0) L['Obat maag & dokter'] = 0.2e6 * p * (S.ins ? 0.4 : 1);
   L['Kondangan, hadiah & tak terduga'] = (0.5e6 + 0.03e6 * (age() - START_AGE)) * p;
   let kidsC = 0, youngest = 99;
   S.kids.forEach(c => { const ay = kidAgeY(c); youngest = Math.min(youngest, ay); const st = stageOf(ay); if (st) kidsC += (st.food * 1e6 + st.tu[S.edu] * 1e6) * p; });
@@ -763,6 +767,15 @@ function evSandwich(m, p) {
     { t: 'Dua-duanya, kerja ekstra (' + fmt((c1 + c2) * 0.7) + ')', cls: 'pri', ev: 'sand:both', fn: () => { S.cash -= (c1 + c2) * 0.7; S.health = clamp(S.health - 5); S.happy = clamp(S.happy - 4); toast('Kamu lembur dan irit habis-habisan demi dua-duanya.', ''); } },
   ]);
 }
+function evMaag(m, p) {
+  S.flags.gerdN = (S.flags.gerdN || 0) + 1;
+  const c = rr(0.6e6 * p * (S.ins ? 0.4 : 1), 5e4), why = S.side ? 'kurang tidur karena kerja sampingan' : S.cash < 2 * 9e6 * p ? 'makan seadanya demi menghemat uang' : 'lembur dan mengejar target';
+  ask('🤢 Maag dan Asam Lambung Naik', 'Perutmu perih, dada panas, dan mual. Penyebabnya: ' + why + ', ditambah kopi dan makan tidak teratur. Ini hal yang umum dialami pekerja muda.', [
+    { t: 'Periksa dokter, atur pola makan (' + fmt(c) + ')', cls: 'pri', ev: 'maag:dokter', fn: () => { S.cash -= c; S.gerd = 2; S.health = clamp(S.health + 1); toast('👨‍⚕️ Dokter menyarankan makan teratur dan kurangi kopi.', 'good'); } },
+    { t: 'Beli obat warung (' + fmt(c * 0.2) + ')', ev: 'maag:obat', fn: () => { S.cash -= c * 0.2; S.gerd = 5; toast('Obat warung meredakan sementara.', ''); } },
+    { t: 'Abaikan, kejar target dulu', ev: 'maag:abai', fn: () => { S.gerd = 9; S.health = clamp(S.health - 3); S.happy = clamp(S.happy - 2); if (S.flags.gerdN >= 3) { const x = rr(3e6 * p * (S.ins ? 0.4 : 1)); S.cash -= x; S.health = clamp(S.health - 8); toast('🩺 Maag yang dibiarkan berulang menjadi luka lambung. Biaya perawatan ' + fmt(x) + '.', 'bad'); } else toast('Perutmu makin sering melilit.', 'bad'); } },
+  ]);
+}
 const EV2 = [
   { id: 'koneksi', w: 1.5, ok: () => S.friends >= 45 || S.life >= 2, run: evKoneksi },
   { id: 'scam', w: 1.4, ok: () => true, run: evScam },
@@ -779,6 +792,7 @@ const EV2 = [
   { id: 'anak', w: 1.4, ok: () => S.kids.some(c => kidAgeY(c) <= 12), run: evAnakSakit },
   { id: 'lembur', w: 0.9, ok: () => S.jobless <= 0 && S.job >= 1, run: evLembur },
   { id: 'hp', w: 0.8, ok: () => true, run: evGadget },
+  { id: 'maag', w: 1.6, ok: (m, a) => S.jobless <= 0 && !S.gerd && a <= 38 && S.job <= 3 && (S.job <= 1 || S.side || S.cash < 3e6 * PI(m)), run: evMaag },
   { id: 'arisan', w: 0.9, ok: (m, a) => a >= 24 && S.friends >= 35 && S.cash >= 1e6 * PI(m), run: evArisan },
   { id: 'hajat', w: 1.1, ok: (m, a) => a >= 24, run: evHajatan },
   { id: 'sandwich', w: 1.6, ok: (m, a) => (S.flags.sand || 0) < 2 && a >= 33 && S.kids.some(c => kidAgeY(c) >= 5 && kidAgeY(c) <= 17), run: evSandwich },
@@ -834,6 +848,7 @@ function step() {
     else { S.friends = clamp(S.friends - 5); toast('🤝 Pinjaman ' + fmt(l.amt) + ' tak kembali. Temanmu menghilang.', 'bad'); }
     return false;
   });
+  if (S.side && sideTime(S.job) === 0 && S.jobless <= 0) { S.side = false; toast('📵 Jabatanmu sekarang menuntut waktu penuh. Kerja sampingan otomatis dihentikan.', ''); }
   if (S.jobless > 0) { S.jobless--; if (S.jobless === 0) { const was = S.job; if (S.rehire != null) { S.job = Math.min(S.job, S.rehire); S.rehire = null; } S.jobSince = S.m; S.promoCd = 0; toast(S.job < was ? '💼 Dapat kerja lagi, tapi turun jabatan jadi ' + JOBS[S.job].name + ' (gaji lebih kecil, masa kerja dihitung ulang).' : '💼 Kamu mendapat pekerjaan baru sebagai ' + JOBS[S.job].name + ' (masa kerja dihitung ulang).', S.job < was ? '' : 'good'); } }
 
   const f = compute();
@@ -864,14 +879,17 @@ function step() {
   const ratioSup = S.support * p / Math.max(1, f.salary);
   const bakti = S.support > 0 ? Math.min(0.35, ratioSup * 1.5) : (a >= 25 && S.jobless <= 0 ? -0.1 : 0);
   const hasKids = S.kids.length > 0;
+  // jabatan tinggi = makin sibuk (kurang tidur & olahraga); staf baru = ritme kerja dan keuangan serba pas-pasan
+  const busy = S.jobless > 0 ? 0 : Math.max(0, S.job - 2), juniorStress = S.jobless <= 0 && S.job <= 1 && a <= 32 ? (S.cash < 2 * f.needsFF ? 1 : 0.5) : 0;
+  if (S.gerd > 0) { S.gerd--; if (S.gerd === 0) toast('😌 Lambungmu sudah membaik. Jaga pola makan dan jam tidur.', 'good'); }
   const homeFx = { kos: (S.married || hasKids) ? -0.5 : -0.2, kontrak: hasKids ? -0.15 : 0, kpr: 0.15, own: 0.3 }[S.housing] || 0;
   const vehFx = { none: -0.15, motor: 0.1, mobil: 0.2 }[S.vehicle] || 0;
   const gengsi = S.life >= 3 && S.cash < 3 * f.needsFF ? -0.4 : 0;
   const judolFx = S.addict >= 20 ? -S.addict / 100 * 0.5 : 0;
   S.happy = clamp(S.happy - 0.75 + bakti + homeFx + vehFx + gengsi + judolFx + LIFE[S.life].h + 0.35 * kids + (S.married ? 0.25 : (age() >= 30 && S.friends < 70 ? -0.15 : 0)) + (S.friends - 50) * 0.006 + (S.gym ? 0.05 : 0)
-    - (S.side ? 0.4 : 0) - f.ownerRun * 0.25 - (S.jobless > 0 ? 0.6 : 0) - (S.cash < f.needsFF ? 0.3 : 0) - (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active) ? 0.3 : 0));
+    - (S.side ? 0.4 * sideFatigue(S.job) : 0) - busy * 0.05 - (S.gerd > 0 ? 0.2 : 0) - juniorStress * 0.1 - f.ownerRun * 0.25 - (S.jobless > 0 ? 0.6 : 0) - (S.cash < f.needsFF ? 0.3 : 0) - (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active) ? 0.3 : 0));
   const toddlers = Math.min(2, S.kids.filter(c => kidAgeY(c) <= 5).length);
-  S.health = clamp(S.health - 0.1 + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 28) * 0.009 + (S.health < 85 ? 0.07 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 : 0) - f.ownerRun * 0.1 - (S.happy < 25 ? 0.5 : 0));
+  S.health = clamp(S.health - 0.1 + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 28) * 0.009 + (S.health < 85 ? 0.07 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 * sideFatigue(S.job) : 0) - busy * 0.06 - (S.gerd > 0 ? 0.35 : 0) - juniorStress * 0.1 - f.ownerRun * 0.1 - (S.happy < 25 ? 0.5 : 0));
   if (S.vehicle === 'motor' && R('moto', m) < 0.004) { const c = 3e6 * p * (S.ins ? 0.4 : 1); S.cash -= c; S.health = clamp(S.health - 12); S.happy = clamp(S.happy - 4); toast('🛵 Kecelakaan motor! Biaya berobat & bengkel ' + fmt(c) + ', kesehatan turun.', 'bad'); }
   if (m % 6 === 0 && S.health < 35) toast('❤️ Kesehatanmu kritis! Pakai Periksa, olahraga, atau kurangi kerja lembur.', 'bad');
   if (m % 6 === 3 && S.happy < 20) toast('😔 Kamu sangat stres. Ambil Hiburan, kumpul teman, atau naikkan gaya hidup sedikit.', 'bad');
@@ -1037,7 +1055,7 @@ const A = {
     if (R('promo', S.m, i) < promoChance(i)) { S.flags.ref = 0; S.job = i; S.jobSince = S.m; toast('💼 Diterima! Kamu sekarang ' + j.name + '. Gaji ' + fmt(j.sal * PI(S.m)) + '/bln', 'gold'); }
     else { S.promoCd = 6; toast('😔 Lamaran ' + j.name + ' belum berhasil (posisi terbatas). Coba lagi 6 bulan lagi.', 'bad'); }
   },
-  side() { S.side = !S.side; toast(S.side ? '🕘 Kerja sampingan dimulai (kesehatan & kebahagiaan terkuras).' : 'Kerja sampingan dihentikan.', ''); },
+  side() { if (!S.side && sideTime(S.job) === 0) { toast('Jabatanmu terlalu sibuk untuk kerja sampingan.', ''); return; } S.side = !S.side; toast(S.side ? '🕘 Kerja sampingan dimulai (kesehatan & kebahagiaan terkuras).' : 'Kerja sampingan dihentikan.', ''); },
   inv(id, how) {
     const i = INVS.find(x => x.id === id); if (!i || S.skills.fin < i.fin) return;
     if (how === 'wd') { const v = S.inv[id] || 0; if (v > 0) { S.cash += v; S.inv[id] = 0; } return; }
@@ -1118,7 +1136,7 @@ const TABS = {
       const tx = i > S.job ? '<br>' + (nxt ? '<span class="' + (tenure() >= jb.minM ? 'ok' : 'no') + '">Masa kerja ' + tn + '/' + jb.minM + ' bln</span> · peluang lolos ±' + pct(promoChance(i)) : '<span class="no">Naik jabatan sebelumnya dulu</span>') : '';
       return row({ icon: '💼', title: jb.name, sub: 'Gaji ' + fmt(jb.sal * p) + '/bln<br>' + reqText(jb.req) + tx, cls: (i > S.job && !canPromote(i)) ? 'locked' : '', btn: b });
     }).join('');
-    h += '<div class="sec">Penghasilan tambahan</div>' + row({ icon: '🕘', title: 'Kerja Sampingan', sub: 'Freelance ±' + fmt(1.5e6 * p * (1 + 0.08 * S.skills.work)) + '/bln. Menguras kesehatan & kebahagiaan.', btn: tog('side', S.side, S.side ? 'Berhenti' : 'Mulai') });
+    h += '<div class="sec">Penghasilan tambahan</div>' + row({ icon: '🕘', title: 'Kerja Sampingan', sub: sideTime(S.job) === 0 ? 'Jabatanmu menuntut waktu penuh, tidak ada waktu luang untuk kerja sampingan.' : 'Freelance ±' + fmt(1.5e6 * p * (1 + 0.08 * S.skills.work) * sideTime(S.job)) + '/bln' + (sideTime(S.job) < 1 ? ' (waktu luang makin sedikit di jabatan ini)' : '') + '. Menguras kesehatan & kebahagiaan' + (S.job > 1 ? ', makin berat di jabatan tinggi.' : '.'), btn: sideTime(S.job) === 0 && !S.side ? '<span class="tag">Sibuk</span>' : tog('side', S.side, S.side ? 'Berhenti' : 'Mulai') });
     return h;
   },
   money() {
