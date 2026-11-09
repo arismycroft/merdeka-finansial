@@ -64,7 +64,7 @@ input{font-family:inherit}
 @keyframes bob{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025)}}
 .walk{animation:walkb .34s ease-in-out infinite!important}
 @keyframes walkb{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-3px) rotate(2deg)}}
-.cf{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:cfall 1.8s ease-in forwards}
+.cfx{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:cfall 1.8s ease-in forwards}
 @keyframes cfall{to{transform:translate(var(--dx),560px) rotate(720deg)}}
 .shake{animation:shk .45s}
 @keyframes shk{0%,100%{transform:none}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
@@ -127,7 +127,7 @@ input{font-family:inherit}
 .ibtns .buy{min-width:0;flex:1;padding:5px 6px}
 .up{color:#1f9a3c;font-weight:900}.dn{color:#d03b3b;font-weight:900}
 
-#modal{position:absolute;inset:0;background:rgba(10,16,34,.6);display:none;align-items:center;justify-content:center;z-index:20;padding:18px}
+#modal{position:absolute;inset:0;background:rgba(10,16,34,.6);display:none;align-items:center;justify-content:center;z-index:40;padding:18px}
 #modal.on{display:flex}
 .mbox{background:#fff;border-radius:22px;padding:18px;width:100%;max-width:370px;font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-height:92%;overflow:auto;user-select:text}
 .mbox h2{margin:0 0 8px;font-size:20px;font-weight:900}
@@ -150,6 +150,8 @@ input{font-family:inherit}
 .bgc{display:block;width:100%;text-align:left;border:3px solid var(--panel);background:#fff;border-radius:14px;padding:9px 11px;margin-bottom:8px;color:var(--ink)}
 .bgc.on{background:#fff3c4;box-shadow:0 3px 0 #b8860b}
 .bgc b{font-size:15px;font-weight:900}.bgc span{display:block;font-size:12px;font-weight:700;color:var(--soft);margin-top:2px}
+#resumeBox .resume{width:100%;margin-bottom:8px;border:0;border-radius:16px;padding:11px;font-weight:900;font-size:14px;color:#fff;background:linear-gradient(#34c38f,#1f9d6e);box-shadow:0 4px 0 #157553;display:flex;flex-direction:column;gap:2px}
+#resumeBox .resume small{font-weight:700;opacity:.9;font-size:12px}
 #goDaily{width:100%;margin-top:8px;border:0;border-radius:16px;padding:12px;font-weight:900;font-size:15px;color:#fff;background:linear-gradient(#5aa0ff,#3470d6);box-shadow:0 4px 0 #234f9c}
 #go{width:100%;margin-top:10px;border:0;border-radius:16px;padding:14px;font-weight:900;font-size:17px;color:#fff;background:linear-gradient(#58d86e,#2fae48);box-shadow:0 4px 0 #1e7a30}
 @media (min-width:481px){#app{border-left:4px solid #0d1630;border-right:4px solid #0d1630}}
@@ -243,11 +245,12 @@ input{font-family:inherit}
     <div class="chips"><button class="chip on" data-g="m">👦 Cowok</button><button class="chip" data-g="f">👧 Cewek</button></div>
     <label>Latar belakang</label>
     <div id="bgList"></div>
-    <button id="go">Mulai Hidup (Umur 22)</button>
+    <div id="resumeBox"></div>
+    <button id="go">Mulai Hidup Baru (Umur 22)</button>
     <button id="goDaily">📅 Tantangan Harian <span id="dayLbl"></span></button>
     <p class="lead" style="margin:6px 0 0;font-size:12px">Tantangan harian: kejadian acak baru tiap hari (WIB), papan peringkat terpisah, sama untuk semua pemain.</p>
     <p class="lead" style="margin-top:14px;font-size:12px;opacity:.8">Dibuat oleh <b>DroovStudio</b> · <a href="https://www.instagram.com/aristechnoai" target="_blank" rel="noopener" style="color:inherit">IG @aristechnoai</a></p>
-    <p class="lead" style="margin-top:12px;font-size:12px">Musim 2: semua pemain menghadapi kejadian acak yang sama (krisis, PHK, sakit, godaan). Yang beda hanya keputusanmu.</p>
+    <p class="lead" style="margin-top:12px;font-size:12px"><b id="seasonLbl"></b><br>Semua pemain menghadapi kejadian acak yang sama (krisis, PHK, sakit, godaan). Yang beda hanya keputusanmu.</p>
   </div>
 </div>
 
@@ -260,7 +263,14 @@ const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 
 /* ====================== konstanta & RNG musim ====================== */
-const MAIN_SEED = 'MUSIM-3', MAIN_COL = 'season2', VER = 3, SAVE_KEY = 'merdeka_v3';
+const MAIN_SEED = 'MUSIM-5', MAIN_COL = 'season3', VER = 4, SAVE_KEYS = { musim: 'merdeka_v3', harian: 'merdeka_v3_h' };
+/* periode musim (WIB). Ganti saat musim baru: SEED, koleksi, dan tanggal di sini */
+const SEASON = { name: 'Musim 3', start: '2026-11-09', end: '2026-12-08' };
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+const dLbl = d => { const [y, m, dd] = d.split('-'); return +dd + ' ' + MON[+m - 1] + ' ' + y; };
+const seasonLeft = () => Math.ceil((new Date(SEASON.end + 'T23:59:59+07:00') - Date.now()) / 864e5);
+const seasonOpen = () => todayJkt() <= SEASON.end;
+const seasonTxt = () => SEASON.name + ': ' + dLbl(SEASON.start) + ' – ' + dLbl(SEASON.end) + (seasonOpen() ? ' (sisa ' + Math.max(0, seasonLeft()) + ' hari)' : ' (sudah berakhir)');
 let SEED = MAIN_SEED, SEASON_COL = MAIN_COL, MODE = 'musim', DAY = '';
 const todayJkt = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const START_AGE = 22, END_AGE = 60, TOTAL = (END_AGE - START_AGE) * 12, MONTH_MS = 10000;
@@ -370,9 +380,14 @@ function newState(o) {
   b.debts.forEach(d => S.debts.push(mkDebt(d[0], d[1], d[2], d[3], d[4])));
   shownCash = S.cash;
 }
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
-function load() {
-  try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); return d && d.v === VER ? d : null; } catch (e) { return null; }
+function save() { try { const m = (S && S.mode) || MODE; localStorage.setItem(SAVE_KEYS[m] || SAVE_KEYS.musim, JSON.stringify(S)); localStorage.setItem('merdeka_last', m); } catch (e) {} }
+function load(mode) {
+  try {
+    // migrasi: save harian lama yang sempat tersimpan di slot utama dipindah ke slot harian
+    const old = JSON.parse(localStorage.getItem(SAVE_KEYS.musim) || 'null');
+    if (old && old.mode === 'harian') { if (!localStorage.getItem(SAVE_KEYS.harian)) localStorage.setItem(SAVE_KEYS.harian, JSON.stringify(old)); localStorage.removeItem(SAVE_KEYS.musim); }
+    const d = JSON.parse(localStorage.getItem(SAVE_KEYS[mode || 'musim']) || 'null'); return d && d.v === VER ? d : null;
+  } catch (e) { return null; }
 }
 
 /* ====================== ekonomi ====================== */
@@ -451,7 +466,8 @@ function compute() {
   let kidInc = 0; S.kids.forEach(c => kidInc += kidGift(c, p));
   const passive = bizP + passInv + kidInc;
   const net = active + passive - needs0 - bpjs - pph;
-  const needsFF = needs0 + bpjsMandiri;
+  const hunianLayak = S.housing === 'kos' ? (HOUSING.kontrak - HOUSING.kos) * p : 0; // standar hidup layak: hunian minimal setara kontrakan
+  const needsFF = needs0 + bpjsMandiri + hunianLayak;
   return { kidInc, salary, hustle, thr, partnerNet, bizA, bizP, passInv, pph, bpjs, finalTax: bizTax + invTax, lines: L, needs0, needsFF, active, passive, net, ff: needsFF > 0 ? passive / needsFF : 0, ownerRun, pays, p, youngest };
 }
 function networth() {
@@ -841,7 +857,7 @@ function step() {
   const vehFx = { none: -0.15, motor: 0.1, mobil: 0.2 }[S.vehicle] || 0;
   const gengsi = S.life >= 3 && S.cash < 3 * f.needsFF ? -0.4 : 0;
   const judolFx = S.addict >= 20 ? -S.addict / 100 * 0.5 : 0;
-  S.happy = clamp(S.happy - 0.75 + bakti + homeFx + vehFx + gengsi + judolFx + LIFE[S.life].h + 0.35 * kids + (S.married ? 0.25 : 0) + (S.friends - 50) * 0.006 + (S.gym ? 0.05 : 0)
+  S.happy = clamp(S.happy - 0.75 + bakti + homeFx + vehFx + gengsi + judolFx + LIFE[S.life].h + 0.35 * kids + (S.married ? 0.25 : (age() >= 30 && S.friends < 70 ? -0.15 : 0)) + (S.friends - 50) * 0.006 + (S.gym ? 0.05 : 0)
     - (S.side ? 0.4 : 0) - f.ownerRun * 0.25 - (S.jobless > 0 ? 0.6 : 0) - (S.cash < f.needsFF ? 0.3 : 0) - (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active) ? 0.3 : 0));
   const toddlers = Math.min(2, S.kids.filter(c => kidAgeY(c) <= 5).length);
   S.health = clamp(S.health - 0.1 + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 28) * 0.009 + (S.health < 85 ? 0.07 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 : 0) - f.ownerRun * 0.1 - (S.happy < 25 ? 0.5 : 0));
@@ -891,7 +907,7 @@ function step() {
 /* ====================== ending & skor ====================== */
 function calcScore(kind) {
   const f = compute();
-  if (kind === 'ff') return 1000000 + (TOTAL - S.ffAt) * 1000 + Math.round(S.happy) * 50 + Math.round(S.health) * 50 + S.kids.length * 500 + Math.round(S.kids.reduce((s, c) => s + mutu(c), 0) * 10000);
+  if (kind === 'ff') return 1000000 + (TOTAL - S.ffAt) * 1000 + Math.round(S.happy) * 50 + Math.round(S.health) * 50 + S.kids.length * 15000 + (S.married ? 8000 : 0) + Math.round(S.kids.reduce((s, c) => s + mutu(c), 0) * 10000);
   if (kind === 'bankrupt') return 0;
   if (kind === 'retire') return Math.round(Math.min(0.99, f.ff) * 100000);
   return Math.round(Math.min(0.99, f.ff) * 50000);
@@ -1066,7 +1082,7 @@ function dispatch(a) {
 }
 
 /* ====================== tab ====================== */
-const TITLES = { career: 'Karier', money: 'Keuangan', invest: 'Investasi', biz: 'Bisnis', family: 'Keluarga', life: 'Gaya Hidup & Aset', rank: 'Peringkat Musim 2' };
+const TITLES = { career: 'Karier', money: 'Keuangan', invest: 'Investasi', biz: 'Bisnis', family: 'Keluarga', life: 'Gaya Hidup & Aset', rank: 'Peringkat' };
 function btn(act, label, c, cls) { return '<button class="buy ' + (cls || '') + '" data-act="' + act + '" data-cost="' + (c || 0) + '"><span class="bl">' + label + '</span>' + (c ? '<span class="bc">' + fmt(c) + '</span>' : '') + '</button>'; }
 function row(o) {
   return '<div class="row ' + (o.cls || '') + '"><div class="ri">' + o.icon + '</div><div class="rm"><div class="rt">' + o.title + (o.lvl != null ? '<span class="lv">Lv ' + o.lvl + '</span>' : '') + '</div><div class="rs">' + o.sub + '</div>' + (o.extra || '') + '</div>' + (o.btn ? '<div class="rb">' + o.btn + '</div>' : '') + '</div>';
@@ -1082,11 +1098,11 @@ const tog = (act, on, label) => '<button class="buy ' + (on ? 'red' : 'blue') + 
 const TABS = {
   career() {
     const p = PI(S.m), j = JOBS[S.job];
-    let h = '<div class="card"><b>' + j.name + '</b><div class="rs">Gaji bruto ' + fmt(j.sal * p) + '/bln' + (S.jobless > 0 ? ' · <span class="no">Menganggur ' + S.jobless + ' bln lagi</span>' : '') + '</div><div class="rs">Gaji naik mengikuti inflasi, tapi PTKP dan lapisan pajak tidak ikut naik.</div></div>';
+    let h = S.jobless > 0 ? '<div class="card"><b>🔎 Sedang mencari kerja</b><div class="rs"><span class="no">Belum bekerja. Perkiraan masih ' + S.jobless + ' bulan lagi.</span> Jabatan terakhir: ' + j.name + ' (gaji bruto ' + fmt(j.sal * p) + '/bln). Posisi baru belum tentu setara dengan jabatan terakhir.</div><div class="rs">Tidak ada gaji selama masa ini. Pengeluaran tetap berjalan.</div></div>' : '<div class="card"><b>' + j.name + '</b><div class="rs">Gaji bruto ' + fmt(j.sal * p) + '/bln</div><div class="rs">Gaji naik mengikuti inflasi, tapi PTKP dan lapisan pajak tidak ikut naik.</div></div>';
     h += '<div class="sec">Keahlian (kursus berbayar)</div>' + SKILLS.map(k => row({ icon: k.icon, title: k.name, lvl: S.skills[k.id], sub: k.desc, btn: S.skills[k.id] >= 20 ? '<span class="tag on">MAX</span>' : btn('skill:' + k.id, 'Belajar', cost.skill(k)) })).join('');
     h += '<div class="sec">Tangga karier (butuh keahlian + masa kerja)</div>' + JOBS.map((jb, i) => {
       const met = metReq(jb.req), nxt = i === S.job + 1, tn = Math.min(tenure(), jb.minM); let b;
-      if (i === S.job) b = '<span class="tag on">Aktif</span>'; else if (i < S.job) b = '<span class="tag">Lewat</span>';
+      if (i === S.job) b = S.jobless > 0 ? '<span class="tag">Sebelumnya</span>' : '<span class="tag on">Aktif</span>'; else if (i < S.job) b = '<span class="tag">Lewat</span>';
       else b = canPromote(i) ? (S.promoCd > 0 ? '<span class="tag">Tunggu ' + S.promoCd + ' bln</span>' : btn('job:' + i, 'Lamar', 0, 'blue')) : '<span class="tag">🔒</span>';
       const tx = i > S.job ? '<br>' + (nxt ? '<span class="' + (tenure() >= jb.minM ? 'ok' : 'no') + '">Masa kerja ' + tn + '/' + jb.minM + ' bln</span> · peluang lolos ±' + pct(promoChance(i)) : '<span class="no">Naik jabatan sebelumnya dulu</span>') : '';
       return row({ icon: '💼', title: jb.name, sub: 'Gaji ' + fmt(jb.sal * p) + '/bln<br>' + reqText(jb.req) + tx, cls: (i > S.job && !canPromote(i)) ? 'locked' : '', btn: b });
@@ -1111,7 +1127,7 @@ const TABS = {
     const runway = f.needsFF > 0 ? S.cash / f.needsFF : 0;
     { const nb = netBonus(), cr = f.lines['Tuntutan kelas menengah'] || 0; h += '<div class="card"><b>Jaringan & koneksi: bonus +' + Math.round(nb * 100) + '%</b><div class="rs">Teman ' + Math.round(S.friends) + '/100. Teman banyak (di atas 40) dan gaya hidup Sosialita ke atas menambah penghasilan sampingan & bisnis, membantu kenaikan jabatan, dan membuka peluang usaha.' + (cr > 0 ? '<br><b>Jebakan kelas menengah:</b> gajimu tinggi, tapi tuntutan gaya hidup menambah ' + fmt(cr) + '/bln. Semakin tinggi gaya hidup, semakin besar.' : '') + '</div></div>'; }
     h += '<div class="card"><b>Dana darurat: ' + num(runway) + ' bulan</b><div class="rs">Target sehat: 6 bulan kebutuhan (' + fmt(6 * f.needsFF) + '). Dana darurat menyelamatkanmu dari PHK, sakit, dan pinjol.</div></div>';
-    h += '<div class="card"><b>Merdeka Finansial: ' + pct(f.ff) + '</b><div class="rs">Pasif ' + fmt(f.passive) + ' dari kebutuhan ' + fmt(f.needsFF) + ' (termasuk BPJS mandiri). Harus ≥100% selama 6 bulan berturut-turut.</div></div>';
+    h += '<div class="card"><b>Merdeka Finansial: ' + pct(f.ff) + '</b><div class="rs">Pasif ' + fmt(f.passive) + ' dari kebutuhan ' + fmt(f.needsFF) + ' (termasuk BPJS mandiri dan standar hunian layak setara kontrakan). Harus ≥100% selama 6 bulan berturut-turut.</div></div>';
     h += '<div class="sec">Utang</div>';
     if (!S.debts.length) h += '<div class="card">Tidak ada utang. 👍</div>';
     S.debts.forEach(d => {
@@ -1904,6 +1920,7 @@ function loadBoard() {
 }
 async function submitScore() {
   if (!S.ended || boardState !== 'ready') return;
+  if (MODE === 'musim' && !seasonOpen()) { S.flags.submitted = 'musim sudah berakhir, skor tidak masuk papan'; return; }
   const payload = { nick: S.name, g: S.gender, bg: S.bg, ending: S.ended.kind, m: S.ended.m, age: age(), score: S.ended.score, nw: Math.round(networth()), kids: S.kids.length, ver: VER, at: Date.now(), log: JSON.stringify(S.log).slice(0, 20000) };
   try {
     const ref = db.collection(SEASON_COL).doc(uid);
@@ -1915,7 +1932,7 @@ async function submitScore() {
 }
 const END_ICON = { ff: '🏁', retire: '🧓', dead: '🕊️', bankrupt: '📉' };
 function rankHTML() {
-  let h = '<div class="card"><b>' + (MODE === 'harian' ? '📅 Tantangan Harian ' + DAY : 'Musim 2') + '</b><div class="rs">Semua pemain' + (MODE === 'harian' ? ' hari ini' : '') + ' menghadapi kejadian acak yang sama. Peringkat: yang <b>paling cepat merdeka finansial</b> menang; yang belum merdeka diurutkan dari persentase pasif tertinggi.</div></div>';
+  let h = '<div class="card"><b>' + (MODE === 'harian' ? '📅 Tantangan Harian ' + DAY : '🏁 ' + seasonTxt()) + '</b><div class="rs">Semua pemain' + (MODE === 'harian' ? ' hari ini' : '') + ' menghadapi kejadian acak yang sama. Peringkat: yang <b>paling cepat merdeka finansial</b> menang; yang belum merdeka diurutkan dari persentase pasif tertinggi.</div></div>';
   if (S.ended) h += '<div class="card"><b>Hasilmu: ' + S.ended.score.toLocaleString('id-ID') + '</b> ' + END_ICON[S.ended.kind] + '<div class="rs">Pengiriman skor: ' + (S.flags.submitted || (boardState === 'ready' ? 'sedang dikirim…' : 'tidak tersedia di tampilan ini')) + '</div></div>';
   if (boardState !== 'ready') return h + '<div class="card">' + (inArtifact() ? 'Peringkat bersama belum aktif di tampilan ini (butuh login & akses dari pemilik game).' : 'Peringkat bersama belum tersambung. Cek koneksi internetmu lalu buka ulang game.') + ' Skor tetap tersimpan lokal.</div>';
   if (board === null) return h + '<div class="card">Memuat peringkat…</div>';
@@ -1929,8 +1946,22 @@ let pick = { gender: 'm', bg: 'fresh' };
 function showStart() {
   $('#bgList').innerHTML = Object.keys(BGS).map(k => '<button class="bgc ' + (pick.bg === k ? 'on' : '') + '" data-bg="' + k + '"><b>' + BGS[k].icon + ' ' + BGS[k].name + '</b><span>' + BGS[k].desc + '</span></button>').join('');
   $$('#start .chip').forEach(c => c.classList.toggle('on', c.dataset.g === pick.gender));
-  $('#dayLbl').textContent = '(' + todayJkt() + ')';
+  $('#dayLbl').textContent = '(' + todayJkt() + ')'; $('#seasonLbl').textContent = '🏁 ' + seasonTxt();
+  const rs = ['musim', 'harian'].map(m => { const d = load(m); return d && !d.ended ? '<button class="resume" data-resume="' + m + '">▶ Lanjutkan ' + (m === 'harian' ? 'Tantangan Harian ' + (d.day || '') : 'Game Utama') + ' <small>' + d.name + ' · umur ' + (START_AGE + Math.floor(d.m / 12)) + '</small></button>' : ''; }).join('');
+  $('#resumeBox').innerHTML = rs;
   $('#start').classList.add('on'); started = false; closeSheet();
+}
+function resumeGame(mode) {
+  const d = load(mode); if (!d || d.ended) return;
+  S = d; setMode(S.mode, S.day); started = true; shownCash = S.cash; sceneSig = ''; MQ.length = 0;
+  $('#start').classList.remove('on'); S.flow = compute(); updateScene(); updateHUD(true);
+}
+function tryStart(mode) {
+  const d = load(mode);
+  if (d && !d.ended) {
+    modal('<h2>Mulai baru?</h2><p>' + (mode === 'harian' ? 'Tantangan harian' : 'Game utama') + ' milikmu masih berjalan (<b>' + d.name + '</b>, umur ' + (START_AGE + Math.floor(d.m / 12)) + '). Memulai yang baru akan <b>menimpa</b> game tersebut.</p>',
+      [{ t: 'Lanjutkan yang lama', cls: 'pri', fn: () => resumeGame(mode) }, { t: 'Mulai baru (timpa)', cls: 'dng', fn: () => startGame(mode) }, { t: 'Batal', fn: () => { } }]);
+  } else startGame(mode);
 }
 function startGame(mode) {
   setMode(mode === 'harian' ? 'harian' : 'musim'); track(mode === 'harian' ? 'mulaiHarian' : 'mulai');
@@ -1942,7 +1973,7 @@ function startGame(mode) {
 }
 function settings() {
   modal('<h2>⚙️ Pengaturan</h2><div class="stat"><span>Karakter</span><b>' + S.name + '</b></div><div class="stat"><span>Peliharaan</span><b>' + petOf().name + ' (' + petOf().kind.toLowerCase() + ')</b></div><div class="stat"><span>Percobaan ke-</span><b>' + S.lives + '</b></div><div class="stat"><span>Kekayaan bersih</span><b>' + fmt(networth()) + '</b></div><p style="font-size:12px;color:#5a6a92">Pajak & aturan disederhanakan untuk game. Ini bukan nasihat keuangan.</p>',
-    [{ t: 'Gaya musik: ' + (Music.style === 'ceria' ? 'Ceria (adaptif)' : 'Santai (lo-fi)'), cls: 'pri', fn: () => { Music.setStyle(Music.style === 'ceria' ? 'santai' : 'ceria'); setTimeout(settings, 0); } }, { t: 'Musik: ' + (Music.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { $('#music').textContent = Music.toggle() ? '🎵' : '🔇'; setTimeout(settings, 0); } }, { t: 'Efek suara: ' + (SFX.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { SFX.on = !SFX.on; try { localStorage.setItem('merdeka_sfx', SFX.on ? '1' : '0'); } catch (e) { } if (SFX.on) SFX.play('good'); setTimeout(settings, 0); } }, { t: 'Jeda otomatis saat panel terbuka: ' + (autoPause ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { autoPause = !autoPause; try { localStorage.setItem('merdeka_ap', autoPause ? '1' : '0'); } catch (e) {} setTimeout(settings, 0); } }, { t: 'Tutup' }, { t: 'Mulai ulang', cls: 'dng', fn: () => modal('<h2>Mulai ulang?</h2><p>Progres hidup ini akan dihapus. Musim dan kejadian acak tetap sama.</p>', [{ t: 'Batal' }, { t: 'Ya, ulang', cls: 'dng', fn: showStart }]) }]);
+    [{ t: 'Gaya musik: ' + (Music.style === 'ceria' ? 'Ceria (adaptif)' : 'Santai (lo-fi)'), cls: 'pri', fn: () => { Music.setStyle(Music.style === 'ceria' ? 'santai' : 'ceria'); setTimeout(settings, 0); } }, { t: 'Musik: ' + (Music.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { $('#music').textContent = Music.toggle() ? '🎵' : '🔇'; setTimeout(settings, 0); } }, { t: 'Efek suara: ' + (SFX.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { SFX.on = !SFX.on; try { localStorage.setItem('merdeka_sfx', SFX.on ? '1' : '0'); } catch (e) { } if (SFX.on) SFX.play('good'); setTimeout(settings, 0); } }, { t: 'Jeda otomatis saat panel terbuka: ' + (autoPause ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { autoPause = !autoPause; try { localStorage.setItem('merdeka_ap', autoPause ? '1' : '0'); } catch (e) {} setTimeout(settings, 0); } }, { t: '🏠 Menu utama (game tersimpan)', fn: () => { save(); showStart(); } }, { t: 'Tutup' }, { t: 'Mulai ulang', cls: 'dng', fn: () => modal('<h2>Mulai ulang?</h2><p>Progres hidup ini akan dihapus. Musim dan kejadian acak tetap sama.</p>', [{ t: 'Batal' }, { t: 'Ya, ulang', cls: 'dng', fn: showStart }]) }]);
 }
 function bind() {
   $('#tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) openTab(b.dataset.tab); });
@@ -1960,7 +1991,8 @@ function bind() {
     const c = e.target.closest('.chip'); if (c) { pick.gender = c.dataset.g; $$('#start .chip').forEach(x => x.classList.toggle('on', x === c)); }
     const b = e.target.closest('.bgc'); if (b) { pick.bg = b.dataset.bg; $$('#start .bgc').forEach(x => x.classList.toggle('on', x === b)); }
   });
-  $('#go').addEventListener('click', () => startGame('musim')); $('#goDaily').addEventListener('click', () => startGame('harian'));
+  $('#go').addEventListener('click', () => tryStart('musim')); $('#goDaily').addEventListener('click', () => tryStart('harian'));
+  $('#resumeBox').addEventListener('click', e => { const b = e.target.closest('button[data-resume]'); if (b) resumeGame(b.dataset.resume); });
 }
 let last = performance.now(), saveT = 0, uiT = 0;
 function loop() {
@@ -2234,7 +2266,7 @@ const FX = {
   confetti(n) {
     const box = $('#floats'); if (!box) return; const cols = ['#ffd23f', '#ff6f91', '#58b8ff', '#6bd66b', '#c7a4ff', '#ff9f43'];
     for (let i = 0; i < n; i++) {
-      const d = document.createElement('div'); d.className = 'cf'; const x = Math.random() * 100;
+      const d = document.createElement('div'); d.className = 'cfx'; const x = Math.random() * 100;
       d.style.left = x + '%'; d.style.background = cols[i % cols.length]; d.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
       d.style.animationDuration = (1.3 + Math.random() * 1.1) + 's'; d.style.animationDelay = (Math.random() * .25) + 's';
       box.appendChild(d); d.addEventListener('animationend', () => d.remove());
@@ -2282,7 +2314,7 @@ const Walk = {
 try { if ('serviceWorker' in navigator && !(window.claude && window.claude.use)) navigator.serviceWorker.register('/sw.js'); } catch (e) {}
 function start() {
   bind(); track('sesi');
-  const d = load();
+  const last = localStorage.getItem('merdeka_last') || 'musim', d = load(last) || load(last === 'harian' ? 'musim' : 'harian');
   if (d && !d.ended) { S = d; setMode(S.mode, S.day); started = true; shownCash = S.cash; S.flow = compute(); updateScene(); updateHUD(true); }
   else showStart();
   initDB();

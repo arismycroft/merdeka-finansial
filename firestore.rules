@@ -4,15 +4,15 @@ service cloud.firestore {
 
     // Papan peringkat: satu dokumen per pemain, nama dokumen = uid login anonim. Musim 1 (arsip) dan Musim 2 (aktif).
     match /{season}/{uid} {
-      allow read: if season in ['season1','season2'] || isDaily(season);
+      allow read: if season == 'season1' || isSeason(season) || isDaily(season);
 
-      allow create: if (season == 'season2' || isDaily(season))
+      allow create: if (isSeason(season) || isDaily(season))
                     && request.auth != null
                     && request.auth.uid == uid
                     && skorValid(request.resource.data);
 
       // Boleh memperbarui hanya milik sendiri, dan skor tidak boleh turun.
-      allow update: if (season == 'season2' || isDaily(season))
+      allow update: if (isSeason(season) || isDaily(season))
                     && request.auth != null
                     && request.auth.uid == uid
                     && skorValid(request.resource.data)
@@ -27,6 +27,11 @@ service cloud.firestore {
       allow create, update: if request.auth != null
         && day.matches('^20[0-9][0-9]-[01][0-9]-[0-3][0-9]$')
         && request.resource.data.keys().hasOnly(['sesi','baru','aktif','mulai','mulaiHarian','tamat_ff','tamat_retire','tamat_dead','tamat_bankrupt','kartu','bagikan','simpan']);
+    }
+
+    // Musim: season2, season3, ... (season1 hanya arsip, tidak bisa ditulis lagi)
+    function isSeason(c) {
+      return c.matches('^season[2-9]$');
     }
 
     // Tantangan harian: koleksi per hari, misal harian-2026-11-09
