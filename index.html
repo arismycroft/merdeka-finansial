@@ -316,11 +316,12 @@ const JOBS = [
   { name: 'Senior Manajer',  sal: 55e6,  minM: 48, req: { work: 14, comm: 12, fin: 2 }, color: '#1b2233' },
   { name: 'Direktur',        sal: 90e6,  minM: 60, req: { work: 18, comm: 15, fin: 3 }, color: '#b8860b' },
 ];
+const MKT_BETA = { stock: 1, crypto: 2, reit: 0.3, gold: -0.15, bond: 0.05 };
 const INVS = [
   { id: 'save',   name: 'Tabungan / Deposito', icon: '🏦', y: 0.0032, mu: 0,      sd: 0,     tax: 0.20, cr: 0,      fin: 0, desc: 'Aman, bunga kecil (pajak final 20%). Sering kalah dari inflasi.' },
   { id: 'bond',   name: 'Obligasi / Reksa Dana Pendapatan Tetap', icon: '📜', y: 0.0040, mu: 0.0005, sd: 0.004, tax: 0.10, cr: 0, fin: 1, desc: 'Kupon rutin, naik-turun kecil.' },
   { id: 'gold',   name: 'Emas',                icon: '🪙', y: 0,      mu: 0.0040, sd: 0.028, tax: 0,    cr: 0.010,  fin: 1, desc: 'Tidak ada hasil rutin. Naik pelan, cenderung aman saat krisis.' },
-  { id: 'stock',  name: 'Saham & Reksa Dana Saham', icon: '📈', y: 0.0027, mu: 0.0052, sd: 0.055, tax: 0.10, cr: -0.045, fin: 2, desc: 'Dividen kecil + potensi naik. Bisa anjlok saat krisis.' },
+  { id: 'stock',  name: 'Saham & Reksa Dana Saham', icon: '📈', y: 0.0027, mu: 0.0090, sd: 0.055, tax: 0.10, cr: -0.045, fin: 2, desc: 'Dividen kecil + potensi naik. Bisa anjlok mendadak dan sulit ditebak; kadang bertahun-tahun lesu.' },
   { id: 'reit',   name: 'Properti Sewa',       icon: '🏘️', y: 0.0042, mu: 0.0032, sd: 0.008, tax: 0.10, cr: -0.012, fin: 3, desc: 'Sewa rutin (pajak final 10%) + kenaikan nilai.' },
   { id: 'crypto', name: 'Kripto',              icon: '🎲', y: 0,      mu: 0.018,  sd: 0.16,  tax: 0,    cr: -0.06,  fin: 2, desc: 'Sangat liar: bisa melonjak, bisa lenyap. Tidak ada hasil rutin.' },
 ];
@@ -804,7 +805,17 @@ function step() {
   if (m === shk1 || m === shk2) toast('⛽ Harga BBM naik! Semua harga naik permanen.', 'bad');
   INVS.forEach(i => {
     let mu = i.mu; if (inCrisis(m)) mu += i.cr;
-    const g = i.sd ? Math.max(-0.6, mu + i.sd * Z('mkt', i.id, m)) : mu;
+    // rezim pasar tiap ±18 bulan (bull/netral/bear) sama untuk semua pemain; beta tiap aset berbeda
+    const bt = MKT_BETA[i.id] || 0, rg = R('reg', Math.floor(m / 18));
+    mu += (rg < 0.3 ? 0.004 : rg < 0.68 ? 0 : -0.004) * bt;
+    let g = mu;
+    if (i.sd) {
+      // 70% guncangan pasar bersama + 30% acak khusus percobaan ini, supaya jalur harga tidak bisa dihafal
+      const z = 0.7 * Z('mkt', i.id, m) + 0.714 * Z('mkt', i.id, m, 'p', S.lives, S.name);
+      g = mu + i.sd * z;
+      if (bt >= 1 && R('crash', m) < 0.005) { g -= 0.09 * bt; if (i.id === 'stock') toast('📉 Pasar saham anjlok mendadak!', 'bad'); }
+      g = Math.max(-0.6, g);
+    }
     S.last[i.id] = g; const v = S.inv[i.id] || 0; if (v > 0) S.inv[i.id] = v * (1 + g);
   });
   if (S.houseVal) S.houseVal *= 1.0045;
@@ -1058,7 +1069,7 @@ const A = {
     const v = VEH[kind]; if (!v || S.vehicle === kind || S.vehicle === 'mobil') return;
     const price = v.price * PI(S.m);
     if (how === 'cash') { if (!pay(price)) return; } else { if (!pay(price * 0.2)) return; S.debts.push(mkDebt('kredit', 'Cicilan ' + (kind === 'motor' ? 'Motor' : 'Mobil'), price * 0.8, kind === 'motor' ? 0.012 : 0.01, kind === 'motor' ? 36 : 48)); }
-    S.vehicle = kind; toast('🚘 ' + (kind === 'motor' ? 'Motor' : 'Mobil') + ' dibeli' + (how === 'cash' ? ' tunai.' : ' dengan cicilan.'), 'gold');
+    S.vehicle = kind; toast((kind === 'motor' ? '🛵 ' : '🚗 ') + (kind === 'motor' ? 'Motor' : 'Mobil') + ' dibeli' + (how === 'cash' ? ' tunai.' : ' dengan cicilan.'), 'gold');
   },
   gym() { S.gym = !S.gym; },
   ins() { S.ins = !S.ins; },
@@ -1131,7 +1142,7 @@ const TABS = {
     h += '<div class="sec">Utang</div>';
     if (!S.debts.length) h += '<div class="card">Tidak ada utang. 👍</div>';
     S.debts.forEach(d => {
-      h += row({ icon: d.k === 'pinjol' ? '🦈' : d.k === 'kpr' ? '🏡' : d.k === 'kredit' ? '🚘' : '💳', title: d.name,
+      h += row({ icon: d.k === 'pinjol' ? '🦈' : d.k === 'kpr' ? '🏡' : d.k === 'kredit' ? (/motor/i.test(d.name) ? '🛵' : '🚗') : '💳', title: d.name,
         sub: 'Sisa ' + fmt(d.bal) + ' · bunga ' + pct(d.rate, 1) + '/bln (' + pct(Math.pow(1 + d.rate, 12) - 1) + '/thn)<br>Cicilan bulan ini ' + fmt(f.pays[d.id] || 0),
         extra: '<div class="ibtns"><button class="buy blue" data-act="debt:' + d.id + ':p25" data-cost="100000"><span class="bl">Bayar 25% kas</span></button><button class="buy" data-act="debt:' + d.id + ':max" data-cost="100000"><span class="bl">Bayar maks</span></button></div>' });
     });
@@ -1696,21 +1707,28 @@ function bikeSVG(kind) {
     s += '<path d="M24 -8 L28 -34" stroke="#c9ced6" stroke-width="2.6"/>';
     s += wheel2(-26, -9, 9, '#9aa1ad') + wheel2(26, -9, 9, '#9aa1ad');
   } else if (kind === 'vespa') {
-    s += '<path d="M-29 -10 Q-32 -32 -14 -32 L8 -32 Q16 -30 18 -10 Z" fill="' + B + '"/><path d="M-26 -24 Q-8 -30 12 -24" stroke="#fff" stroke-width="1.4" fill="none" opacity=".5"/>';
-    s += '<path d="M12 -34 Q24 -38 30 -12 L18 -9Z" fill="' + B + '"/><path d="M16 -30 Q24 -32 27 -16" stroke="#fff" stroke-width="1.2" fill="none" opacity=".4"/>';
-    s += '<path d="M18 -36 Q26 -54 34 -52" stroke="#d6dae2" stroke-width="3.4" fill="none" stroke-linecap="round"/><circle cx="32" cy="-40" r="4.4" fill="#fff9d8" stroke="#b8b8b8" stroke-width="1"/><circle cx="36" cy="-40" r="8" fill="url(#glowG)" opacity=".5"/>';
-    s += '<path d="M-20 -40 Q-20 -45 -12 -45 L8 -45 Q14 -45 14 -40 L12 -33 L-18 -33Z" fill="#7a4b2b"/><path d="M-18 -42 H10" stroke="#a4703f" stroke-width="1" opacity=".7"/>';
-    s += '<path d="M-6 -24 H12" stroke="#d6dae2" stroke-width="2"/><rect x="-32" y="-22" width="4" height="3.6" rx="1" fill="#e5252a"/>';
+    // skuter retro: bodi bulat ramping, setang dan lampu bulat jelas
+    s += '<path d="M24 -8 L16 -24 L10 -26 L10 -9Z" fill="#2b2f38"/>';
+    s += '<path d="M-29 -9 Q-32 -24 -20 -27 L6 -27 Q14 -26 16 -9 Z" fill="' + B + '"/><path d="M-26 -17 Q-10 -22 12 -17" stroke="#fff" stroke-width="1.4" fill="none" opacity=".5"/>';
+    s += '<path d="M10 -26 Q14 -38 20 -46 L28 -46 Q25 -28 17 -9 L12 -9Z" fill="' + B + '"/><path d="M15 -34 Q19 -38 22 -34" stroke="#fff" stroke-width="1.2" fill="none" opacity=".5"/>';
+    s += '<path d="M-24 -28 Q-24 -34 -14 -34 L4 -34 Q10 -34 10 -28Z" fill="#7a4b2b"/><path d="M-20 -32 H6" stroke="#a4703f" stroke-width="1" opacity=".7"/>';
+    s += '<path d="M22 -44 L20 -58" stroke="#d6dae2" stroke-width="3.2" stroke-linecap="round"/><path d="M12 -58 H30" stroke="#222" stroke-width="3.2" stroke-linecap="round"/><path d="M13 -59 L9 -66" stroke="#c9ced6" stroke-width="1.6"/><ellipse cx="8" cy="-67" rx="3.4" ry="2" fill="#9fd1ee" stroke="#666" stroke-width=".6"/>';
+    s += '<circle cx="30" cy="-46" r="5.4" fill="#fff9d8" stroke="#d6dae2" stroke-width="1.6"/><circle cx="34" cy="-46" r="9" fill="url(#glowG)" opacity=".5"/>';
+    s += '<path d="M24 -8 L27 -40" stroke="#c9ced6" stroke-width="2.6"/><path d="M16 -20 Q28 -26 36 -12" stroke="' + shadeC(col, -.3) + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M-34 -33 H-24 L-26 -27 H-36Z" fill="#d6dae2"/><rect x="-31" y="-22" width="4" height="3.4" rx="1" fill="#e5252a"/><path d="M-12 -9 H-30 L-34 -6 H-14Z" fill="#9aa1ad"/>';
     s += wheel2(-26, -9, 8.5, '#d6dae2') + wheel2(26, -9, 8.5, '#d6dae2');
   } else {
-    s += '<path d="M-34 -14 L-20 -34 L6 -34 L22 -20 L26 -9 L-8 -9Z" fill="' + B + '"/><path d="M-30 -18 L-18 -32 H0" stroke="#fff" stroke-width="1.4" fill="none" opacity=".4"/>';
-    s += '<path d="M-6 -17 H14 L18 -9 H-10Z" fill="#9aa1ad" stroke="#555" stroke-width=".6"/><path d="M-2 -13 H12" stroke="#fff" stroke-width="1.2" opacity=".6"/>';
-    s += '<path d="M-20 -41 Q-20 -45 -12 -45 L8 -45 Q12 -45 12 -40 L10 -34 L-18 -34Z" fill="#3a2a22"/><path d="M-16 -42 H8" stroke="#6a5040" stroke-width="1" opacity=".7"/>';
-    s += '<path d="M22 -20 L34 -42 L42 -43" stroke="#d6dae2" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M28 -34 L36 -40" stroke="#aeb4bf" stroke-width="2.4"/>';
-    s += '<circle cx="38" cy="-35" r="4.6" fill="#fff9d8" stroke="#b8b8b8" stroke-width="1"/><circle cx="43" cy="-35" r="9" fill="url(#glowG)" opacity=".55"/>';
-    s += '<path d="M-34 -14 L-46 -12 L-46 -8 L-30 -9" fill="#9aa1ad"/><path d="M-30 -12 L-48 -10" stroke="#e8e8e8" stroke-width="2"/>';
-    s += '<rect x="-38" y="-24" width="5" height="3.6" rx="1" fill="#e5252a"/>';
-    s += wheel2(-32, -10, 10.5, '#d4af37', true) + wheel2(32, -10, 10.5, '#d4af37', true);
+    // motor besar (naked): tangki, mesin terlihat, garpu depan dan setang jelas
+    s += '<path d="M-8 -12 H-36 L-40 -8 H-10Z" fill="#8f96a3"/><path d="M-12 -11 H-38" stroke="#d9dde6" stroke-width="1.6"/>';
+    s += '<rect x="-12" y="-26" width="24" height="16" rx="3" fill="#2a2d35"/><g stroke="#555b66" stroke-width="1.4"><path d="M-9 -23 H9"/><path d="M-9 -19 H9"/><path d="M-9 -15 H9"/></g><circle cx="0" cy="-12" r="3.2" fill="#9aa1ad"/>';
+    s += '<path d="M-32 -30 L-14 -36 L-12 -28 L-30 -24Z" fill="' + B + '"/><path d="M-12 -28 L-14 -36 L-6 -38 Q6 -44 16 -36 L18 -30 L4 -26Z" fill="' + B + '"/><path d="M-6 -36 Q4 -40 12 -35" stroke="#fff" stroke-width="1.3" fill="none" opacity=".5"/>';
+    s += '<path d="M-24 -34 Q-12 -38 -8 -34 L-8 -29 L-24 -27Z" fill="#1b1c20"/>';
+    s += '<path d="M-30 -24 L-26 -12" stroke="#c9ced6" stroke-width="2.4"/>';
+    s += '<path d="M18 -36 L31 -10" stroke="#e1e4ea" stroke-width="3"/><path d="M15 -34 L28 -10" stroke="#9aa1ad" stroke-width="1.6"/>';
+    s += '<path d="M14 -37 L10 -46 H20" stroke="#222" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M12 -45 L8 -52" stroke="#c9ced6" stroke-width="1.6"/><ellipse cx="7" cy="-53" rx="3.6" ry="2.2" fill="#9fd1ee" stroke="#666" stroke-width=".6"/>';
+    s += '<circle cx="26" cy="-33" r="5.2" fill="#fff9d8" stroke="#b8b8b8" stroke-width="1"/><circle cx="30" cy="-33" r="9" fill="url(#glowG)" opacity=".55"/>';
+    s += '<path d="M20 -24 Q32 -30 40 -14" stroke="' + shadeC(col, -.3) + '" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="-36" y="-28" width="5" height="3.4" rx="1" fill="#e5252a"/>';
+    s += wheel2(-30, -10, 10.5, '#d4af37', true) + wheel2(30, -10, 10.5, '#d4af37', true);
   }
   return s;
 }
@@ -1784,7 +1802,7 @@ function garageSVG(veh, V, W) {
   s += '<rect x="214" y="352" width="132" height="10" fill="#c9cfd9"/>';
   if (veh === 'motor') {
     const k = V >= 4 ? 'big' : V >= 2 ? 'vespa' : 'matic';
-    s += '<g transform="translate(280,354) scale(1.15)">' + bikeSVG(k) + '</g>';
+    s += '<g transform="translate(280,354) scale(1.0)">' + bikeSVG(k) + '</g>';
   } else {
     const spec = V >= 4 ? [['suv', '#16181d', 0.7, 246], ['sport', '#c8102e', 0.72, 314]] : [[['hatch', '#f4f4f1'], ['hatch', '#d9dde6'], ['sedan', '#9aa4b5'], ['suv', '#20242c']][Math.min(V, 3)]];
     if (V >= 4) spec.forEach(a => { s += '<g transform="translate(' + a[3] + ',354) scale(' + a[2] + ')">' + carSVG(a[0], a[1]) + '</g>'; });
@@ -2323,7 +2341,7 @@ function start() {
   document.addEventListener('pointerdown', e => { try { if (e.target.closest && e.target.closest('button')) SFX.play('tap'); } catch (er) { } }, true);
   document.addEventListener('visibilitychange', () => { if (document.hidden && S && started) save(); });
 }
-try { globalThis.__game = { setMode, getMode: () => [MODE, DAY, SEED, SEASON_COL], Music, SFX, FX, Walk, step, compute, dispatch, endGame, newState, networth, annualTax, R, Z, fmt, calcScore, openTab, renderSheet, updateHUD, updateScene, refresh, tabDots, rankHTML, A, JOBS, INVS, BIZS, STAGES, TABS, get S() { return S; }, get MQ() { return MQ; }, drain, resolveModal(i) { const m = $('#modal'); return m && m.onclick ? m.onclick({ target: { closest: () => ({ dataset: { i: String(i) } }) } }) : null; }, get modalOn() { return modalOn; }, TOTAL, crisisStart, startGame, pick }; } catch (e) {}
+try { globalThis.__game = { bikeSVG, carSVG, setMode, getMode: () => [MODE, DAY, SEED, SEASON_COL], Music, SFX, FX, Walk, step, compute, dispatch, endGame, newState, networth, annualTax, R, Z, fmt, calcScore, openTab, renderSheet, updateHUD, updateScene, refresh, tabDots, rankHTML, A, JOBS, INVS, BIZS, STAGES, TABS, get S() { return S; }, get MQ() { return MQ; }, drain, resolveModal(i) { const m = $('#modal'); return m && m.onclick ? m.onclick({ target: { closest: () => ({ dataset: { i: String(i) } }) } }) : null; }, get modalOn() { return modalOn; }, TOTAL, crisisStart, startGame, pick }; } catch (e) {}
 start();
 })();
 </script>
