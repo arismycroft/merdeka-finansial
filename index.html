@@ -600,7 +600,7 @@ function evMudik(m, p) {
   pen = Math.max(0, pen - ease);
   const body = 'Kampung halaman memanggil. Ongkos mudik dan oleh-oleh sekitar ' + fmt(c) + '. Orang tua pasti senang.' + (lines.length ? '<br><br>' + lines.join('<br>') : '');
   ask('🕌 Libur Lebaran: Mudik?', body, [
-    { t: 'Mudik (' + fmt(c) + ')', ev: 'mudik:yes', fn: () => { S.cash -= c; S.happy = clamp(S.happy + 8 - pen); S.friends = clamp(S.friends + 2); floatText(pen ? '+' + (8 - pen) + ' 😊' : '+8 😊'); if (pen) toast('😅 Pulang kampung menyenangkan, tapi pertanyaan "kapan..." menguras mental.', ''); } },
+    { t: 'Mudik (' + fmt(c) + ')', ev: 'mudik:yes', fn: () => { S.cash -= c; S.happy = clamp(S.happy + 8 - pen + (S.vehicle === 'mobil' && (S.married || S.kids.length) ? 2 : 0)); S.friends = clamp(S.friends + 2); floatText(pen ? '+' + (8 - pen) + ' 😊' : '+8 😊'); if (pen) toast('😅 Pulang kampung menyenangkan, tapi pertanyaan "kapan..." menguras mental.', ''); } },
     { t: 'Video call saja', ev: 'mudik:no', fn: () => { S.happy = clamp(S.happy - (S.support > 0 ? 2 : 4)); toast('Rindu kampung, tapi dompet aman' + (pen ? ' (dan terhindar dari pertanyaan "kapan...").' : '.'), ''); } },
   ]);
   if (says.length) { Voice.stop(); says.forEach(x => Voice.say(x[0], x[1])); }
@@ -776,6 +776,29 @@ function evMaag(m, p) {
     { t: 'Abaikan, kejar target dulu', ev: 'maag:abai', fn: () => { S.gerd = 9; S.health = clamp(S.health - 3); S.happy = clamp(S.happy - 2); if (S.flags.gerdN >= 3) { const x = rr(3e6 * p * (S.ins ? 0.4 : 1)); S.cash -= x; S.health = clamp(S.health - 8); toast('🩺 Maag yang dibiarkan berulang menjadi luka lambung. Biaya perawatan ' + fmt(x) + '.', 'bad'); } else toast('Perutmu makin sering melilit.', 'bad'); } },
   ]);
 }
+function evCrash(m, p) {
+  const f = S.ins ? 0.4 : 1, sv = R('motos', m);
+  if (S.vehicle === 'none') { const c = 0.4e6 * p; S.cash -= c; S.happy = clamp(S.happy - 2); toast('🚆 Dompetmu dicopet di KRL yang penuh sesak. Kerugian ' + fmt(c) + '.', 'bad'); return; }
+  if (S.vehicle === 'motor') {
+    if (sv < 0.65) { const c = 1.5e6 * p * f; S.cash -= c; S.health = clamp(S.health - 5); S.happy = clamp(S.happy - 3); S.flags.crashAt = m; toast('🛵 Motormu terserempet dan kamu jatuh. Luka lecet dan bengkel ' + fmt(c) + '.', 'bad'); return; }
+    const sev = sv >= 0.95, c = (sev ? 30e6 : 8e6) * p * f; S.cash -= c; S.health = clamp(S.health - (sev ? 20 : 12)); S.happy = clamp(S.happy - (sev ? 10 : 6)); S.flags.crashAt = m; S.flags.crashMajor = m;
+    ask(sev ? '🚑 Kecelakaan Motor Parah' : '🩹 Kecelakaan Motor', sev ? 'Kamu tertabrak saat melaju dan dirawat berminggu-minggu. Biaya ' + fmt(c) + ', kesehatan turun jauh. Pemulihannya lama.' : 'Kamu terjatuh cukup parah dan patah tulang ringan. Biaya berobat dan bengkel ' + fmt(c) + '.', [{ t: 'Semoga lekas pulih', cls: 'pri' }]);
+    return;
+  }
+  if (sv < 0.85) { const c = 3e6 * p; S.cash -= c; S.happy = clamp(S.happy - 1); toast('🚗 Mobilmu lecet kena serempet. Biaya bengkel ' + fmt(c) + '.', 'bad'); return; }
+  const c = 12e6 * p * f; S.cash -= c; S.health = clamp(S.health - 10); S.happy = clamp(S.happy - 5); S.flags.crashAt = m;
+  ask('🚗 Tabrakan Beruntun', 'Mobilmu terlibat tabrakan. Bodi mobil melindungimu dari cedera berat, tapi biaya bengkel dan berobat ' + fmt(c) + '.', [{ t: 'Syukurlah selamat', cls: 'pri' }]);
+}
+function evButuhMobil(m, p) {
+  S.flags.carAskAt = m;
+  const bay = S.kids.some(c => kidAgeY(c) <= 5), why = bay ? 'Si kecil sering sakit dan kehujanan. Membawa balita naik motor atau berdesakan di transportasi umum terasa tidak aman dan merepotkan.' : S.kids.length >= 2 ? 'Keluargamu sudah ramai. Bepergian bersama naik motor tidak lagi muat dan tidak nyaman.' : S.flags.crashMajor && m - S.flags.crashMajor <= 8 ? 'Setelah kecelakaan itu kamu trauma melaju di jalan dengan motor. Keluargamu menyarankan beralih ke mobil.' : 'Posisimu menuntut bertemu klien dan datang tepat waktu. Datang naik motor atau KRL mulai terasa kurang pantas.';
+  const rent = rr(1.5e6 * p), dp = rr(VEH.mobil.price * p * 0.2);
+  ask('🚗 Kebutuhan Mobil Mulai Terasa', why + ' Mobil harganya ' + fmt(VEH.mobil.price * p) + ', cicilan berbunga.', [
+    { t: 'Beli mobil, kredit (DP ' + fmt(dp) + ')', cls: 'pri', ev: 'car:buy', fn: () => { A.veh('mobil', 'credit'); } },
+    { t: 'Sewa mobil/taksi online saat perlu (' + fmt(rent) + ')', ev: 'car:rent', fn: () => { S.cash -= rent; S.happy = clamp(S.happy - 1); } },
+    { t: 'Tetap begini dulu', ev: 'car:no', fn: () => { S.happy = clamp(S.happy - 3); if (bay) { S.health = clamp(S.health - 2); toast('🌧️ Anak kehujanan dan demam karena berkendara motor.', 'bad'); } else toast('Kamu menahan keinginan beli mobil, walau repot.', ''); } },
+  ]);
+}
 const EV2 = [
   { id: 'koneksi', w: 1.5, ok: () => S.friends >= 45 || S.life >= 2, run: evKoneksi },
   { id: 'scam', w: 1.4, ok: () => true, run: evScam },
@@ -792,6 +815,7 @@ const EV2 = [
   { id: 'anak', w: 1.4, ok: () => S.kids.some(c => kidAgeY(c) <= 12), run: evAnakSakit },
   { id: 'lembur', w: 0.9, ok: () => S.jobless <= 0 && S.job >= 1, run: evLembur },
   { id: 'hp', w: 0.8, ok: () => true, run: evGadget },
+  { id: 'carneed', w: 2.2, ok: (m, a) => S.vehicle !== 'mobil' && a >= 26 && S.jobless <= 0 && !(S.flags.carAskAt && m - S.flags.carAskAt < 24) && (S.kids.some(c => kidAgeY(c) <= 5) || S.kids.length >= 2 || S.job >= 5 || (S.flags.crashMajor && m - S.flags.crashMajor <= 8)), run: evButuhMobil },
   { id: 'maag', w: 1.6, ok: (m, a) => S.jobless <= 0 && !S.gerd && a <= 38 && S.job <= 3 && (S.job <= 1 || S.side || S.cash < 3e6 * PI(m)), run: evMaag },
   { id: 'arisan', w: 0.9, ok: (m, a) => a >= 24 && S.friends >= 35 && S.cash >= 1e6 * PI(m), run: evArisan },
   { id: 'hajat', w: 1.1, ok: (m, a) => a >= 24, run: evHajatan },
@@ -882,15 +906,16 @@ function step() {
   // jabatan tinggi = makin sibuk (kurang tidur & olahraga); staf baru = ritme kerja dan keuangan serba pas-pasan
   const busy = S.jobless > 0 ? 0 : Math.max(0, S.job - 2), juniorStress = S.jobless <= 0 && S.job <= 1 && a <= 32 ? (S.cash < 2 * f.needsFF ? 1 : 0.5) : 0;
   if (S.gerd > 0) { S.gerd--; if (S.gerd === 0) toast('😌 Lambungmu sudah membaik. Jaga pola makan dan jam tidur.', 'good'); }
+  const carNeed = S.vehicle !== 'mobil' ? (S.kids.some(c => kidAgeY(c) <= 5) ? 0.2 : 0) + (S.kids.length >= 2 ? 0.12 : 0) : 0;
   const homeFx = { kos: (S.married || hasKids) ? -0.5 : -0.2, kontrak: hasKids ? -0.15 : 0, kpr: 0.15, own: 0.3 }[S.housing] || 0;
   const vehFx = { none: -0.15, motor: 0.1, mobil: 0.2 }[S.vehicle] || 0;
   const gengsi = S.life >= 3 && S.cash < 3 * f.needsFF ? -0.4 : 0;
   const judolFx = S.addict >= 20 ? -S.addict / 100 * 0.5 : 0;
   S.happy = clamp(S.happy - 0.75 + bakti + homeFx + vehFx + gengsi + judolFx + LIFE[S.life].h + 0.35 * kids + (S.married ? 0.25 : (age() >= 30 && S.friends < 70 ? -0.15 : 0)) + (S.friends - 50) * 0.006 + (S.gym ? 0.05 : 0)
-    - (S.side ? 0.4 * sideFatigue(S.job) : 0) - busy * 0.05 - (S.gerd > 0 ? 0.2 : 0) - juniorStress * 0.1 - f.ownerRun * 0.25 - (S.jobless > 0 ? 0.6 : 0) - (S.cash < f.needsFF ? 0.3 : 0) - (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active) ? 0.3 : 0));
+    - (S.side ? 0.4 * sideFatigue(S.job) : 0) - busy * 0.05 - carNeed - (S.gerd > 0 ? 0.2 : 0) - juniorStress * 0.1 - f.ownerRun * 0.25 - (S.jobless > 0 ? 0.6 : 0) - (S.cash < f.needsFF ? 0.3 : 0) - (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active) ? 0.3 : 0));
   const toddlers = Math.min(2, S.kids.filter(c => kidAgeY(c) <= 5).length);
-  S.health = clamp(S.health - 0.1 + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 28) * 0.009 + (S.health < 85 ? 0.07 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 * sideFatigue(S.job) : 0) - busy * 0.06 - (S.gerd > 0 ? 0.35 : 0) - juniorStress * 0.1 - f.ownerRun * 0.1 - (S.happy < 25 ? 0.5 : 0));
-  if (S.vehicle === 'motor' && R('moto', m) < 0.004) { const c = 3e6 * p * (S.ins ? 0.4 : 1); S.cash -= c; S.health = clamp(S.health - 12); S.happy = clamp(S.happy - 4); toast('🛵 Kecelakaan motor! Biaya berobat & bengkel ' + fmt(c) + ', kesehatan turun.', 'bad'); }
+  S.health = clamp(S.health - 0.1 + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 28) * 0.009 + (S.health < 85 ? 0.07 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 * sideFatigue(S.job) : 0) - busy * 0.06 - carNeed * 0.4 - (S.gerd > 0 ? 0.35 : 0) - juniorStress * 0.1 - f.ownerRun * 0.1 - (S.happy < 25 ? 0.5 : 0));
+  { const crashP = { none: 0.0012, motor: 0.007, mobil: 0.003 }[S.vehicle] || 0; if (R('moto', m) < crashP) evCrash(m, p); }
   if (m % 6 === 0 && S.health < 35) toast('❤️ Kesehatanmu kritis! Pakai Periksa, olahraga, atau kurangi kerja lembur.', 'bad');
   if (m % 6 === 3 && S.happy < 20) toast('😔 Kamu sangat stres. Ambil Hiburan, kumpul teman, atau naikkan gaya hidup sedikit.', 'bad');
   if (S.happy < 15 && S.jobless <= 0 && S.job > 0 && R('burn', m) < 0.04) { S.jobless = 3; S.health = clamp(S.health - 6); toast('🔥 Burnout! Kamu terlalu lama stres, terpaksa cuti dan kehilangan gaji 3 bulan.', 'bad'); }
@@ -1216,10 +1241,10 @@ const TABS = {
     h += row({ icon: '🏘️', title: 'Kontrakan', sub: fmt(HOUSING.kontrak * p) + '/bln, deposit ' + fmt(5e6 * p) + ' · 😊 ±0 (−0,15 kalau punya anak)', btn: S.housing === 'kontrak' ? '<span class="tag on">Aktif</span>' : (S.housing === 'kpr' || S.housing === 'own') ? '' : btn('house:kontrak', 'Pindah', 5e6 * p, 'blue') });
     h += row({ icon: '🏡', title: 'Rumah Sendiri' + (S.housing === 'own' ? ' ✓' : S.housing === 'kpr' ? ' (KPR)' : ''), sub: 'Harga ' + fmt(hp) + '. Nilai naik ±5%/thn, ada PBB. KPR 20 thn: DP 20% + biaya 3%. 😊 +0,15/bln (KPR), +0,3 (milik penuh)', btn: (S.housing === 'kpr' || S.housing === 'own') ? '<span class="tag on">Dimiliki</span>' : btn('house:kpr', 'KPR', hp * 0.23) + btn('house:cash', 'Tunai', hp, 'blue') });
     h += '<div class="sec">Kendaraan</div>';
-    h += row({ icon: '🚆', title: 'TransJakarta / KRL' + (S.vehicle === 'none' ? ' ✓' : ''), sub: 'Transport ' + fmt(VEH.none.t * p) + '/bln · 😊 −0,15/bln (desak-desakan) · ❤️ +0,04/bln (jalan kaki)', btn: S.vehicle === 'none' ? '<span class="tag on">Aktif</span>' : '' });
+    h += row({ icon: '🚆', title: 'TransJakarta / KRL' + (S.vehicle === 'none' ? ' ✓' : ''), sub: 'Transport ' + fmt(VEH.none.t * p) + '/bln · 😊 −0,15/bln (desak-desakan) · risiko kecelakaan sangat kecil (±0,1%/bln, paling aman tapi bisa kecopetan) · ❤️ +0,04/bln (jalan kaki)', btn: S.vehicle === 'none' ? '<span class="tag on">Aktif</span>' : '' });
     [['motor', '🛵', 'Motor'], ['mobil', '🚗', 'Mobil']].forEach(([k, ic, nm]) => {
       const price = VEH[k].price * p, has = S.vehicle === k, lock = S.vehicle === 'mobil' && k === 'motor';
-      h += row({ icon: ic, title: nm, sub: 'Harga ' + fmt(price) + ' · transport ' + fmt(VEH[k].t * p) + '/bln · pajak ' + fmt(VEH[k].tax * p) + '/thn' + (k === 'motor' ? ' · 😊 +0,1/bln (bebas macet, praktis) · sampingan +30% (ojol/kurir) · risiko kecelakaan ±0,4%/bln' : ' · 😊 +0,2/bln · sampingan +30% · teman +0,03 · ❤️ −0,02/bln'), btn: has ? '<span class="tag on">Dimiliki</span>' : lock ? '' : btn('veh:' + k + ':credit', 'Kredit (DP 20%)', price * 0.2) + btn('veh:' + k + ':cash', 'Tunai', price, 'blue') });
+      h += row({ icon: ic, title: nm, sub: 'Harga ' + fmt(price) + ' · transport ' + fmt(VEH[k].t * p) + '/bln · pajak ' + fmt(VEH[k].tax * p) + '/thn' + (k === 'motor' ? ' · 😊 +0,1/bln (bebas macet, praktis) · sampingan +30% (ojol/kurir) · ⚠️ risiko kecelakaan ±0,7%/bln (±8%/thn, bisa parah). Tanpa mobil, balita dan keluarga besar jadi repot' : ' · 😊 +0,2/bln · sampingan +30% · teman +0,03 · ❤️ −0,02/bln · lebih aman (±0,3%/bln, bodi melindungi) · nyaman untuk anak, keluarga, dan mudik'), btn: has ? '<span class="tag on">Dimiliki</span>' : lock ? '' : btn('veh:' + k + ':credit', 'Kredit (DP 20%)', price * 0.2) + btn('veh:' + k + ':cash', 'Tunai', price, 'blue') });
     });
     h += '<div class="sec">Kesehatan</div>';
     h += row({ icon: '🏋️', title: 'Gym / Olahraga Rutin', sub: fmt(0.35e6 * p) + '/bln · kesehatan +0,2/bln', btn: tog('gym', S.gym, S.gym ? 'Berhenti' : 'Mulai') });
