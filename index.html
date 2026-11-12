@@ -274,7 +274,7 @@ input{font-family:inherit}
   <div id="start">
     <div id="hero"><div class="hage" id="hAge">Umur 22</div><div class="hcap" id="hCap"></div><svg id="hSvg" viewBox="0 0 340 132" preserveAspectRatio="xMidYMax meet"></svg><div class="hbar"><i id="hFill"></i><b id="hTxt">Pasif 0%</b></div></div>
     <h1>🏁 Merdeka Finansial</h1>
-    <p class="lead" style="font-size:17px;font-weight:900;color:#1f2a44;margin-bottom:4px">Bisakah kamu cukup pasif income sebelum umur 60?</p>
+    <p class="lead" id="hook" style="font-size:17px;font-weight:900;color:#1f2a44;margin-bottom:4px">Bisakah uangmu bekerja untukmu sebelum umur 60?</p>
     <p class="lead" style="font-size:12px;opacity:.85;margin-bottom:8px">Mulai dari gaji pas-pasan, hadapi godaan, keluarga, pajak, dan sakit. Menang kalau <b>pendapatan pasifmu menutup semua kebutuhan</b>.</p>
     <label for="nm">Nama karakter</label>
     <input id="nm" type="text" maxlength="14" placeholder="Misal: Rani" autocomplete="off">
@@ -2494,6 +2494,8 @@ function heroDraw() {
   heroI++;
 }
 function heroStart() { heroI = 0; heroDraw(); clearInterval(heroT); heroT = setInterval(heroDraw, 1900); }
+const HOOKS = ['Bisakah uangmu bekerja untukmu sebelum umur 60?', 'Gaji pas-pasan, mimpi besar. Sanggup merdeka sebelum 60?', 'Berapa cepat kamu bisa berhenti bergantung pada gaji?', 'Dari kontrakan sampai bebas finansial. Berani coba?', 'Bisakah hidupmu dibiayai uang yang bekerja sendiri?', 'Kerja keras saja tidak cukup. Bisakah kamu merdeka?', 'Bisakah kamu pensiun dari kantor sebelum umur 60?'];
+let hookI = Math.floor(Math.random() * HOOKS.length);
 function bgLbl() { const b = BGS[pick.bg]; const t = $('#bgToggle'); if (t && b) t.textContent = 'Latar belakang: ' + b.icon + ' ' + b.name + ($('#bgWrap').style.display === 'none' ? '  ▾ ubah' : '  ▴ tutup'); }
 function showStart() {
   $('#bgWrap').style.display = 'none'; $('#bgList').innerHTML = Object.keys(BGS).map(k => '<button class="bgc ' + (pick.bg === k ? 'on' : '') + '" data-bg="' + k + '"><b>' + BGS[k].icon + ' ' + BGS[k].name + '</b><span>' + BGS[k].desc + '</span></button>').join('');
@@ -2501,6 +2503,7 @@ function showStart() {
   $('#dayLbl').textContent = '(' + todayJkt() + ')'; $('#seasonLbl').textContent = '🏁 ' + seasonTxt();
   const rs = ['musim', 'harian'].map(m => { const d = load(m); return d && !d.ended ? '<button class="resume" data-resume="' + m + '">▶ Lanjutkan ' + (m === 'harian' ? 'Tantangan Harian ' + (d.day || '') : 'Game Utama') + ' <small>' + d.name + ' · umur ' + (START_AGE + Math.floor(d.m / 12)) + '</small></button>' : ''; }).join('');
   $('#resumeBox').innerHTML = rs;
+  { const hk = $('#hook'); if (hk) { hookI = (hookI + 1) % HOOKS.length; hk.textContent = HOOKS[hookI]; } }
   bgLbl(); $('#start').classList.add('on'); started = false; closeSheet(); try { heroStart(); } catch (e) { }
 }
 function resumeGame(mode) {
