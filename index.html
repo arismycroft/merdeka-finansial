@@ -169,6 +169,8 @@ input{font-family:inherit}
 
 #start{position:absolute;inset:0;z-index:30;background:linear-gradient(#76c1f3,#def3ff);display:none;overflow:auto;padding:18px 16px 30px}
 #start.on{display:block}
+#bgToggle{width:100%;margin:8px 0 2px;border:2px dashed #7f97c8;background:rgba(255,255,255,.55);color:#34456f;border-radius:12px;padding:8px 10px;font-weight:800;font-size:13px;text-align:left}
+#bgWrap{margin-top:6px}
 #hero{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(#5db4ee,#cdeeff 70%,#9be08a 70%);box-shadow:0 4px 0 rgba(0,0,0,.15);margin:0 0 10px;height:176px}
 #hero svg{display:block;width:100%;height:132px}
 #hero .hage{position:absolute;left:10px;top:8px;background:rgba(22,32,58,.85);color:#fff;border-radius:10px;padding:3px 9px;font-weight:900;font-size:13px}
@@ -272,15 +274,16 @@ input{font-family:inherit}
   <div id="start">
     <div id="hero"><div class="hage" id="hAge">Umur 22</div><div class="hcap" id="hCap"></div><svg id="hSvg" viewBox="0 0 340 132" preserveAspectRatio="xMidYMax meet"></svg><div class="hbar"><i id="hFill"></i><b id="hTxt">Pasif 0%</b></div></div>
     <h1>🏁 Merdeka Finansial</h1>
-    <p class="lead">Mulai dari gaji pas-pasan. Kelola uang, hadapi godaan, keluarga, pajak, dan sakit. Menang kalau <b>pendapatan pasifmu menutup semua kebutuhan</b> sebelum umur 60.</p>
+    <p class="lead" style="font-size:17px;font-weight:900;color:#1f2a44;margin-bottom:4px">Bisakah kamu cukup pasif income sebelum umur 60?</p>
+    <p class="lead" style="font-size:12px;opacity:.85;margin-bottom:8px">Mulai dari gaji pas-pasan, hadapi godaan, keluarga, pajak, dan sakit. Menang kalau <b>pendapatan pasifmu menutup semua kebutuhan</b>.</p>
     <label for="nm">Nama karakter</label>
     <input id="nm" type="text" maxlength="14" placeholder="Misal: Rani" autocomplete="off">
     <label>Karakter</label>
     <div class="chips"><button class="chip on" data-g="m">👦 Cowok</button><button class="chip" data-g="f">👧 Cewek</button></div>
-    <label>Latar belakang</label>
-    <div id="bgList"></div>
     <div id="resumeBox"></div>
-    <button id="go">Mulai Hidup Baru (Umur 22)</button>
+    <button id="go">▶ MULAI (Umur 22)</button>
+    <button id="bgToggle" type="button"></button>
+    <div id="bgWrap" style="display:none"><div id="bgList"></div></div>
     <button id="goDaily">📅 Tantangan Harian <span id="dayLbl"></span></button>
     <p class="lead" style="margin:6px 0 0;font-size:12px">Tantangan harian: kejadian acak baru tiap hari (WIB), papan peringkat terpisah, sama untuk semua pemain.</p>
     <p class="lead" style="margin-top:14px;font-size:12px;opacity:.8">Dibuat oleh <b>DroovStudio</b> · <a href="https://www.instagram.com/aristechnoai" target="_blank" rel="noopener" style="color:inherit">IG @aristechnoai</a></p>
@@ -2491,13 +2494,14 @@ function heroDraw() {
   heroI++;
 }
 function heroStart() { heroI = 0; heroDraw(); clearInterval(heroT); heroT = setInterval(heroDraw, 1900); }
+function bgLbl() { const b = BGS[pick.bg]; const t = $('#bgToggle'); if (t && b) t.textContent = 'Latar belakang: ' + b.icon + ' ' + b.name + ($('#bgWrap').style.display === 'none' ? '  ▾ ubah' : '  ▴ tutup'); }
 function showStart() {
-  $('#bgList').innerHTML = Object.keys(BGS).map(k => '<button class="bgc ' + (pick.bg === k ? 'on' : '') + '" data-bg="' + k + '"><b>' + BGS[k].icon + ' ' + BGS[k].name + '</b><span>' + BGS[k].desc + '</span></button>').join('');
+  $('#bgWrap').style.display = 'none'; $('#bgList').innerHTML = Object.keys(BGS).map(k => '<button class="bgc ' + (pick.bg === k ? 'on' : '') + '" data-bg="' + k + '"><b>' + BGS[k].icon + ' ' + BGS[k].name + '</b><span>' + BGS[k].desc + '</span></button>').join('');
   $$('#start .chip').forEach(c => c.classList.toggle('on', c.dataset.g === pick.gender));
   $('#dayLbl').textContent = '(' + todayJkt() + ')'; $('#seasonLbl').textContent = '🏁 ' + seasonTxt();
   const rs = ['musim', 'harian'].map(m => { const d = load(m); return d && !d.ended ? '<button class="resume" data-resume="' + m + '">▶ Lanjutkan ' + (m === 'harian' ? 'Tantangan Harian ' + (d.day || '') : 'Game Utama') + ' <small>' + d.name + ' · umur ' + (START_AGE + Math.floor(d.m / 12)) + '</small></button>' : ''; }).join('');
   $('#resumeBox').innerHTML = rs;
-  $('#start').classList.add('on'); started = false; closeSheet(); try { heroStart(); } catch (e) { }
+  bgLbl(); $('#start').classList.add('on'); started = false; closeSheet(); try { heroStart(); } catch (e) { }
 }
 function resumeGame(mode) {
   const d = load(mode); if (!d || d.ended) return;
@@ -2538,7 +2542,8 @@ function bind() {
   document.addEventListener('visibilitychange', () => { if (!Music.ctx) return; try { if (document.hidden) Music.ctx.suspend(); else if (Music.on) Music.ctx.resume(); } catch (e) {} });
   $('#start').addEventListener('click', e => {
     const c = e.target.closest('.chip'); if (c) { pick.gender = c.dataset.g; $$('#start .chip').forEach(x => x.classList.toggle('on', x === c)); try { heroI = Math.max(0, heroI - 1); heroDraw(); } catch (e) { } }
-    const b = e.target.closest('.bgc'); if (b) { pick.bg = b.dataset.bg; $$('#start .bgc').forEach(x => x.classList.toggle('on', x === b)); }
+    const b = e.target.closest('.bgc'); if (b) { pick.bg = b.dataset.bg; $$('#start .bgc').forEach(x => x.classList.toggle('on', x === b)); bgLbl(); }
+    if (e.target.closest('#bgToggle')) { const w = $('#bgWrap'); w.style.display = w.style.display === 'none' ? 'block' : 'none'; bgLbl(); }
   });
   $('#go').addEventListener('click', () => tryStart('musim')); $('#goDaily').addEventListener('click', () => tryStart('harian'));
   $('#resumeBox').addEventListener('click', e => { const b = e.target.closest('button[data-resume]'); if (b) resumeGame(b.dataset.resume); });
