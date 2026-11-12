@@ -23,9 +23,9 @@ input{font-family:inherit}
 #hud{display:flex;gap:6px;padding:8px 8px 4px;background:linear-gradient(#3b5cae,#2f4a8a);padding-top:max(8px,env(safe-area-inset-top))}
 .pan{background:var(--panel2);border-radius:14px;padding:6px 8px;color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
 .pan.main{display:flex;align-items:center;gap:8px;flex:1.35;min-width:0}
-.avatar{position:relative;width:46px;height:46px;border-radius:12px;background:#cfe8ff;flex:none;overflow:hidden}
+.avatar{position:relative;width:32px;height:32px;border-radius:10px;background:#cfe8ff;flex:none;overflow:hidden}
 .avatar svg{width:100%;height:100%}
-.avatar b{position:absolute;left:0;bottom:0;background:var(--gold);color:#5a3b00;font-size:11px;padding:0 6px;border-radius:0 8px 0 0}
+.avatar b{position:absolute;left:0;bottom:0;background:var(--gold);color:#5a3b00;font-size:9px;line-height:1.25;padding:0 4px;border-radius:0 6px 0 0}
 .money{min-width:0}
 .mv{font-weight:900;font-size:18px;line-height:1.1;white-space:nowrap}
 .mn{font-weight:800;font-size:12px;color:#8cf0a0;white-space:nowrap}
@@ -35,6 +35,7 @@ input{font-family:inherit}
 .bar .ic{font-size:16px;width:20px;text-align:center}
 .track{position:relative;flex:1;height:18px;border-radius:9px;background:#142349;overflow:hidden}
 .track i{position:absolute;left:0;top:0;bottom:0;border-radius:9px;transition:width .3s}
+.track.low{box-shadow:0 0 0 2px #ff3d3d;animation:lowp 1s ease-in-out infinite alternate}@keyframes lowp{from{box-shadow:0 0 0 1px #ff3d3d}to{box-shadow:0 0 0 3px #ff8a8a}}
 .track .happy{background:linear-gradient(#ffe066,#f5b700)}
 .track .health{background:linear-gradient(#ff7b7b,#e53935)}
 .track b{position:absolute;left:0;right:0;text-align:center;font-size:12px;line-height:18px;text-shadow:0 1px 1px rgba(0,0,0,.5)}
@@ -51,8 +52,8 @@ input{font-family:inherit}
 .fft i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#3fd16b,#ffd23f);border-radius:8px;transition:width .4s}
 .fft b{position:absolute;left:0;right:0;text-align:center;font-size:11px;line-height:16px;font-weight:900;color:#1f2a44}
 #ffbar .sub{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--soft)}
-#agebar{display:flex;align-items:center;gap:8px;margin:6px 8px 0;padding:4px 8px;background:rgba(255,255,255,.85);border:3px solid #fff;border-radius:14px;font-weight:800;font-size:12.5px}
-#agebar .sp{flex:1;color:#4a5b85}
+#agebar{display:flex;align-items:center;gap:5px;margin:6px 8px 0;padding:4px 8px;background:rgba(255,255,255,.85);border:3px solid #fff;border-radius:14px;font-weight:800;font-size:12.5px}
+#agebar .sp{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:#4a5b85;white-space:nowrap;font-size:11.5px}
 #agebar button{border:0;border-radius:10px;background:var(--panel);color:#fff;font-weight:900;padding:4px 10px;font-size:13px}
 #judol{display:none;background:#ffe0e0;color:#b3261e;border-radius:10px;padding:2px 8px;font-size:11.5px}
 
@@ -85,9 +86,28 @@ input{font-family:inherit}
 .toast.good{border-color:#46c35f}.toast.bad{border-color:var(--bad)}.toast.gold{border-color:var(--gold)}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 
-#tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:6px 4px max(8px,env(safe-area-inset-bottom));background:linear-gradient(#3b5cae,#2f4a8a);z-index:8;position:relative}
+#tabs{display:flex;flex-wrap:nowrap;gap:3px;padding:6px 4px max(8px,env(safe-area-inset-bottom));background:linear-gradient(#3b5cae,#2f4a8a);z-index:8;position:relative}
 #tabs button{position:relative;border:0;border-radius:11px;background:#4a6dc4;color:#fff;padding:5px 0 3px;font-weight:800;font-size:9.5px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
 #tabs button i{font-style:normal;font-size:20px;display:block;line-height:1.2}
+#tabs button{flex:1 1 0;min-width:0}
+#tabs button.big{flex:0 0 calc(50% - 4px);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;padding:9px 0 7px}
+#tabs button.big i{font-size:24px;display:inline}
+#tabs button.edit{flex:0 0 34px;font-size:15px}
+#tabs .brk{flex:0 0 100%;height:0}
+#timebar{display:flex;align-items:center;gap:8px;margin:5px 8px 0;font-weight:800;font-size:12px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+#timebar b{font-size:14px;white-space:nowrap}
+#timebar .tbar{flex:1;height:9px;background:rgba(0,0,0,.35);border-radius:6px;overflow:hidden;border:1.5px solid rgba(255,255,255,.7)}
+#timebar .tbar i{display:block;height:100%;width:0;background:linear-gradient(#ffe27a,#ffb300)}
+#timebar em{font-style:normal;font-size:11px;white-space:nowrap;opacity:.95}
+#spd{display:flex;gap:2px;background:#d9e2f7;border-radius:11px;padding:2px}
+#spd button{background:transparent;color:#2f4a8a;padding:4px 4px;font-size:10.5px;border-radius:9px;white-space:nowrap}
+#spd button.on{background:var(--panel);color:#fff}
+#chips{font-size:12px;white-space:nowrap;background:rgba(0,0,0,.3);border-radius:8px;padding:1px 6px}#chips:empty{display:none}
+.ms{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ms span{font-size:11.5px;font-weight:800;border-radius:10px;padding:4px 8px;background:#e3e9f7;color:#7a86a8}
+.ms span.got{background:#fff3c4;color:#6a4a00;border:1.5px solid var(--gold)}
+.mbtns.rks button{flex:1 1 100%;text-align:left}
+.mbtns button .rk{display:block;font-weight:700;font-size:11.5px;margin-top:3px;line-height:1.3;opacity:.95}
 #tabs button.on{background:var(--gold);color:#5a3b00}
 #tabs button .dot{position:absolute;top:1px;right:4px;width:12px;height:12px;border-radius:50%;background:#ff3d3d;border:2px solid #fff;display:none}
 #tabs button.hasdot .dot{display:block}
@@ -180,10 +200,11 @@ input{font-family:inherit}
   <div id="agebar">
     <span class="sp" id="yearsLeft">Umur 22 · 38 thn lagi</span>
     <span id="judol">🎰 Kecanduan 0%</span>
-    <button id="pause" aria-label="Jeda">⏸</button>
-    <button id="ff" aria-label="Kecepatan">⏩ 1×</button>
+    <div id="spd" role="group" aria-label="Kecepatan waktu"><button data-s="0">⏸ Jeda</button><button data-s="1" class="on">▶ Normal</button><button data-s="3">⏩ Cepat</button></div>
+    <button id="skip" aria-label="Lewati ke bulan depan">⏭</button>
     <button id="music" aria-label="Musik">🎵</button>
   </div>
+  <div id="timebar"><b id="tbDate">Jan 2027</b><div class="tbar"><i id="tbFill"></i></div><span id="chips"></span><em id="tbState">Berjalan</em></div>
 
   <main id="scene">
     <svg id="svg" viewBox="0 0 400 520" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
@@ -225,15 +246,7 @@ input{font-family:inherit}
     <div id="list"></div>
   </section>
 
-  <nav id="tabs">
-    <button data-tab="career"><i>💼</i>Karier<span class="dot"></span></button>
-    <button data-tab="money"><i>📊</i>Keuangan<span class="dot"></span></button>
-    <button data-tab="invest"><i>📈</i>Investasi<span class="dot"></span></button>
-    <button data-tab="biz"><i>🏪</i>Bisnis<span class="dot"></span></button>
-    <button data-tab="family"><i>👨‍👩‍👧</i>Keluarga<span class="dot"></span></button>
-    <button data-tab="life"><i>🏠</i>Gaya<span class="dot"></span></button>
-    <button data-tab="rank"><i>🏆</i>Peringkat<span class="dot"></span></button>
-  </nav>
+  <nav id="tabs"></nav>
   <div id="modal"></div>
 
   <div id="start">
@@ -264,9 +277,9 @@ const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
 
 /* ====================== konstanta & RNG musim ====================== */
 // Musim 3 memakai koleksi season4 (papan baru setelah penyesuaian aturan di hari pertama; season3 tidak dipakai)
-const MAIN_SEED = 'MUSIM-6', MAIN_COL = 'season4', VER = 5, SAVE_KEYS = { musim: 'merdeka_v3', harian: 'merdeka_v3_h' };
+const MAIN_SEED = 'MUSIM-7', MAIN_COL = 'season5', VER = 6, SAVE_KEYS = { musim: 'merdeka_v3', harian: 'merdeka_v3_h' };
 /* periode musim (WIB). Ganti saat musim baru: SEED, koleksi, dan tanggal di sini */
-const SEASON = { name: 'Musim 3', start: '2026-11-09', end: '2026-12-08' };
+const SEASON = { name: 'Musim 4', start: '2026-11-13', end: '2026-12-12' };
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const dLbl = d => { const [y, m, dd] = d.split('-'); return +dd + ' ' + MON[+m - 1] + ' ' + y; };
 const seasonLeft = () => Math.ceil((new Date(SEASON.end + 'T23:59:59+07:00') - Date.now()) / 864e5);
@@ -275,6 +288,8 @@ const seasonTxt = () => SEASON.name + ': ' + dLbl(SEASON.start) + ' – ' + dLbl
 let SEED = MAIN_SEED, SEASON_COL = MAIN_COL, MODE = 'musim', DAY = '';
 const todayJkt = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 const START_AGE = 22, END_AGE = 60, TOTAL = (END_AGE - START_AGE) * 12, MONTH_MS = 10000;
+const MON3 = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const dateTxt = m => MON3[m % 12] + ' ' + (2027 + Math.floor(m / 12));
 const MONTHS = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
 function cyrb53(str) {
   let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
@@ -321,18 +336,18 @@ const JOBS = [
 ];
 const MKT_BETA = { stock: 1, crypto: 2, reit: 0.3, gold: -0.15, bond: 0.05 };
 const INVS = [
-  { id: 'save',   name: 'Tabungan / Deposito', icon: '🏦', y: 0.0032, mu: 0,      sd: 0,     tax: 0.20, cr: 0,      fin: 0, desc: 'Aman, bunga kecil (pajak final 20%). Sering kalah dari inflasi.' },
-  { id: 'bond',   name: 'Obligasi / Reksa Dana Pendapatan Tetap', icon: '📜', y: 0.0040, mu: 0.0005, sd: 0.004, tax: 0.10, cr: 0, fin: 1, desc: 'Kupon rutin, naik-turun kecil.' },
-  { id: 'gold',   name: 'Emas',                icon: '🪙', y: 0,      mu: 0.0040, sd: 0.028, tax: 0,    cr: 0.010,  fin: 1, desc: 'Tidak ada hasil rutin. Naik pelan, cenderung aman saat krisis.' },
-  { id: 'stock',  name: 'Saham & Reksa Dana Saham', icon: '📈', y: 0.0027, mu: 0.0090, sd: 0.055, tax: 0.10, cr: -0.045, fin: 2, desc: 'Dividen kecil + potensi naik. Bisa anjlok mendadak dan sulit ditebak; kadang bertahun-tahun lesu.' },
-  { id: 'reit',   name: 'Properti Sewa',       icon: '🏘️', y: 0.0042, mu: 0.0032, sd: 0.008, tax: 0.10, cr: -0.012, fin: 3, desc: 'Sewa rutin (pajak final 10%) + kenaikan nilai.' },
-  { id: 'crypto', name: 'Kripto',              icon: '🎲', y: 0,      mu: 0.018,  sd: 0.16,  tax: 0,    cr: -0.06,  fin: 2, desc: 'Sangat liar: bisa melonjak, bisa lenyap. Tidak ada hasil rutin.' },
+  { id: 'save',   name: 'Tabungan / Deposito', icon: '🏦', y: 0.0032, mu: 0,      sd: 0,     tax: 0.20, cr: 0,      fin: 0, liq: { d: 0, fee: 0, ef: 0 }, desc: 'Aman, bunga kecil (pajak final 20%). Sering kalah dari inflasi.' },
+  { id: 'bond',   name: 'Obligasi / Reksa Dana Pendapatan Tetap', icon: '📜', y: 0.0040, mu: 0.0005, sd: 0.004, tax: 0.10, cr: 0, fin: 1, liq: { d: 1, fee: 0.005, ef: 0.02 }, desc: 'Kupon rutin, naik-turun kecil.' },
+  { id: 'gold',   name: 'Emas',                icon: '🪙', y: 0,      mu: 0.0040, sd: 0.028, tax: 0,    cr: 0.010,  fin: 1, liq: { d: 0, fee: 0.03, ef: 0.04 }, desc: 'Tidak ada hasil rutin. Naik pelan, cenderung aman saat krisis.' },
+  { id: 'stock',  name: 'Saham & Reksa Dana Saham', icon: '📈', y: 0.0027, mu: 0.0090, sd: 0.055, tax: 0.10, cr: -0.045, fin: 2, liq: { d: 1, fee: 0.005, ef: 0.08 }, desc: 'Dividen kecil + potensi naik. Bisa anjlok mendadak dan sulit ditebak; kadang bertahun-tahun lesu.' },
+  { id: 'reit',   name: 'Properti Sewa',       icon: '🏘️', y: 0.0042, mu: 0.0032, sd: 0.008, tax: 0.10, cr: -0.012, fin: 3, liq: { d: 3, fee: 0.06, ef: 0.15 }, desc: 'Sewa rutin (pajak final 10%) + kenaikan nilai.' },
+  { id: 'crypto', name: 'Kripto',              icon: '🎲', y: 0,      mu: 0.018,  sd: 0.16,  tax: 0,    cr: -0.06,  fin: 2, liq: { d: 0, fee: 0.01, ef: 0.08 }, desc: 'Sangat liar: bisa melonjak, bisa lenyap. Tidak ada hasil rutin.' },
 ];
 const BIZS = [
-  { id: 'online', name: 'Jualan Online',      icon: '📦', cost: 12e6,  profit: 0.18e6, fin: 0, mgr: 8e6 },
-  { id: 'cafe',   name: 'Kedai Kopi',         icon: '☕', cost: 60e6,  profit: 0.9e6, fin: 1, mgr: 30e6 },
-  { id: 'kos',    name: 'Kos-kosan',          icon: '🛏️', cost: 300e6, profit: 3.0e6,  fin: 2, mgr: 40e6 },
-  { id: 'franch', name: 'Franchise Minimarket', icon: '🏬', cost: 1.2e9, profit: 12e6, fin: 3, mgr: 150e6 },
+  { id: 'online', name: 'Jualan Online',      icon: '📦', cost: 12e6,  profit: 0.18e6, fin: 0, mgr: 8e6, ramp: 3 },
+  { id: 'cafe',   name: 'Kedai Kopi',         icon: '☕', cost: 60e6,  profit: 0.9e6, fin: 1, mgr: 30e6, ramp: 8 },
+  { id: 'kos',    name: 'Kos-kosan',          icon: '🛏️', cost: 300e6, profit: 3.0e6,  fin: 2, mgr: 40e6, ramp: 6 },
+  { id: 'franch', name: 'Franchise Minimarket', icon: '🏬', cost: 1.2e9, profit: 12e6, fin: 3, mgr: 150e6, ramp: 12 },
 ];
 const LIFE = [
   { n: 'Hemat',      c: 0.3e6, h: -0.3, d: 'Makan di rumah, jarang jajan (lama-lama jenuh & jarang ketemu teman)' },
@@ -380,6 +395,7 @@ function newState(o) {
     skills: { work: 0, comm: 0, fin: 0 }, job: b.job, jobSince: 0, promoCd: 0, cd: { fun: 0, doc: 0, fr: 0 }, jobless: 0, side: false, debts: [], inv: {}, biz: {},
     life: b.life, housing: b.housing, vehicle: b.vehicle, houseVal: 0, gym: false, ins: false,
     partner: null, married: false, pregDue: null, kids: [], edu: 0, support: b.support, friends: 60,
+    sleep: 7, ot: 0, miles: {},
     addict: 0, loans: [], ponzi: [], ytdGross: 0, ytdWith: 0, last: {}, ffStreak: 0, ffMax: 0, ended: null, log: [], flags: {}, nid: 1, lives: (S && S.lives || 0) + 1 };
   b.debts.forEach(d => S.debts.push(mkDebt(d[0], d[1], d[2], d[3], d[4])));
   shownCash = S.cash;
@@ -430,7 +446,8 @@ function debtPay(d) {
 }
 function compute() {
   const m = S.m, p = PI(m), employed = S.jobless <= 0, job = JOBS[S.job];
-  const salary = employed ? job.sal * p * (S.happy < 25 ? 0.85 : 1) : 0;
+  const famTun = S.married ? 0.05 + 0.02 * Math.min(3, S.kids.filter(c => kidAgeY(c) < 22).length) : 0, otMult = S.job <= 3 ? 1 + 0.04 * (S.ot || 0) : 1;
+  const salary = employed ? job.sal * p * (S.happy < 10 ? 0.75 : S.happy < 25 ? 0.85 : 1) * (1 + famTun) * otMult : 0;
   const hustle = S.side ? 1.5e6 * p * (1 + 0.08 * S.skills.work) * (S.vehicle !== 'none' ? 1.3 : 1) * (1 + netBonus()) * sideTime(S.job) : 0;
   const thr = (employed && m % 12 === 2 && m > 0) ? salary : 0;
   const pph = employed ? annualTax(salary * 13) / 12 : 0;
@@ -439,7 +456,11 @@ function compute() {
   let bizA = 0, bizP = 0, bizTax = 0, ownerRun = 0;
   BIZS.forEach(b => {
     const s = S.biz[b.id]; if (!s || !s.lvl) return;
-    const prof = b.profit * s.lvl * p * bizF(b, m) * (1 + netBonus() * 0.6), tx = prof * 0.025; bizTax += tx;
+    const ramp = !!(s.until && s.until > m), mm = (s.mod && s.mod.until > m) ? s.mod.mult : 1;
+    let prof = b.profit * (s.lvl - (ramp ? 1 : 0)) * p * bizF(b, m) * (1 + netBonus() * 0.6) * mm;
+    if (ramp) prof -= 0.4 * b.profit * p;
+    if (prof < 0) { bizA += prof; ownerRun++; return; }
+    const tx = prof * 0.025; bizTax += tx;
     if (s.mgr) bizP += prof * 0.75 - tx; else { bizA += prof - tx; ownerRun++; }
   });
   let passInv = 0, invTax = 0;
@@ -475,8 +496,9 @@ function compute() {
   const needsFF = needs0 + bpjsMandiri + hunianLayak;
   return { kidInc, salary, hustle, thr, partnerNet, bizA, bizP, passInv, pph, bpjs, finalTax: bizTax + invTax, lines: L, needs0, needsFF, active, passive, net, ff: needsFF > 0 ? passive / needsFF : 0, ownerRun, pays, p, youngest };
 }
+const pendSum = () => (S.pend || []).reduce((a, x) => a + x.amt, 0);
 function networth() {
-  let v = S.cash + sum(S.inv) + S.houseVal - sum(S.debts.map(d => d.bal));
+  let v = S.cash + sum(S.inv) + pendSum() + S.houseVal - sum(S.debts.map(d => d.bal));
   BIZS.forEach(b => { const s = S.biz[b.id]; if (s && s.lvl) v += b.cost * (Math.pow(1.45, s.lvl) - 1) / 0.45 * 0.6; });
   S.loans.forEach(l => v += l.amt * 0.4);
   return v;
@@ -505,7 +527,8 @@ function floatText(txt, cls) {
 }
 function modal(html, buttons) {
   const m = $('#modal'); modalOn = true;
-  m.innerHTML = '<div class="mbox">' + html + '<div class="mbtns">' + buttons.map((b, i) => '<button data-i="' + i + '" class="' + (b.cls || '') + '">' + b.t + '</button>').join('') + '</div></div>';
+  const hasRk = buttons.some(b => b.risk || (b.ev && RISK[b.ev]));
+  m.innerHTML = '<div class="mbox">' + html + '<div class="mbtns' + (hasRk ? ' rks' : '') + '">' + buttons.map((b, i) => { const r = b.risk || (b.ev && RISK[b.ev]); return '<button data-i="' + i + '" class="' + (b.cls || '') + '">' + b.t + (r ? '<span class="rk">' + (r[0] === 'hi' ? '🔴 Risiko tinggi · ' : r[0] === 'mid' ? '🟡 Risiko sedang · ' : '🟢 Risiko rendah · ') + r[1] + '</span>' : '') + '</button>'; }).join('') + '</div></div>';
   m.classList.add('on');
   m.onclick = e => {
     const b = e.target.closest('button[data-i]'); if (!b) return;
@@ -516,6 +539,48 @@ function modal(html, buttons) {
     refresh(); drain();
   };
 }
+
+const RISK = {
+  'judol:try': ['hi', 'peluang menang kecil, kecanduan naik, bisa berujung pinjol'], 'judol:no': ['lo', 'aman, tidak ada kerugian uang'],
+  'pinjam:yes': ['mid', 'uang bisa tidak kembali, hubungan renggang kalau ditagih'], 'pinjam:soft': ['lo', 'uang aman, teman agak kecewa'], 'pinjam:no': ['lo', 'uang aman, pertemanan turun lebih besar'],
+  'bodong:yes': ['hi', 'janji untung pasti adalah ciri penipuan, modal bisa hilang total'], 'bodong:no': ['lo', 'tidak ada risiko'],
+  'ortu:full': ['lo', 'biaya besar, tapi hubungan dan kebahagiaan terjaga'], 'ortu:part': ['lo', 'biaya lebih ringan, hubungan tetap terjaga'], 'ortu:no': ['mid', 'uang aman, tapi rasa bersalah menurunkan kebahagiaan'],
+  'mudik:no': ['lo', 'hemat uang, kebahagiaan dan kedekatan keluarga turun'],
+  'scam:yes': ['hi', 'rekening bisa dikuras, kerugian besar dan sulit kembali'], 'scam:no': ['lo', 'aman, bank tidak pernah meminta OTP'],
+  'pet:vet': ['lo', 'biaya dokter, hewan pulih'], 'pet:diy': ['mid', 'hemat, tapi bisa gagal dan akhirnya lebih mahal'], 'pet:no': ['mid', 'hewan bisa makin sakit, kamu merasa bersalah'],
+  'bocor:fix': ['lo', 'biaya besar sekarang, masalah tuntas'], 'bocor:cheap': ['mid', 'hemat sekarang, bisa kambuh dan biaya naik nanti'],
+  'kondangan:yes': ['lo', 'biaya amplop, relasi terjaga'], 'kondangan:no': ['lo', 'hemat, relasi sedikit renggang'],
+  'reuni:yes': ['lo', 'biaya acara, relasi dan koneksi bertambah'], 'reuni:no': ['lo', 'hemat, relasi sedikit menurun'],
+  'hh:nego': ['mid', 'bisa dapat gaji lebih, tapi bisa gagal dan peluang tergantung keahlianmu'], 'hh:no': ['lo', 'aman, tetap di posisi sekarang'],
+  'kursus:work': ['lo', 'biaya kursus, keahlian naik +1'], 'kursus:comm': ['lo', 'biaya kursus, keahlian naik +1'], 'kursus:fin': ['lo', 'biaya kursus, keahlian naik +1'], 'kursus:no': ['lo', 'hemat, keahlian tidak berubah'],
+  'donasi:yes': ['lo', 'biaya kecil, kebahagiaan naik sedikit'], 'donasi:no': ['lo', 'hemat, rasa tidak enak sedikit'],
+  'waris:sell': ['mid', 'dapat uang tunai sekarang, tapi nilai aset bisa naik dan keluarga kecewa'], 'waris:hold': ['lo', 'aset tetap dimiliki, tidak ada uang tunai sekarang'],
+  'mcu:yes': ['lo', 'butuh usaha, kesehatan membaik'], 'mcu:no': ['mid', 'hemat sekarang, masalah kesehatan terlambat terdeteksi'],
+  'anak:doc': ['lo', 'biaya dokter, anak cepat pulih'], 'anak:wait': ['mid', 'hemat, tapi anak bisa makin sakit dan biaya membengkak'],
+  'lembur:yes': ['mid', 'uang bertambah, tapi kesehatan dan kebahagiaan turun'], 'lembur:no': ['lo', 'uang tidak bertambah, kesehatan terjaga'],
+  'hp:fix': ['lo', 'lebih murah, tidak seawet baru'], 'hp:new': ['lo', 'biaya besar, kebahagiaan naik'],
+  'sakit:best': ['lo', 'biaya paling mahal, peluang pulih terbaik'], 'sakit:bpjs': ['mid', 'biaya lebih ringan, antre lama dan hasil kurang pasti'], 'sakit:skip': ['hi', 'uang aman sekarang, tapi kesehatan bisa anjlok parah'],
+  'konk:deal': ['mid', 'butuh modal patungan, hasil tidak pasti'], 'konk:no': ['lo', 'aman'], 'konk:ref': ['lo', 'tanpa biaya, peluang karier membaik'], 'konk:free': ['lo', 'dapat uang, sedikit capek'], 'konk:skip': ['lo', 'tidak ada perubahan'],
+  'thr:big': ['lo', 'biaya besar, relasi dan kebahagiaan naik'], 'thr:mid': ['lo', 'biaya sedang, relasi terjaga'], 'thr:no': ['lo', 'hemat, relasi dan kebahagiaan turun sedikit'],
+  'run:5k': ['lo', 'murah, sehat, dan menambah teman'], 'konser:reg': ['lo', 'aman, kebahagiaan naik'], 'konser:vip': ['lo', 'mahal, kebahagiaan naik paling besar'], 'konser:calo': ['hi', '±35% tiket palsu, uang hilang'],
+  'arisan:yes': ['hi', 'arisan tanpa kejelasan bisa kabur bandarnya, uang bisa hilang'], 'arisan:no': ['lo', 'aman'],
+  'hajat:full': ['lo', 'biaya besar, relasi paling kuat'], 'hajat:env': ['lo', 'biaya kecil, relasi cukup terjaga'], 'hajat:no': ['mid', 'hemat, relasi dan kebahagiaan turun'],
+  'sand:ortu': ['mid', 'orang tua tertolong, anak dapat dukungan lebih sedikit'], 'sand:anak': ['mid', 'anak tertolong, orang tua kurang terbantu'], 'sand:both': ['mid', 'dua-duanya tertolong, biaya besar dan tenaga terkuras'],
+  'maag:dokter': ['lo', 'biaya dokter, kambuh berkurang'], 'maag:obat': ['mid', 'murah, tapi akar masalah tidak selesai'], 'maag:abai': ['hi', 'maag bisa kronis, kesehatan terus turun'],
+  'car:buy': ['mid', 'cicilan baru dan biaya mobil naik, tapi keluarga lebih aman dan nyaman'], 'car:rent': ['lo', 'biaya sewa saat perlu, tanpa cicilan'], 'car:no': ['mid', 'hemat, tapi kebahagiaan turun dan risiko tetap ada'],
+  'flash:yes': ['mid', 'kebahagiaan naik sebentar, dompet menipis'], 'flash:one': ['lo', 'biaya kecil, kebutuhan terpenuhi'], 'flash:no': ['lo', 'aman, tidak ada pengeluaran'],
+  'sinyal:yes': ['hi', 'sinyal saham yang menjanjikan untung tetap hampir selalu penipuan'], 'sinyal:no': ['lo', 'aman'],
+  'spt:yes': ['lo', 'butuh sedikit waktu, aman dari denda'], 'spt:later': ['mid', 'bisa kena denda keterlambatan'],
+  'kerabat:yes': ['hi', 'usaha baru sering gagal, uang bisa hilang dan hubungan keluarga bisa renggang'], 'kerabat:no': ['lo', 'uang aman, kerabat mungkin kecewa'],
+  'burn:cuti': ['mid', 'gaji 3 bulan hilang, tapi kebahagiaan dan tubuh pulih'], 'burn:lanjut': ['hi', 'gaji aman sekarang, tapi kesehatan turun dan ±40% tumbang lebih parah dengan biaya rumah sakit'],
+  'lahir:normal': ['mid', 'lebih murah dan pemulihan cepat, tapi ±12% bisa berujung sesar darurat yang lebih mahal'], 'lahir:sesar': ['lo', 'aman dan terencana, tapi biaya lebih besar dan pemulihan lebih lama'],
+  'bizad:yes': ['mid', 'peluang berhasil sedikit di atas separuh, kalau gagal uangnya terbuang'], 'bizad:no': ['lo', 'aman, tidak ada pengeluaran'],
+  'bizcomp:war': ['mid', 'pelanggan bertahan tapi margin menipis'], 'bizcomp:qual': ['lo', 'biaya sekarang, laba naik pelan'], 'bizcomp:no': ['hi', 'hemat, tapi pelanggan bisa pindah dan laba turun besar'],
+  'bizsup:price': ['mid', 'margin aman kalau pelanggan menerima, kalau tidak laba turun'], 'bizsup:hold': ['mid', 'pelanggan loyal, tapi margin turun pasti'], 'bizsup:new': ['mid', 'biaya kecil, hasil tergantung pemasok baru'],
+  'bizstaff:yes': ['lo', 'biaya bonus, tim stabil'], 'bizstaff:no': ['mid', 'hemat, tapi bisa kehilangan karyawan andalan'],
+  'banjir:full': ['lo', 'biaya besar, tempat tinggal pulih'], 'banjir:min': ['mid', 'hemat, tapi kesehatan dan kebahagiaan turun'],
+  'panik:sell': ['hi', 'kerugian terkunci, ada biaya jual, dan dana baru cair setelah beberapa hari'], 'panik:hold': ['mid', 'bisa pulih, bisa turun lebih dalam'], 'panik:buy': ['hi', 'kalau pasar terus turun, kerugian makin besar'],
+};
 function ask(title, body, choices) { MQ.push({ title, body, choices }); }
 function drain() {
   if (modalOn || !MQ.length || (S && S.ended)) return;
@@ -591,16 +656,16 @@ function evBonus(m, p) {
 const rr = (v, u) => Math.round(v / (u || 1e5)) * (u || 1e5);
 function evMudik(m, p) {
   const c = rr((1.5e6 + (S.married ? 0.6e6 : 0) + 0.4e6 * S.kids.length) * p);
-  const a = ageY(m), lines = [], says = []; let pen = 0, fpen = 0;
-  if (!S.married && a >= 27) { lines.push('Om dan tante pasti bertanya: <i>"Kapan nikah? Teman seumuranmu sudah pada gendong anak lho."</i>'); says.push(['Nak, kapan nikah? Teman seumuranmu sudah pada gendong anak lho.', 'tante']); pen += 3; }
-  if (S.married && S.kids.length === 0 && m >= 30) { lines.push('Keluarga besar menepuk bahu: <i>"Sudah nikah lama, kapan punya momongan?"</i>'); says.push(['Sudah nikah lama, kapan punya momongan? Jangan kelamaan nunda lho.', 'tante']); pen += 3; }
-  if (S.vehicle !== 'mobil' && S.m >= 60 && S.job >= 2) { lines.push('Tetangga membandingkan: <i>"Anak Bu Ani di kota sudah beli mobil, kamu kok belum? Kerja di kota kan lumayan lama."</i>'); says.push(['Anak Bu Ani di kota sudah beli mobil lho, kamu kok belum? Kerja di kota kan sudah lama.', 'om']); pen += 2; fpen += 1; }
-  if (S.job === 0 && S.m >= 48) { lines.push('Ada yang nyeletuk: <i>"Masih jadi staf junior? Sepupumu sudah jadi manajer."</i>'); pen += 2; }
+  const a = ageY(m), lines = [], says = [], why = []; let pen = 0, fpen = 0;
+  if (!S.married && a >= 27) { why.push('"kapan nikah"'); lines.push('Om dan tante pasti bertanya: <i>"Kapan nikah? Teman seumuranmu sudah pada gendong anak lho."</i>'); says.push(['Nak, kapan nikah? Teman seumuranmu sudah pada gendong anak lho.', 'tante']); pen += 3; }
+  if (S.married && S.kids.length === 0 && m >= 30) { why.push('"kapan punya momongan"'); lines.push('Keluarga besar menepuk bahu: <i>"Sudah nikah lama, kapan punya momongan?"</i>'); says.push(['Sudah nikah lama, kapan punya momongan? Jangan kelamaan nunda lho.', 'tante']); pen += 3; }
+  if (S.vehicle !== 'mobil' && S.m >= 60 && S.job >= 2) { why.push('dibandingkan soal mobil'); lines.push('Tetangga membandingkan: <i>"Anak Bu Ani di kota sudah beli mobil, kamu kok belum? Kerja di kota kan lumayan lama."</i>'); says.push(['Anak Bu Ani di kota sudah beli mobil lho, kamu kok belum? Kerja di kota kan sudah lama.', 'om']); pen += 2; fpen += 1; }
+  if (S.job === 0 && S.m >= 48) { why.push('dibandingkan soal jabatan'); lines.push('Ada yang nyeletuk: <i>"Masih jadi staf junior? Sepupumu sudah jadi manajer."</i>'); pen += 2; }
   const ease = Math.min(2, Math.floor(S.skills.comm / 6)) + (S.support > 0 ? 1 : 0);
   pen = Math.max(0, pen - ease);
   const body = 'Kampung halaman memanggil. Ongkos mudik dan oleh-oleh sekitar ' + fmt(c) + '. Orang tua pasti senang.' + (lines.length ? '<br><br>' + lines.join('<br>') : '');
   ask('🕌 Libur Lebaran: Mudik?', body, [
-    { t: 'Mudik (' + fmt(c) + ')', ev: 'mudik:yes', fn: () => { S.cash -= c; S.happy = clamp(S.happy + 8 - pen + (S.vehicle === 'mobil' && (S.married || S.kids.length) ? 2 : 0)); S.friends = clamp(S.friends + 2); floatText(pen ? '+' + (8 - pen) + ' 😊' : '+8 😊'); if (pen) toast('😅 Pulang kampung menyenangkan, tapi pertanyaan "kapan..." menguras mental.', ''); } },
+    { t: 'Mudik (' + fmt(c) + ')', ev: 'mudik:yes', risk: ['lo', why.length ? 'biaya perjalanan, keluarga dekat, tapi ada sindiran: ' + why.join(', ') : 'biaya perjalanan, keluarga dekat, tidak ada sindiran yang menunggumu'], fn: () => { S.cash -= c; S.happy = clamp(S.happy + 8 - pen + (S.vehicle === 'mobil' && (S.married || S.kids.length) ? 2 : 0)); S.friends = clamp(S.friends + 2); floatText(pen ? '+' + (8 - pen) + ' 😊' : '+8 😊'); if (pen) toast('😅 Pulang kampung menyenangkan, tapi pertanyaan "kapan..." menguras mental.', ''); } },
     { t: 'Video call saja', ev: 'mudik:no', fn: () => { S.happy = clamp(S.happy - (S.support > 0 ? 2 : 4)); toast('Rindu kampung, tapi dompet aman' + (pen ? ' (dan terhindar dari pertanyaan "kapan...").' : '.'), ''); } },
   ]);
   if (says.length) { Voice.stop(); says.forEach(x => Voice.say(x[0], x[1])); }
@@ -799,7 +864,94 @@ function evButuhMobil(m, p) {
     { t: 'Tetap begini dulu', ev: 'car:no', fn: () => { S.happy = clamp(S.happy - 3); if (bay) { S.health = clamp(S.health - 2); toast('🌧️ Anak kehujanan dan demam karena berkendara motor.', 'bad'); } else toast('Kamu menahan keinginan beli mobil, walau repot.', ''); } },
   ]);
 }
+
+function evFlash(m, p) {
+  const c = Math.round(1.5e6 * p / 1e4) * 1e4;
+  ask('🛒 Flash Sale 11.11', 'Keranjang belanjamu penuh barang diskon "hanya hari ini".', [
+    { t: 'Checkout semuanya (' + fmt(c) + ')', cls: 'dng', ev: 'flash:yes', fn: () => { S.cash -= c; S.happy = clamp(S.happy + 4); toast('Senang sebentar, dompet menipis.', ''); } },
+    { t: 'Ambil satu yang benar-benar perlu (' + fmt(c * 0.2) + ')', cls: 'pri', ev: 'flash:one', fn: () => { S.cash -= c * 0.2; S.happy = clamp(S.happy + 2); } },
+    { t: 'Kosongkan keranjang', ev: 'flash:no', fn: () => toast('Diskon sering bikin belanja lebih banyak dari rencana.', '') }]);
+}
+function evSinyal(m, p) {
+  const stake = Math.round(clamp(S.cash * 0.15, 1e6 * p, 20e6 * p) / 1e5) * 1e5;
+  ask('📲 Grup "Sinyal Saham Cuan"', 'Admin mengaku bisa memberi sinyal beli yang untung 30% per minggu. Anggota VIP membayar lalu menyetor modal.', [
+    { t: 'Gabung VIP dan setor (' + fmt(stake) + ')', cls: 'dng', ev: 'sinyal:yes', fn: () => {
+        if (S.cash < stake) { toast('Uangmu tidak cukup, godaan lewat.', ''); return; }
+        S.cash -= stake;
+        if (R('sinyal', m) < 0.12) { S.cash += stake * 1.2; toast('Kali ini untung kecil. Itu keberuntungan, bukan keahlian.', ''); }
+        else { S.happy = clamp(S.happy - 6); toast('Modalmu hilang dan adminnya menghilang.', 'bad'); } } },
+    { t: 'Keluar grup', cls: 'pri', ev: 'sinyal:no', fn: () => toast('Tidak ada yang bisa menjamin untung tetap.', 'good') }]);
+}
+function evSPT(m, p) {
+  const fine = 0.1e6;
+  ask('🧾 Lapor SPT Tahunan', 'Batas lapor SPT makin dekat. Kamu bisa lapor sekarang lewat e-Filing atau menundanya.', [
+    { t: 'Lapor sekarang (gratis)', cls: 'pri', ev: 'spt:yes', fn: () => toast('SPT beres. Aman dari denda.', 'good') },
+    { t: 'Nanti saja, sedang sibuk', ev: 'spt:later', fn: () => { if (R('sptl', m) < 0.6) { S.cash -= fine; toast('Telat lapor: denda ' + fmt(fine) + '.', 'bad'); } else toast('Untung masih sempat. Jangan keterusan.', ''); } }]);
+}
+function evKerabat(m, p) {
+  const amt = Math.round(clamp(S.cash * 0.25, 2e6 * p, 40e6 * p) / 1e5) * 1e5;
+  ask('🍜 Kerabat Mengajak Patungan Usaha', 'Sepupumu mau membuka kedai dan butuh modal patungan ' + fmt(amt) + '. Katanya "pasti balik modal enam bulan".', [
+    { t: 'Ikut patungan (' + fmt(amt) + ')', cls: 'dng', ev: 'kerabat:yes', fn: () => {
+        if (S.cash < amt) { toast('Uangmu tidak cukup.', ''); return; }
+        S.cash -= amt; const r = R('kerabat', m);
+        if (r < 0.3) { S.cash += amt * 1.7; toast('Kedai itu laris! Bagi hasilmu ' + fmt(amt * 1.7) + '.', 'gold'); }
+        else if (r < 0.55) { S.cash += amt * 0.7; toast('Usaha jalan di tempat, sebagian modal kembali.', ''); }
+        else { S.friends = clamp(S.friends - 5); toast('Kedai bubar dan modalmu hilang. Hubungan keluarga jadi canggung.', 'bad'); } } },
+    { t: 'Tolak dengan baik', cls: 'pri', ev: 'kerabat:no', fn: () => { S.friends = clamp(S.friends - 2); } }]);
+}
+
+function bizPick() { let best = null; BIZS.forEach(b => { const x = S.biz[b.id]; if (x && x.lvl > 0 && !(x.until && x.until > S.m) && (!best || b.profit * x.lvl > best.b.profit * best.s.lvl)) best = { b, s: x }; }); return best; }
+const hasBiz = () => !!bizPick();
+function evBizIklan(m, p) {
+  const o = bizPick(), c = Math.round(Math.max(0.6e6, o.b.profit * o.s.lvl * 2) * p / 1e5) * 1e5;
+  ask('📣 Tawaran Iklan untuk ' + o.b.name, 'Agensi menawarkan paket promosi besar-besaran. Biayanya ' + fmt(c) + ', hasilnya tidak dijamin.', [
+    { t: 'Pasang iklan (' + fmt(c) + ')', ev: 'bizad:yes', fn: () => { if (S.cash < c) { toast('Kas tidak cukup.', ''); return; } S.cash -= c; if (R('bizad', m) < 0.55) { o.s.mod = { mult: 1.35, until: m + 6 }; toast('Iklan berhasil: laba naik 35% selama 6 bulan.', 'good'); } else toast('Iklan kurang efektif, uang terbuang.', 'bad'); } },
+    { t: 'Fokus pelanggan lama', ev: 'bizad:no', fn: () => toast('Tidak ada pengeluaran baru.', '') }]);
+}
+function evBizPesaing(m, p) {
+  const o = bizPick(), c = Math.round(Math.max(0.5e6, o.b.profit * o.s.lvl * 1.5) * p / 1e5) * 1e5;
+  ask('⚔️ Pesaing Buka di Sebelah ' + o.b.name, 'Pesaing baru membuka usaha serupa dan memasang harga lebih murah.', [
+    { t: 'Perang harga', cls: 'dng', ev: 'bizcomp:war', fn: () => { o.s.mod = { mult: 0.85, until: m + 6 }; toast('Margin menipis 15% selama 6 bulan, pelanggan bertahan.', ''); } },
+    { t: 'Tingkatkan kualitas (' + fmt(c) + ')', cls: 'pri', ev: 'bizcomp:qual', fn: () => { if (S.cash < c) { toast('Kas tidak cukup.', ''); return; } S.cash -= c; o.s.mod = { mult: 1.08, until: m + 12 }; toast('Pelanggan setia, laba naik 8% setahun.', 'good'); } },
+    { t: 'Abaikan saja', ev: 'bizcomp:no', fn: () => { if (R('bizcomp', m) < 0.7) { o.s.mod = { mult: 0.78, until: m + 8 }; toast('Pelanggan pindah, laba turun 22% selama 8 bulan.', 'bad'); } else toast('Untung pesaing itu tidak bertahan.', ''); } }]);
+}
+function evBizSupplier(m, p) {
+  const o = bizPick(), c = Math.round(0.4e6 * p / 1e5) * 1e5;
+  ask('📦 Harga Bahan Baku Naik', 'Pemasok menaikkan harga 15%. ' + o.b.name + ' harus memilih cara menyikapinya.', [
+    { t: 'Naikkan harga jual', ev: 'bizsup:price', fn: () => { if (R('bizsup', m) < 0.5) { o.s.mod = { mult: 0.9, until: m + 6 }; toast('Sebagian pelanggan pergi, laba turun 10% selama 6 bulan.', 'bad'); } else toast('Pelanggan menerima harga baru.', 'good'); } },
+    { t: 'Tahan harga, margin dikorbankan', ev: 'bizsup:hold', fn: () => { o.s.mod = { mult: 0.88, until: m + 6 }; toast('Margin turun 12% selama 6 bulan, pelanggan loyal.', ''); } },
+    { t: 'Cari pemasok baru (' + fmt(c) + ')', cls: 'pri', ev: 'bizsup:new', fn: () => { if (S.cash < c) { toast('Kas tidak cukup.', ''); return; } S.cash -= c; if (R('bizsupn', m) < 0.6) toast('Pemasok baru lebih murah. Margin aman.', 'good'); else { o.s.mod = { mult: 0.92, until: m + 4 }; toast('Pemasok baru kurang andal, margin turun 8% sementara.', ''); } } }]);
+}
+function evBizStaff(m, p) {
+  const o = bizPick(), c = Math.round(Math.max(0.5e6, o.b.profit * o.s.lvl * 1.2) * p / 1e5) * 1e5;
+  ask('👷 Karyawan Kunci Minta Naik Gaji', 'Karyawan andalan di ' + o.b.name + ' mengancam pindah kalau tidak ada kenaikan.', [
+    { t: 'Penuhi (' + fmt(c) + ' bonus tahunan)', cls: 'pri', ev: 'bizstaff:yes', fn: () => { if (S.cash < c) { toast('Kas tidak cukup.', ''); return; } S.cash -= c; o.s.mod = { mult: 1.05, until: m + 12 }; toast('Tim lebih solid, laba naik 5% setahun.', 'good'); } },
+    { t: 'Tolak', ev: 'bizstaff:no', fn: () => { if (R('bizstaff', m) < 0.5) { o.s.mod = { mult: 0.85, until: m + 4 }; toast('Dia resign. Laba turun 15% selama 4 bulan.', 'bad'); } else toast('Dia tetap bertahan.', ''); } }]);
+}
+function evBanjir(m, p) {
+  const c = Math.round(2e6 * p / 1e5) * 1e5;
+  ask('🌧️ Banjir Merendam Tempat Tinggal', 'Hujan deras seharian. Air masuk dan merusak perabot.', [
+    { t: 'Bersihkan dan ganti perabot (' + fmt(c) + ')', ev: 'banjir:full', fn: () => { S.cash -= c; S.happy = clamp(S.happy - 2); } },
+    { t: 'Seadanya (' + fmt(c * 0.4) + ')', ev: 'banjir:min', fn: () => { S.cash -= c * 0.4; S.health = clamp(S.health - 4); S.happy = clamp(S.happy - 4); toast('Lembab dan jamur membuat kesehatan turun.', 'bad'); } }]);
+}
+function evPanik(m, p) {
+  const v = S.inv.stock || 0, add = Math.max(0, S.cash * 0.25);
+  ask('📉 Pasar Saham Merah', 'Portofolio sahammu turun tajam bulan lalu. Grup chat penuh teriakan "jual semua".', [
+    { t: 'Jual semua (' + fmt(v) + ')', cls: 'dng', ev: 'panik:sell', fn: () => { A.inv('stock', 'wd'); } },
+    { t: 'Tahan, ini bagian dari risiko', cls: 'pri', ev: 'panik:hold', fn: () => toast('Pasar sering pulih, tapi tidak ada jaminan kapan.', '') },
+    { t: 'Tambah beli (25% kas)', ev: 'panik:buy', fn: () => { if (add < 100e3) return; S.cash -= add; S.inv.stock = (S.inv.stock || 0) + add; } }]);
+}
 const EV2 = [
+  { id: 'bizad', w: 1.2, ok: () => hasBiz(), run: evBizIklan },
+  { id: 'bizcomp', w: 1.0, ok: () => hasBiz(), run: evBizPesaing },
+  { id: 'bizsup', w: 1.0, ok: () => hasBiz(), run: evBizSupplier },
+  { id: 'bizstaff', w: 0.8, ok: () => hasBiz(), run: evBizStaff },
+  { id: 'banjir', w: 0.7, ok: (m, a) => S.housing !== 'kpr' || true, run: evBanjir },
+  { id: 'panik', w: 3, ok: () => (S.inv.stock || 0) > 3e6 * PI(S.m) && S.last.stock != null && S.last.stock <= -0.07, run: evPanik },
+  { id: 'flash', w: 4, ok: (m, a) => m % 12 === 10 && S.cash >= 1.5e6 * PI(m), run: evFlash },
+  { id: 'sinyal', w: 1.0, ok: (m, a) => a >= 23 && S.cash >= 2e6 * PI(m), run: evSinyal },
+  { id: 'spt', w: 4, ok: (m, a) => m % 12 === 1 && a >= 23 && S.jobless <= 0, run: evSPT },
+  { id: 'kerabat', w: 0.9, ok: (m, a) => a >= 25 && S.cash >= 5e6 * PI(m), run: evKerabat },
   { id: 'koneksi', w: 1.5, ok: () => S.friends >= 45 || S.life >= 2, run: evKoneksi },
   { id: 'scam', w: 1.4, ok: () => true, run: evScam },
   { id: 'pet', w: 1.0, ok: () => true, run: evPetSakit },
@@ -818,6 +970,8 @@ const EV2 = [
   { id: 'carneed', w: 2.2, ok: (m, a) => S.vehicle !== 'mobil' && a >= 26 && S.jobless <= 0 && !(S.flags.carAskAt && m - S.flags.carAskAt < 24) && (S.kids.some(c => kidAgeY(c) <= 5) || S.kids.length >= 2 || S.job >= 5 || (S.flags.crashMajor && m - S.flags.crashMajor <= 8)), run: evButuhMobil },
   { id: 'maag', w: 1.6, ok: (m, a) => S.jobless <= 0 && !S.gerd && a <= 38 && S.job <= 3 && (S.job <= 1 || S.side || S.cash < 3e6 * PI(m)), run: evMaag },
   { id: 'arisan', w: 0.9, ok: (m, a) => a >= 24 && S.friends >= 35 && S.cash >= 1e6 * PI(m), run: evArisan },
+  { id: 'funrun', w: 1.1, ok: (m, a) => a >= 20 && a <= 55 && S.health >= 30 && S.cash >= 0.6e6 * PI(m), run: evFunRun },
+  { id: 'konser', w: 1.1, ok: (m, a) => a >= 20 && S.cash >= 2.5e6 * PI(m), run: evKonser },
   { id: 'hajat', w: 1.1, ok: (m, a) => a >= 24, run: evHajatan },
   { id: 'sandwich', w: 1.6, ok: (m, a) => (S.flags.sand || 0) < 2 && a >= 33 && S.kids.some(c => kidAgeY(c) >= 5 && kidAgeY(c) <= 17), run: evSandwich },
 ];
@@ -827,17 +981,165 @@ function randomEvents(m) {
   if (m % 12 === 2 && a >= 23 && employed && R('thr', m) < 0.9) { evTHR(m, p); return; }
   if (m % 12 === 3 && a >= 23 && R('mudik', m) < 0.85) { evMudik(m, p); return; }
   if (R('ev', m) >= 0.30) return;
-  const W = [['judol', 3 * (1 + S.addict / 40) * (1 + 0.1 * S.life), true], ['pinjam', 2.5, S.cash >= 0.6e6 * p], ['bodong', 1.6 * (1 + 0.12 * S.life), a >= 24 && S.cash >= 1e6 * p], ['ortu', 1.4, a >= 28 || S.support > 0], ['bonus', 1.3, employed]].map(x => [x[0], x[1] * 1.25, x[2]]).concat(EV2.filter(e => e.ok(m, a)).map(e => [e.id, e.w, true]));
+  const W = [['judol', 3 * (1 + S.addict / 40) * (1 + 0.1 * S.life) * (S.happy < 25 ? 1.8 : 1), true], ['pinjam', 2.5, S.cash >= 0.6e6 * p], ['bodong', 1.6 * (1 + 0.12 * S.life), a >= 24 && S.cash >= 1e6 * p], ['ortu', 1.4, a >= 28 || S.support > 0], ['bonus', 1.3, employed]].map(x => [x[0], x[1] * 1.25, x[2]]).concat(EV2.filter(e => e.ok(m, a)).map(e => [e.id, e.w, true]));
   const ok = W.filter(x => x[2]); const tw = ok.reduce((s, x) => s + x[1], 0); let v = R('evt', m) * tw, pick = ok[0];
   for (const x of ok) { v -= x[1]; if (v <= 0) { pick = x; break; } }
   const e2 = EV2.find(e => e.id === pick[0]); if (e2) { e2.run(m, p); return; }
   ({ judol: evJudol, pinjam: evPinjam, bodong: evBodong, ortu: evOrtu, bonus: evBonus })[pick[0]](m, p);
 }
 
+
+
+/* ====================== tujuan hidup, gelar, waktu 24 jam ====================== */
+const bizLvl = () => BIZS.reduce((a, b) => a + ((S.biz[b.id] && S.biz[b.id].lvl) || 0), 0);
+const bizMgr = () => BIZS.some(b => S.biz[b.id] && S.biz[b.id].mgr);
+const parentCare = () => S.log.filter(l => l[2] === 'ortu:full' || l[2] === 'ortu:part' || l[2] === 'sand:ortu' || l[2] === 'sand:both').length;
+const parentBonus = () => Math.min(20000, 5000 * parentCare() + (S.support > 0 ? 5000 : 0));
+function playStyle() {
+  const k = S.ended && S.ended.kind;
+  const en = enjoyScore();
+  if (k === 'bankrupt') return ['💸', S.happy < 30 ? 'Jatuh Bangun' : 'Korban Gaya Hidup'];
+  if (k === 'dead') return ['🕯️', 'Pejuang Kelelahan'];
+  const nw = Math.max(1, networth()), inv = sum(S.inv), fem = S.gender === 'f';
+  if (bizLvl() >= 3 || (bizLvl() >= 1 && S.job <= 2)) return ['🏪', 'Pengusaha'];
+  if (S.job >= 6) return ['🏢', 'Eksekutif Korporat'];
+  if (S.married && S.kids.length >= 2 && (S.housing === 'own' || parentCare() > 0 || S.support > 0)) return ['👨‍👩‍👧', fem ? 'Ibu Teladan' : 'Family Man'];
+  if (inv > 0 && inv >= 0.5 * nw) return ['📈', 'Investor Sejati'];
+  if (S.happy >= 70 && S.health >= 70 && S.friends >= 60) return ['⚖️', 'Penyeimbang Hidup'];
+  if (en >= 6) return ['🌏', 'Petualang Sejati'];
+  if (S.life === 0 && S.cash >= 6 * ((S.flow && S.flow.needsFF) || 1)) return ['🧘', 'Si Hemat Disiplin'];
+  return ['🧳', 'Perantau Tangguh'];
+}
+const COMMUTE = { none: 2.5, motor: 1.5, mobil: 2 };
+function timeBudget() {
+  const sleep = S.sleep || 7, ot = S.ot || 0, emp = S.jobless <= 0;
+  const work = emp ? 8 + ot : 0, commute = emp ? COMMUTE[S.vehicle] : 0, side = S.side ? 3 * sideTime(S.job) : 0, routine = 3;
+  return { sleep, work, commute, side, routine, free: Math.max(0, 24 - sleep - work - commute - side - routine) };
+}
+function timeFx() {
+  const t = timeBudget(), ot = S.ot || 0, fam = (S.married ? 1 : 0) + Math.min(2, S.kids.length) * 0.5;
+  let h = clamp((t.free - 4) * 0.06, -0.4, 0.12) + 0.05 * (t.sleep - 7) - 0.06 * ot;
+  if (fam > 0) { if (t.free >= 4) h += 0.08 * fam; else if (t.free < 2.5) h -= 0.1 * fam; }
+  return { h, he: 0.1 * (t.sleep - 7) - 0.08 * ot };
+}
+function timeCard() {
+  const t = timeBudget(), seg = [['😴 Tidur', t.sleep, '#6a7fd1'], ['💼 Kerja', t.work, '#e07a5f'], ['🚌 Komuter', t.commute, '#b8860b'], ['🕘 Sampingan', t.side, '#a05bd6'], ['🍽️ Makan & rutin', t.routine, '#7a8aa0'], ['👨‍👩‍👧 Waktu bebas & keluarga', t.free, '#3d9970']].filter(x => x[1] > 0);
+  const bar = '<div style="display:flex;height:16px;border-radius:8px;overflow:hidden;margin:6px 0">' + seg.map(x => '<i style="width:' + (x[1] / 24 * 100) + '%;background:' + x[2] + '"></i>').join('') + '</div>';
+  const leg = seg.map(x => '<span style="white-space:nowrap">' + x[0] + ' <b>' + (Math.round(x[1] * 10) / 10) + ' j</b></span>').join(' · ');
+  const fx = timeFx(), fam = S.married || S.kids.length;
+  const n1 = x => (Math.round(x * 10) / 10).toString().replace('.', ',');
+  const formula = '24 − tidur ' + n1(t.sleep) + ' − kerja ' + n1(t.work) + ' − komuter ' + n1(t.commute) + ' − sampingan ' + n1(t.side) + ' − makan & rutin ' + n1(t.routine) + ' = <b>' + n1(t.free) + ' jam bebas</b>';
+  const note = t.free < 2.5 ? '⚠️ Waktu bebas sangat sempit' + (fam ? ', keluarga terasa kurang diperhatikan.' : '.') : t.free >= 4 ? '👍 Waktu bebas lega (4 jam atau lebih)' + (fam ? ', ada waktu untuk keluarga.' : '.') : 'Waktu bebas terbatas (di bawah 4 jam).';
+  const base = 8 + COMMUTE[S.vehicle], ffv = Math.min(1, (S.flow || compute()).ff), back = ffv * base;
+  const reclaim = '<br>🏁 Pasif income <b>' + Math.round(ffv * 100) + '%</b>: kamu sudah membeli kembali ±<b>' + n1(back) + ' jam/hari</b> dari ' + n1(base) + ' jam kerja dan komuter. Di 100%, waktu itu sepenuhnya milikmu.';
+  return '<div class="sec">Jadwal 24 jam</div><div class="card"><b>Waktu juga sumber daya</b><div class="rs">' + bar + leg + '<br>' + formula + '<br>' + note + ' Motor menghemat komuter dibanding transportasi umum. Kerja sampingan dan lembur memakan waktu bebas.' + reclaim + '<br>Dampak waktu ke kebahagiaan: ' + (fx.h >= 0 ? '+' : '') + fx.h.toFixed(2).replace('.', ',') + '/bln, kesehatan: ' + (fx.he >= 0 ? '+' : '') + fx.he.toFixed(2).replace('.', ',') + '/bln.</div>' +
+    '<div class="rs" style="margin-top:6px"><b>Jam tidur</b></div><div class="ibtns">' + [6, 7, 8].map(h => btn('sleep:' + h, h + ' jam', 0, (S.sleep || 7) === h ? '' : 'blue')).join('') + '</div><div class="rs">6 jam: waktu bebas +1 jam, tapi kesehatan dan kebahagiaan turun pelan. 7 jam: seimbang. 8 jam: lebih sehat, tapi waktu bebas −1 jam.</div>' +
+    '<div class="rs" style="margin-top:6px"><b>Lembur per hari</b>' + (S.job <= 3 ? ' (gaji +4% per jam)' : ' (tidak dibayar, tapi menambah peluang promosi)') + '</div><div class="ibtns">' + [0, 1, 2, 3].map(h => btn('ot:' + h, h + ' jam', 0, (S.ot || 0) === h ? '' : 'blue')).join('') + '</div></div>';
+}
+
+/* ====================== pencapaian (milestone) ====================== */
+const TRIP_D = [['Yogyakarta', '🏯', 4e6], ['Bromo', '🌋', 3.5e6], ['Belitung', '🏝️', 5e6], ['Bali', '🌴', 7e6], ['Danau Toba', '⛰️', 8e6], ['Karimunjawa', '🐢', 4.5e6], ['Lombok', '🏄', 6e6], ['Bunaken', '🤿', 10e6], ['Labuan Bajo', '🦎', 12e6], ['Raja Ampat', '🐠', 25e6]];
+const TRIP_I = [['Singapura', '🦁', 12e6], ['Malaysia', '🏙️', 9e6], ['Thailand', '🛺', 13e6], ['Korea Selatan', '🌸', 28e6], ['Jepang', '🗻', 30e6], ['Dubai', '🏜️', 35e6], ['Australia', '🦘', 40e6], ['Turki', '🎈', 40e6], ['Eropa', '🗼', 60e6]];
+const tripN = k => ((S.trips && S.trips[k]) || []).length;
+const enjoyScore = () => tripN('d') + 2 * tripN('i') + (S.flags.run || 0) + (S.flags.konser || 0);
+function evFunRun(m, p) {
+  const c5 = rr(0.25e6 * p), c10 = rr(0.5e6 * p), hurt = S.health < 55;
+  ask('🏃 Fun Run Akhir Pekan', 'Teman-teman mengajak ikut fun run di kota. Suasananya ramai, ada kaos dan medali.', [
+    { t: 'Fun run 5K (' + fmt(c5) + ')', cls: 'pri', ev: 'run:5k', fn: () => { if (!pay(c5)) { toast('Uangmu tidak cukup.', ''); return; } S.flags.run = (S.flags.run || 0) + 1; S.happy = clamp(S.happy + 7); S.health = clamp(S.health + 2); S.friends = clamp(S.friends + 3); toast('🏅 Selesai 5K! Segar dan bangga.', 'good'); } },
+    { t: 'Lari 10K (' + fmt(c10) + ')', ev: 'run:10k', risk: hurt ? ['hi', 'kesehatanmu kurang prima, ±45% cedera dan biaya pengobatan'] : ['lo', 'tubuhmu cukup kuat, manfaat lebih besar'], fn: () => { if (!pay(c10)) { toast('Uangmu tidak cukup.', ''); return; } S.flags.run = (S.flags.run || 0) + 1; if (hurt && R('run10', m) < 0.45) { const c = rr(1.5e6 * p); S.cash -= c; S.health = clamp(S.health - 6); S.happy = clamp(S.happy + 2); toast('🤕 Kamu cedera di km 7. Biaya pengobatan ' + fmt(c) + '.', 'bad'); } else { S.happy = clamp(S.happy + 9); S.health = clamp(S.health + 4); S.friends = clamp(S.friends + 4); toast('🏅 Finis 10K! Tubuhmu makin kuat.', 'good'); } } },
+    { t: 'Lewatkan', ev: 'run:no', fn: () => toast('Akhir pekan santai di rumah.', '') }]);
+}
+function evKonser(m, p) {
+  const c1 = rr(2e6 * p * (1 + 0.15 * S.life)), c2 = rr(6e6 * p * (1 + 0.15 * S.life)), c3 = rr(3.5e6 * p);
+  ask('🎤 Konser Musik', 'Band favoritmu manggung di kotamu. Tiket resmi laris, banyak yang mengantre.', [
+    { t: 'Tiket reguler (' + fmt(c1) + ')', cls: 'pri', ev: 'konser:reg', fn: () => { if (!pay(c1)) { toast('Uangmu tidak cukup.', ''); return; } S.flags.konser = (S.flags.konser || 0) + 1; S.happy = clamp(S.happy + 14); S.friends = clamp(S.friends + 2); toast('🎶 Konsernya luar biasa! Suara serak karena ikut nyanyi.', 'good'); } },
+    { t: 'Tiket VIP (' + fmt(c2) + ')', ev: 'konser:vip', fn: () => { if (!pay(c2)) { toast('Uangmu tidak cukup.', ''); return; } S.flags.konser = (S.flags.konser || 0) + 1; S.happy = clamp(S.happy + 20); S.friends = clamp(S.friends + 3); toast('🌟 Barisan depan! Kenangan seumur hidup.', 'good'); } },
+    { t: 'Beli dari calo (' + fmt(c3) + ')', cls: 'dng', ev: 'konser:calo', fn: () => { if (!pay(c3)) { toast('Uangmu tidak cukup.', ''); return; } if (R('calo', m) < 0.35) { S.happy = clamp(S.happy - 4); toast('😡 Tiketnya palsu. Uang hilang dan kamu pulang kecewa.', 'bad'); } else { S.flags.konser = (S.flags.konser || 0) + 1; S.happy = clamp(S.happy + 14); S.friends = clamp(S.friends + 2); toast('🎶 Tiket calo ternyata asli. Beruntung!', 'good'); } } },
+    { t: 'Lewatkan', ev: 'konser:no', fn: () => toast('Kamu menonton cuplikannya di media sosial saja.', '') }]);
+}
+const MILES = [
+  ['gajian', '💵', 'Naik jabatan pertama', () => S.job >= 1],
+  ['puncak', '🏢', 'Mencapai jabatan puncak', () => S.job >= JOBS.length - 1],
+  ['ahli', '🎓', 'Satu keahlian level 10', () => Object.values(S.skills).some(v => v >= 10)],
+  ['darurat', '🛟', 'Dana darurat 6 bulan', () => S.flow && S.flow.needsFF > 0 && S.cash >= 6 * S.flow.needsFF],
+  ['lunas', '🕊️', 'Bebas semua utang', () => S.m >= 12 && S.debts.length === 0],
+  ['inv', '📈', 'Mulai berinvestasi', () => sum(S.inv) > 0],
+  ['inv100', '💼', 'Investasi tembus Rp 100 jt', () => sum(S.inv) >= 100e6],
+  ['bisnis', '🏪', 'Membuka bisnis pertama', () => BIZS.some(b => S.biz[b.id] && S.biz[b.id].lvl > 0)],
+  ['bizuntung', '💰', 'Bisnis lolos masa rintis', () => BIZS.some(b => { const x = S.biz[b.id]; return x && x.lvl > 0 && !(x.until && x.until > S.m); })],
+  ['produktif', '🧠', 'Memakai utang produktif', () => S.debts.some(d => d.k === 'kur' || d.k === 'edu') || S.flags.eduAt != null],
+  ['nikah', '💍', 'Menikah', () => S.married],
+  ['anak', '👶', 'Punya anak pertama', () => S.kids.length >= 1],
+  ['anak3', '👨‍👩‍👧‍👦', 'Tiga anak', () => S.kids.length >= 3],
+  ['rumah', '🏡', 'Punya rumah sendiri', () => S.housing === 'own' || S.housing === 'kpr'],
+  ['kprlunas', '🔑', 'Rumah lunas', () => S.housing === 'own'],
+  ['mobil', '🚗', 'Punya mobil', () => S.vehicle === 'mobil'],
+  ['asuransi', '🛡️', 'Punya asuransi kesehatan', () => S.ins],
+  ['bakti', '🤲', 'Membantu orang tua', () => S.log.some(l => l[2] === 'ortu:full' || l[2] === 'ortu:part' || l[2] === 'sand:ortu' || l[2] === 'sand:both')],
+  ['funrun', '🏃', 'Ikut fun run pertama', () => (S.flags.run || 0) >= 1],
+  ['konser', '🎤', 'Nonton konser pertama', () => (S.flags.konser || 0) >= 1],
+  ['wisata1', '🧭', 'Wisata Indonesia pertama', () => tripN('d') >= 1],
+  ['wisata5', '🗺️', 'Jelajahi 5 destinasi Indonesia', () => tripN('d') >= 5],
+  ['paspor', '🛂', 'Liburan ke luar negeri', () => tripN('i') >= 1],
+  ['paspor3', '✈️', 'Jelajahi 3 negara', () => tripN('i') >= 3],
+  ['pasif25', '🌱', 'Pasif menutup 25% kebutuhan', () => S.flow && S.flow.ff >= 0.25],
+  ['pasif50', '🌿', 'Pasif menutup 50% kebutuhan', () => S.flow && S.flow.ff >= 0.5],
+  ['pasif100', '🌳', 'Pasif menutup 100% kebutuhan', () => S.flow && S.flow.ff >= 1],
+  ['miliar', '💎', 'Kekayaan tembus Rp 1 miliar', () => S.cash + sum(S.inv) >= 1e9],
+  ['dekade', '⏳', 'Bertahan 10 tahun', () => S.m >= 120],
+  ['dua', '⌛', 'Bertahan 20 tahun', () => S.m >= 240],
+];
+function checkMiles() {
+  if (!S.miles) S.miles = {};
+  MILES.forEach(x => { if (!S.miles[x[0]]) { let ok = false; try { ok = !!x[3](); } catch (e) {} if (ok) { S.miles[x[0]] = S.m; toast('🏅 Pencapaian: ' + x[2], 'gold'); } } });
+}
+function goalHTML() {
+  return '<div class="card"><b>🤲 Merawat orang tua</b><div class="rs">Membantu orang tua menambah bonus skor saat merdeka finansial: +' + parentBonus().toLocaleString('id-ID') + ' (maks 20.000).</div></div>';
+}
+function milesHTML() {
+  const got = MILES.filter(x => S.miles && S.miles[x[0]]), lock = MILES.filter(x => !(S.miles && S.miles[x[0]]));
+  return '<div class="card"><b>🏅 Pencapaian (' + got.length + '/' + MILES.length + ')</b><div class="ms">' + got.map(x => '<span class="got">' + x[1] + ' ' + x[2] + '</span>').join('') + lock.slice(0, 4).map(x => '<span>🔒 ' + x[2] + '</span>').join('') + (lock.length > 4 ? '<span>+' + (lock.length - 4) + ' lagi</span>' : '') + '</div></div>';
+}
+
+
+function forceSell() {
+  if (S.cash >= 0) return;
+  let lost = 0, sold = 0;
+  for (const id of ['save', 'gold', 'bond', 'stock', 'crypto', 'reit']) {
+    if (S.cash >= 0) break;
+    const i = INVS.find(x => x.id === id), v = S.inv[id] || 0; if (v <= 0) continue;
+    const take = Math.min(v, (-S.cash) / (1 - i.liq.ef)); S.inv[id] = v - take; const net = take * (1 - i.liq.ef); S.cash += net; lost += take - net; sold += take;
+  }
+  if (sold > 0) toast(lost > 1 ? '🚨 Kas habis, investasi dijual paksa! Rugi biaya & diskon ' + fmt(lost) + '. Dana darurat tunai mencegah ini.' : 'Kas kurang, investasi likuid dicairkan untuk menutup tagihan.', lost > 1 ? 'bad' : '');
+}
+
 /* ====================== langkah bulanan ====================== */
+
+let birthQ = false;
+function evBurnout(m, p) {
+  S.flags.burnAt = m;
+  ask('🔥 Burnout', 'Kamu terlalu lama stres dan tubuhmu menyerah. Kamu tidak sanggup bekerja seperti biasa.', [
+    { t: 'Ambil cuti 3 bulan (gaji hilang)', cls: 'pri', ev: 'burn:cuti', fn: () => { S.jobless = 3; S.happy = clamp(S.happy + 25); S.health = clamp(S.health - 3); toast('😌 Cuti memulihkan tubuh dan pikiranmu, tapi gaji 3 bulan hilang.', 'good'); } },
+    { t: 'Paksa lanjut kerja', cls: 'dng', ev: 'burn:lanjut', fn: () => { S.health = clamp(S.health - 10); S.happy = clamp(S.happy - 5); if (R('burn2', m) < 0.4) { const c = rr(8e6 * p); S.cash -= c; S.jobless = 4; S.health = clamp(S.health - 8); toast('🚑 Kamu tumbang dan dirawat. Biaya ' + fmt(c) + ' dan kehilangan gaji 4 bulan.', 'bad'); } else toast('Kamu bertahan, tapi tubuhmu protes keras.', 'bad'); } }]);
+}
+function evPersalinan(m, p) {
+  birthQ = true;
+  const base = 14e6 * p * (S.ins ? 0.6 : 1);
+  const lahir = (cost, recov, msg) => {
+    const g = R('kid', S.kids.length) < 0.5 ? 'm' : 'f', nm = KID_NAMES[g][S.kids.length % 3];
+    S.cash -= cost; S.kids.push({ born: S.m, g, name: nm }); S.pregDue = null; S.happy = clamp(S.happy + 12); S.recov = recov; birthQ = false;
+    toast('👶 ' + nm + ' lahir! ' + msg + ' Biaya persalinan ' + fmt(cost) + '. Pengeluaran bulanan naik.', 'gold');
+  };
+  ask('🤰 Hari Persalinan', 'Hari perkiraan lahir sudah tiba. Dokter bertanya cara persalinan yang kamu pilih. ' + (S.ins ? 'Asuransimu menanggung sebagian biaya.' : 'Tanpa asuransi, biaya ditanggung sendiri.'), [
+    { t: 'Persalinan normal (' + fmt(base * 0.6) + ')', ev: 'lahir:normal', fn: () => {
+        if (R('lahir', S.kids.length) < 0.12) { S.health = clamp(S.health - 6); lahir(base * 1.6, 3, 'Ada komplikasi, dokter terpaksa melakukan sesar darurat.'); }
+        else lahir(base * 0.6, 1, 'Persalinan normal berjalan lancar.'); } },
+    { t: 'Operasi sesar (' + fmt(base * 1.6) + ')', ev: 'lahir:sesar', fn: () => lahir(base * 1.6, 3, 'Operasi sesar berjalan lancar, pemulihanmu butuh beberapa bulan.') }]);
+}
 function step() {
   if (S.ended) return;
   S.m++; const m = S.m, p = PI(m), a = ageY(m);
+  if (S.pend && S.pend.length) { const due = S.pend.filter(x => x.m <= m); if (due.length) { const t = due.reduce((q, x) => q + x.amt, 0); S.cash += t; S.pend = S.pend.filter(x => x.m > m); toast('💸 Dana penjualan investasi cair ' + fmt(t) + '.', 'good'); } }
   if (m === crisisStart) toast('📰 Krisis ekonomi! Pasar saham anjlok, risiko PHK naik.', 'bad');
   if (m === crisisStart + 14) toast('📈 Ekonomi mulai pulih.', 'good');
   if (m === shk1 || m === shk2) toast('⛽ Harga BBM naik! Semua harga naik permanen.', 'bad');
@@ -857,7 +1159,7 @@ function step() {
     S.last[i.id] = g; const v = S.inv[i.id] || 0; if (v > 0) S.inv[i.id] = v * (1 + g);
   });
   if (S.houseVal) S.houseVal *= 1.0045;
-  if (S.cd.fun > 0) S.cd.fun--; if (S.cd.doc > 0) S.cd.doc--; if (S.promoCd > 0) S.promoCd--; if (S.cd.fr > 0) S.cd.fr--;
+  if (S.cd.fun > 0) S.cd.fun--; if (S.cd.doc > 0) S.cd.doc--; if (S.promoCd > 0) S.promoCd--; if (S.cd.fr > 0) S.cd.fr--; if (S.cd.td > 0) S.cd.td--; if (S.cd.ti > 0) S.cd.ti--;
   S.friends = clamp(S.friends - 0.12 + [-0.1, 0, 0.04, 0.07, 0.1][S.life] + (S.vehicle === 'mobil' ? 0.03 : 0) - (S.addict >= 40 ? 0.2 : 0));
   S.kids.forEach(c => { const ay = kidAgeY(c); if (ay >= 3 && ay <= 21) c.q = (c.q || 0) + EDUQ[S.edu]; });
   S.ponzi = S.ponzi.filter(z => {
@@ -889,11 +1191,7 @@ function step() {
     S.ytdGross = 0; S.ytdWith = 0;
   }
   // lahir & sekolah
-  if (S.pregDue != null && m >= S.pregDue) {
-    const g = R('kid', S.kids.length) < 0.5 ? 'm' : 'f', nm = KID_NAMES[g][S.kids.length % 3];
-    const cost = 14e6 * p * (S.ins ? 0.6 : 1); S.cash -= cost; S.kids.push({ born: m, g, name: nm }); S.pregDue = null; S.happy = clamp(S.happy + 12);
-    toast('👶 ' + nm + ' lahir! Biaya persalinan ' + fmt(cost) + '. Pengeluaran bulanan naik.', 'gold');
-  }
+  if (S.pregDue != null && m >= S.pregDue && !birthQ) evPersalinan(m, p);
   S.kids.forEach(c => {
     const am = m - c.born; if (am > 0 && am % 12 === 0) { const st = STAGES.find(s => s.from === am / 12);
       if (st && st.entry[S.edu]) { const e = st.entry[S.edu] * 1e6 * p; S.cash -= e; toast('🎒 ' + c.name + ' masuk ' + st.label + '. Uang pangkal ' + fmt(e), ''); } }
@@ -909,16 +1207,19 @@ function step() {
   const carNeed = S.vehicle !== 'mobil' ? (S.kids.some(c => kidAgeY(c) <= 5) ? 0.2 : 0) + (S.kids.length >= 2 ? 0.12 : 0) : 0;
   const homeFx = { kos: (S.married || hasKids) ? -0.5 : -0.2, kontrak: hasKids ? -0.15 : 0, kpr: 0.15, own: 0.3 }[S.housing] || 0;
   const vehFx = { none: -0.15, motor: 0.1, mobil: 0.2 }[S.vehicle] || 0;
+  const tfx = timeFx(); if ((S.recov || 0) > 0) { tfx.h -= 0.6; tfx.he -= 0.8; S.recov--; }
   const gengsi = S.life >= 3 && S.cash < 3 * f.needsFF ? -0.4 : 0;
   const judolFx = S.addict >= 20 ? -S.addict / 100 * 0.5 : 0;
-  S.happy = clamp(S.happy - 0.75 + bakti + homeFx + vehFx + gengsi + judolFx + LIFE[S.life].h + 0.35 * kids + (S.married ? 0.25 : (age() >= 30 && S.friends < 70 ? -0.15 : 0)) + (S.friends - 50) * 0.006 + (S.gym ? 0.05 : 0)
+  S.happy = clamp(S.happy - 0.75 + tfx.h + bakti + homeFx + vehFx + gengsi + judolFx + LIFE[S.life].h + 0.35 * kids + (S.married ? 0.25 : (age() >= 30 && S.friends < 70 ? -0.15 : 0)) + (S.friends - 50) * 0.006 + (S.gym ? 0.05 : 0)
     - (S.side ? 0.4 * sideFatigue(S.job) : 0) - busy * 0.05 - carNeed - (S.gerd > 0 ? 0.2 : 0) - juniorStress * 0.1 - f.ownerRun * 0.25 - (S.jobless > 0 ? 0.6 : 0) - (S.cash < f.needsFF ? 0.3 : 0) - (sum(Object.values(f.pays)) > 0.4 * Math.max(1, f.active) ? 0.3 : 0));
   const toddlers = Math.min(2, S.kids.filter(c => kidAgeY(c) <= 5).length);
-  S.health = clamp(S.health - 0.1 + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 28) * 0.009 + (S.health < 85 ? 0.07 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 * sideFatigue(S.job) : 0) - busy * 0.06 - carNeed * 0.4 - (S.gerd > 0 ? 0.35 : 0) - juniorStress * 0.1 - f.ownerRun * 0.1 - (S.happy < 25 ? 0.5 : 0));
+  S.health = clamp(S.health - 0.1 + tfx.he + (S.vehicle === 'none' ? 0.04 : S.vehicle === 'mobil' ? -0.02 : 0) - toddlers * 0.15 - Math.max(0, a - 28) * 0.009 + (S.health < 85 ? 0.07 : 0) + (S.gym ? 0.2 : 0) - (S.side ? 0.3 * sideFatigue(S.job) : 0) - busy * 0.06 - carNeed * 0.4 - (S.gerd > 0 ? 0.35 : 0) - juniorStress * 0.1 - f.ownerRun * 0.1 - (S.happy < 25 ? 0.5 : 0));
+  if (S.happy < 25) S.friends = clamp(S.friends - 0.4);
   { const crashP = { none: 0.0012, motor: 0.007, mobil: 0.003 }[S.vehicle] || 0; if (R('moto', m) < crashP) evCrash(m, p); }
   if (m % 6 === 0 && S.health < 35) toast('❤️ Kesehatanmu kritis! Pakai Periksa, olahraga, atau kurangi kerja lembur.', 'bad');
   if (m % 6 === 3 && S.happy < 20) toast('😔 Kamu sangat stres. Ambil Hiburan, kumpul teman, atau naikkan gaya hidup sedikit.', 'bad');
-  if (S.happy < 15 && S.jobless <= 0 && S.job > 0 && R('burn', m) < 0.04) { S.jobless = 3; S.health = clamp(S.health - 6); toast('🔥 Burnout! Kamu terlalu lama stres, terpaksa cuti dan kehilangan gaji 3 bulan.', 'bad'); }
+  if (S.happy < 15 && S.jobless <= 0 && (S.flags.burnAt == null || m - S.flags.burnAt >= 12) && R('burn', m) < (S.happy < 8 ? 0.10 : 0.05)) evBurnout(m, p);
+  if (S.happy < 35 && S.happy >= 20 && (S.flags.warnH == null || m - S.flags.warnH >= 12)) { S.flags.warnH = m; toast('⚠️ Kebahagiaanmu menurun. Ambil hiburan, kumpul teman, atau kurangi lembur sebelum terlambat.', 'bad'); }
   if ((S.chronic || 0) > 0) { S.chronic--; S.health = clamp(S.health - 0.3); if (S.chronic === 0) toast('💊 Kondisimu akhirnya stabil. Kontrol rutin selesai.', 'good'); }
   if (S.flow && S.flow.lines && S.flow.lines['Tuntutan kelas menengah'] > 0 && !S.flags.creep) { S.flags.creep = 1; toast('📊 Jebakan kelas menengah: gaji naik, tapi arisan, cicilan gaya, dan gengsi ikut naik. Penghasilan pasif yang menyelamatkanmu.', ''); }
   S.deals = (S.deals || []).filter(d => {
@@ -947,11 +1248,12 @@ function step() {
     else S.addict = Math.max(0, S.addict - 0.8);
   }
   randomEvents(m);
+  forceSell();
   if (S.cash < 0 && S.debts.filter(d => d.k === 'pinjol').reduce((a, d) => a + d.bal, 0) > 24 * Math.max(JOBS[S.job].sal * p, 5e6 * p)) { S.cash = 0; return endGame('bankrupt'); }
   if (S.cash < 0) { addPinjol(-S.cash); toast('⚠️ Uang habis, kamu terpaksa pinjol ' + fmt(-S.cash) + ' (bunga ±9%/bln!).', 'bad'); S.cash = 0; S.happy = clamp(S.happy - 4); }
   if (m % 12 === 0) toast('🎂 Ulang tahun ke-' + a + '!', 'gold');
   // merdeka?
-  const f2 = compute(); S.flow = f2;
+  const f2 = compute(); S.flow = f2; checkMiles();
   S.ffStreak = f2.ff >= 1 ? S.ffStreak + 1 : 0; S.ffMax = Math.max(S.ffMax, f2.ff);
   if (S.ffStreak >= 6) return endGame('ff');
   if (S.health <= 0) return endGame('dead');
@@ -961,7 +1263,7 @@ function step() {
 /* ====================== ending & skor ====================== */
 function calcScore(kind) {
   const f = compute();
-  if (kind === 'ff') return 1000000 + (TOTAL - S.ffAt) * 1000 + Math.round(S.happy) * 50 + Math.round(S.health) * 50 + S.kids.length * 15000 + (S.married ? 8000 : 0) + Math.round(S.kids.reduce((s, c) => s + mutu(c), 0) * 10000);
+  if (kind === 'ff') return 1000000 + (TOTAL - S.ffAt) * 1000 + Math.round(S.happy) * 50 + Math.round(S.health) * 50 + S.kids.length * 15000 + (S.married ? 8000 : 0) + Math.round(S.kids.reduce((s, c) => s + mutu(c), 0) * 10000) + parentBonus();
   if (kind === 'bankrupt') return 0;
   if (kind === 'retire') return Math.round(Math.min(0.99, f.ff) * 100000);
   return Math.round(Math.min(0.99, f.ff) * 50000);
@@ -980,11 +1282,13 @@ function endVariant(kind, f, nw) {
     return null;
   }
   if (kind === 'retire') {
+    if (enjoyScore() >= 6) return ['🌏 Penikmat Hidup', 'Di umur ' + END_AGE + ' pasifmu baru menutup ' + pct(f.ff) + ' kebutuhan, tapi kamu sudah menjelajahi ' + (tripN('d') + tripN('i')) + ' destinasi dan menyimpan banyak cerita. Belum merdeka finansial, tapi hidupmu tidak kosong.'];
     if (f.ff >= 0.7) return ['🌅 Hampir Merdeka', 'Di umur ' + END_AGE + ' pendapatan pasifmu menutup ' + pct(f.ff) + ' kebutuhan. Sedikit lagi, dan kamu bisa bersantai tanpa cemas.'];
     if (f.ff < 0.2) return ['🪑 Pensiun Pas-pasan', 'Di umur ' + END_AGE + ' pendapatan pasifmu baru ' + pct(f.ff) + ' kebutuhan. Mungkin saatnya menunda pensiun atau bergantung pada keluarga. Mulai berinvestasi lebih awal akan sangat membantu.'];
     return null;
   }
   if (kind === 'dead') {
+    if (enjoyScore() >= 6 && age() >= 40) return ['🎒 Hidup Singkat, Penuh Cerita', 'Tubuhmu menyerah di umur ' + age() + ', tapi kamu sempat melihat banyak tempat dan merasakan banyak hal. Semoga itu jadi penghiburan.'];
     if (age() < 45) return ['⚰️ Pergi Terlalu Dini', 'Di umur ' + age() + ' tubuhmu menyerah. Jabatan dan angka di rekening tidak sempat kamu nikmati. ' + (S.kids.length ? 'Anak-anakmu kehilangan sosok orang tua.' : '')];
     if (S.happy < 20) return ['🕯️ Lelah Jiwa Raga', 'Stres panjang menggerogoti kesehatanmu. Hiburan dan waktu untuk teman bukan kemewahan, itu perawatan.'];
     return null;
@@ -1017,9 +1321,10 @@ function shareCard(T, f, nw, back) {
   lines.slice(0, 3).forEach((l, i) => ctr(l, 360 + i * 90, 72, '800'));
   const y0 = 360 + Math.min(3, lines.length) * 90 + 40;
   ctr(ok ? 'Merdeka di umur ' + (START_AGE + Math.floor(S.ffAt / 12)) : 'Berakhir di umur ' + age(), y0, 46, '600', 'rgba(255,255,255,.9)');
+  { const st = playStyle(); ctr(st[0] + ' ' + st[1], y0 + 56, 40, '700', '#ffd23f'); }
   const rows = [['SKOR MUSIM', S.ended.score.toLocaleString('id-ID')], ['KEKAYAAN BERSIH', fmt(nw)], ['PASIF / BULAN', fmt(f.passive)], ['ANAK', String(S.kids.length)]];
   rows.forEach((r, i) => {
-    const y = y0 + 80 + i * 150;
+    const y = y0 + 105 + i * 140;
     x.fillStyle = 'rgba(255,255,255,.13)'; x.beginPath(); x.roundRect ? x.roundRect(100, y, W - 200, 120, 28) : x.rect(100, y, W - 200, 120); x.fill();
     x.textAlign = 'left'; x.fillStyle = 'rgba(255,255,255,.7)'; x.font = '600 28px ' + F; x.fillText(r[0], 140, y + 48);
     x.fillStyle = '#fff'; x.font = '800 44px ' + F; x.fillText(r[1], 140, y + 98);
@@ -1047,9 +1352,11 @@ function endGame(kind) {
     retire: ['🧓 Pensiun Belum Merdeka', 'Kamu mencapai umur ' + END_AGE + '. Pendapatan pasifmu baru menutup ' + pct(f.ff) + ' kebutuhan, jadi kamu harus terus bekerja atau mengandalkan keluarga.'],
     bankrupt: ['📉 Bangkrut', 'Utang pinjol menggunung dan tidak terbayar lagi. Penagih datang dan semua asetmu disita. Pinjol berbunga ±9% per bulan itu jebakan: jangan pernah dipakai menutup kebutuhan harian.'],
     dead: ['🕊️ Meninggal Dunia', 'Kesehatanmu habis di umur ' + age() + '. Uang tidak ada artinya kalau tubuh tidak dijaga. Pendapatan pasifmu baru ' + pct(f.ff) + ' kebutuhan.'] }[kind];
-  const EV_ = endVariant(kind, f, nw); if (EV_) T = EV_; S.ended.variant = T[0];
+  const EV_ = endVariant(kind, f, nw); if (EV_) T = EV_; S.ended.variant = T[0]; const STY = playStyle(); S.ended.style = STY[1]; const ffBack = Math.min(1, f.ff) * (8 + COMMUTE[S.vehicle]);
   const petLine = '<p style="font-size:12px;color:#5a6a92">🐾 ' + petOf().name + (S.m >= 180 ? ' menemanimu bertahun-tahun.' : ' ada di sisimu sepanjang perjalanan.') + '</p>';
   const showEnd = () => modal('<h2>' + T[0] + '</h2><p>' + T[1] + '</p>' + petLine +
+    (ffBack > 0.05 ? '<div class="stat"><span>Waktu yang kamu dapatkan kembali</span><b>±' + ffBack.toFixed(1).replace('.', ',') + ' jam/hari' + (kind === 'ff' ? ' (±' + Math.round(ffBack * 260).toLocaleString('id-ID') + ' jam/thn)' : '') + '</b></div>' : '') +
+    '<div class="stat"><span>Gelar gaya mainmu</span><b>' + STY[0] + ' ' + STY[1] + '</b></div>' +
     '<div class="stat"><span>Skor musim</span><b>' + S.ended.score.toLocaleString('id-ID') + '</b></div>' +
     '<div class="stat"><span>Pendapatan pasif / bulan</span><b>' + fmt(f.passive) + '</b></div>' +
     '<div class="stat"><span>Kebutuhan / bulan</span><b>' + fmt(f.needsFF) + '</b></div>' +
@@ -1069,12 +1376,12 @@ const cost = {
 };
 function metReq(req) { return Object.keys(req).every(k => S.skills[k] >= req[k]); }
 const tenure = () => S.m - S.jobSince;
-const promoChance = i => { const j = JOBS[i]; let ex = 0; Object.keys(j.req).forEach(k => ex += Math.max(0, S.skills[k] - j.req[k])); return Math.max(0.1, Math.min(0.95, [1, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25][i] + 0.015 * ex - S.addict / 400 + (S.friends - 50) * 0.001 + (S.flags.ref ? 0.25 : 0))); };
+const promoChance = i => { const j = JOBS[i]; let ex = 0; Object.keys(j.req).forEach(k => ex += Math.max(0, S.skills[k] - j.req[k])); return Math.max(0.1, Math.min(0.95, [1, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25][i] + 0.015 * ex - S.addict / 400 + (S.friends - 50) * 0.001 + (S.flags.ref ? 0.25 : 0) + 0.03 * (S.ot || 0) - (S.happy < 10 ? 0.3 : S.happy < 25 ? 0.15 : 0))); };
 const canPromote = i => i === S.job + 1 && metReq(JOBS[i].req) && tenure() >= JOBS[i].minM && S.jobless <= 0;
 function pay(c) { if (S.cash < c) return false; S.cash -= c; return true; }
 const funCost = () => (0.4e6 + LIFE[S.life].c * 0.5) * PI(S.m);
 const A = {
-  skill(id) { const k = SKILLS.find(x => x.id === id); if (!k || S.skills[id] >= 20) return; if (!pay(cost.skill(k))) return; S.skills[id]++; S.happy = clamp(S.happy - 1.5); toast(k.icon + ' ' + k.name + ' naik ke Lv ' + S.skills[id], 'good'); },
+  skill(id) { const k = SKILLS.find(x => x.id === id); if (!k || S.skills[id] >= 20) return; if (S.happy < 10) { toast('😔 Terlalu stres untuk belajar. Pulihkan kebahagiaanmu dulu.', ''); return; } if (!pay(cost.skill(k))) return; S.skills[id]++; S.happy = clamp(S.happy - 1.5); toast(k.icon + ' ' + k.name + ' naik ke Lv ' + S.skills[id], 'good'); },
   job(i) {
     i = +i; const j = JOBS[i]; if (!j || !canPromote(i) || S.promoCd > 0) return;
     if (R('promo', S.m, i) < promoChance(i)) { S.flags.ref = 0; S.job = i; S.jobSince = S.m; toast('💼 Diterima! Kamu sekarang ' + j.name + '. Gaji ' + fmt(j.sal * PI(S.m)) + '/bln', 'gold'); }
@@ -1083,14 +1390,36 @@ const A = {
   side() { if (!S.side && sideTime(S.job) === 0) { toast('Jabatanmu terlalu sibuk untuk kerja sampingan.', ''); return; } S.side = !S.side; toast(S.side ? '🕘 Kerja sampingan dimulai (kesehatan & kebahagiaan terkuras).' : 'Kerja sampingan dihentikan.', ''); },
   inv(id, how) {
     const i = INVS.find(x => x.id === id); if (!i || S.skills.fin < i.fin) return;
-    if (how === 'wd') { const v = S.inv[id] || 0; if (v > 0) { S.cash += v; S.inv[id] = 0; } return; }
+    if (how === 'wd') {
+      const v = S.inv[id] || 0; if (v <= 0) return;
+      const L = i.liq, net = v * (1 - L.fee); S.inv[id] = 0;
+      if (L.d > 0) { (S.pend || (S.pend = [])).push({ m: S.m + L.d, amt: net, name: i.name }); toast('⏳ ' + i.name + ' dijual. ' + fmt(net) + ' baru cair ' + L.d + ' bulan lagi (biaya jual ' + pct(L.fee, 1) + ').', ''); }
+      else { S.cash += net; if (L.fee > 0) toast('Dicairkan ' + fmt(net) + ' (biaya jual ' + pct(L.fee, 1) + ').', ''); }
+      return;
+    }
     const amt = S.cash * (how === 'd25' ? 0.25 : how === 'd50' ? 0.5 : 1); if (amt < 100e3) return;
     S.cash -= amt; S.inv[id] = (S.inv[id] || 0) + amt;
   },
   biz(id) {
     const b = BIZS.find(x => x.id === id); if (!b || S.skills.fin < b.fin) return;
     const s = S.biz[id] || (S.biz[id] = { lvl: 0, mgr: false }); if (!pay(cost.bizBuy(b, s.lvl))) return;
-    s.lvl++; toast(b.icon + ' ' + b.name + (s.lvl === 1 ? ' dibuka!' : ' tambah cabang (Lv ' + s.lvl + ')'), 'good');
+    s.lvl++; s.until = S.m + b.ramp; toast(b.icon + ' ' + b.name + (s.lvl === 1 ? ' dibuka!' : ' tambah cabang (Lv ' + s.lvl + ')') + ' Masa rintis ' + b.ramp + ' bln: belum untung, malah rugi operasional.', 'good');
+  },
+  kur(id) {
+    const b = BIZS.find(x => x.id === id); if (!b || S.skills.fin < b.fin) return;
+    if (S.debts.filter(d => d.k === 'kur').length >= 2) { toast('Maksimal 2 kredit usaha berjalan.', ''); return; }
+    if (S.jobless > 0 && !Object.values(S.biz).some(x => x.lvl > 0)) { toast('Bank menolak: kamu belum punya penghasilan tetap.', 'bad'); return; }
+    const s = S.biz[id] || (S.biz[id] = { lvl: 0, mgr: false }), price = cost.bizBuy(b, s.lvl), dp = price * 0.2; if (!pay(dp)) return;
+    S.debts.push(mkDebt('kur', 'Kredit Usaha ' + b.name, price * 0.8, 0.0075, 36)); s.lvl++; s.until = S.m + b.ramp;
+    toast('🏦 Kredit usaha cair. ' + b.name + ' dibuka dengan DP ' + fmt(dp) + '. Masa rintis ' + b.ramp + ' bln, cicilan jalan terus.', 'gold');
+  },
+  eduLoan() {
+    const p = PI(S.m), amt = 30e6 * p;
+    if (S.flags.eduAt != null && S.m - S.flags.eduAt < 60) { toast('Kredit pendidikan hanya sekali tiap 5 tahun.', ''); return; }
+    if (S.jobless > 0) { toast('Bank butuh bukti penghasilan.', 'bad'); return; }
+    S.flags.eduAt = S.m; S.debts.push(mkDebt('edu', 'Kredit Sertifikasi/Kuliah', amt, 0.008, 24));
+    S.skills.work = Math.min(20, S.skills.work + 2); S.skills.comm = Math.min(20, S.skills.comm + 1); S.happy = clamp(S.happy - 3);
+    toast('🎓 Kredit pendidikan cair. Keahlian Kerja +2 dan Komunikasi +1. Cicilan 24 bulan.', 'gold');
   },
   mgr(id) {
     const b = BIZS.find(x => x.id === id), s = S.biz[id]; if (!b || !s || !s.lvl || s.mgr) return;
@@ -1115,6 +1444,8 @@ const A = {
     S.vehicle = kind; toast((kind === 'motor' ? '🛵 ' : '🚗 ') + (kind === 'motor' ? 'Motor' : 'Mobil') + ' dibeli' + (how === 'cash' ? ' tunai.' : ' dengan cicilan.'), 'gold');
   },
   gym() { S.gym = !S.gym; },
+  sleep(h) { h = +h; if (h >= 6 && h <= 8) S.sleep = h; },
+  ot(h) { h = +h; if (h >= 0 && h <= 3) S.ot = h; },
   ins() { S.ins = !S.ins; },
   cari() { const p = PI(S.m); if (S.partner || S.skills.comm < 1 || !pay(1.5e6 * p)) return; const g = S.gender === 'm' ? 'f' : 'm'; S.partner = { name: PARTNER_NAMES[g][Math.floor(R('pn') * 3)], works: true, g }; S.happy = clamp(S.happy + 6); toast('💞 Kamu bertemu ' + S.partner.name + '. Pacaran dimulai!', 'gold'); },
   nikah(t) { t = +t; if (!S.partner || S.married) return; const c = [10e6, 40e6, 150e6][t] * PI(S.m); if (!pay(c)) return; S.married = true; S.happy = clamp(S.happy + [8, 14, 20][t]); toast('💍 Kalian menikah! Pengeluaran bersama naik, PTKP bertambah.', 'gold'); },
@@ -1124,6 +1455,23 @@ const A = {
   support(v) { S.support = +v; },
   konseling() { if (S.addict <= 0 || !pay(2e6 * PI(S.m))) return; S.addict = Math.max(0, S.addict - 40); S.happy = clamp(S.happy + 3); toast('🧠 Konseling membantu. Kecanduan turun.', 'good'); },
   kumpul() { if (S.cd.fr > 0 || !pay(0.3e6 * PI(S.m))) return; S.cd.fr = 2; S.friends = clamp(S.friends + 8); S.happy = clamp(S.happy + 3); floatText('+8 🤝'); },
+  trip(k) {
+    const dom = k === 'd', L = dom ? TRIP_D : TRIP_I, cdk = dom ? 'td' : 'ti', p = PI(S.m);
+    if (!S.trips) S.trips = { d: [], i: [] };
+    if (S.cd[cdk] > 0) { toast('Kamu baru pulang liburan. Tunggu ' + S.cd[cdk] + ' bulan lagi.', ''); return; }
+    if (S.health < (dom ? 25 : 40)) { toast('🩺 Kesehatanmu belum cukup kuat untuk bepergian. Pulihkan dulu.', ''); return; }
+    const left = L.filter(x => S.trips[k].indexOf(x[0]) < 0).slice(0, 3);
+    if (!left.length) { toast('Semua destinasi sudah kamu kunjungi. Kamu sungguh petualang!', 'gold'); return; }
+    ask(dom ? '🇮🇩 Wisata Indonesia' : '🌏 Liburan ke Luar Negeri', 'Mau ke mana? Liburan menaikkan kebahagiaan dan menambah cerita hidup.', left.map(x => {
+      const c = rr(x[2] * p), far = x[2] >= 35e6 && S.health < 55;
+      return { t: x[1] + ' ' + x[0] + ' (' + fmt(c) + ')', cls: 'pri', risk: far ? ['mid', 'perjalanan jauh, kesehatanmu di bawah 55: capek, bisa sakit'] : ['lo', 'aman, kebahagiaan naik'], fn: () => {
+        if (!pay(c)) { toast('Uangmu tidak cukup.', ''); return; }
+        S.trips[k].push(x[0]); S.cd[cdk] = dom ? 6 : 12; S.happy = clamp(S.happy + (dom ? 16 : 24)); S.friends = clamp(S.friends + 1);
+        if (far && R('sakit', S.m) < 0.4) { S.health = clamp(S.health - 5); toast('🤒 ' + x[0] + ' indah, tapi kamu pulang sakit.', 'bad'); }
+        else { S.health = clamp(S.health + 1); toast('📸 Liburan ke ' + x[0] + ' selesai. Kenangan baru tersimpan!', 'good'); }
+      } };
+    }).concat([{ t: 'Batal', fn: () => { } }])); drain();
+  },
   fun() { if (S.cd.fun > 0 || !pay(funCost())) return; S.cd.fun = 3; S.happy = clamp(S.happy + 12); floatText('+12 😊'); },
   doc() { if (S.cd.doc > 0 || !pay(0.6e6 * PI(S.m))) return; S.cd.doc = 6; S.health = clamp(S.health + 12); floatText('+12 ❤️'); },
 };
@@ -1185,17 +1533,23 @@ const TABS = {
     h += '<div class="sec">Utang</div>';
     if (!S.debts.length) h += '<div class="card">Tidak ada utang. 👍</div>';
     S.debts.forEach(d => {
-      h += row({ icon: d.k === 'pinjol' ? '🦈' : d.k === 'kpr' ? '🏡' : d.k === 'kredit' ? (/motor/i.test(d.name) ? '🛵' : '🚗') : '💳', title: d.name,
+      h += row({ icon: d.k === 'pinjol' ? '🦈' : d.k === 'kpr' ? '🏡' : d.k === 'kur' ? '🏪' : d.k === 'edu' ? '🎓' : d.k === 'kredit' ? (/motor/i.test(d.name) ? '🛵' : '🚗') : '💳', title: d.name + ' · ' + (d.k === 'kur' || d.k === 'edu' ? '🟢 Produktif' : d.k === 'kpr' ? '🏠 Aset' : '🔴 Konsumtif'),
         sub: 'Sisa ' + fmt(d.bal) + ' · bunga ' + pct(d.rate, 1) + '/bln (' + pct(Math.pow(1 + d.rate, 12) - 1) + '/thn)<br>Cicilan bulan ini ' + fmt(f.pays[d.id] || 0),
         extra: '<div class="ibtns"><button class="buy blue" data-act="debt:' + d.id + ':p25" data-cost="100000"><span class="bl">Bayar 25% kas</span></button><button class="buy" data-act="debt:' + d.id + ':max" data-cost="100000"><span class="bl">Bayar maks</span></button></div>' });
     });
+    { const p2 = PI(S.m), amt = 30e6 * p2, pm = annuity(amt, 0.008, 24), cdn = S.flags.eduAt != null && S.m - S.flags.eduAt < 60;
+      h += '<div class="sec">Utang produktif</div><div class="card"><b>Utang bukan selalu buruk</b><div class="rs">Utang <b>konsumtif</b> (paylater, pinjol, cicilan gaya hidup) tidak menghasilkan apa-apa. Utang <b>produktif</b> dipakai untuk sesuatu yang imbal hasilnya lebih besar dari bunganya, tapi tetap berisiko: cicilan jalan terus walau hasilnya tidak datang. Kredit usaha ada di tab Bisnis.</div></div>';
+      h += row({ icon: '🎓', title: 'Kredit Sertifikasi / Kuliah', sub: 'Pokok ' + fmt(amt) + ', bunga 0,8%/bln, 24 bln (cicilan ±' + fmt(pm) + '/bln).<br>Keahlian Kerja +2 dan Komunikasi +1, jadi peluang naik jabatan dan gaji lebih besar. Sekali tiap 5 tahun.', btn: cdn ? '<span class="tag">Sudah dipakai</span>' : (S.debts.some(d => d.k === 'edu') ? '<span class="tag">Berjalan</span>' : btn('eduLoan', 'Ambil', 0, 'blue')) }); }
     return h;
   },
   invest() {
-    let h = '<div class="card"><b>Pasar bulan lalu</b><div class="rs">Hasil rutin (bunga/dividen/sewa) dihitung sebagai pendapatan pasif. Naik-turun harga tidak dihitung pasif. Inflasi ±4%/tahun menggerus uang yang menganggur.</div></div>';
+    const fN = (S.flow || compute()).needsFF, pend = S.pend || [];
+    let h = '<div class="card"><b>Likuiditas: ' + num(fN > 0 ? S.cash / fN : 0) + ' bulan kas tunai</b><div class="rs">Investasi bukan sekadar uang dalam bentuk lain. Ada yang cair lama dan kena biaya. Kalau kas habis saat darurat, investasimu dijual paksa dengan rugi. Dana darurat tunai 6 bulan (' + fmt(6 * fN) + ') mencegahnya.' + (pend.length ? '<br>⏳ Dana dalam proses cair: <b>' + fmt(pendSum()) + '</b>' : '') + '</div></div>';
+    h += '<div class="card"><b>Pasar bulan lalu</b><div class="rs">Hasil rutin (bunga/dividen/sewa) dihitung sebagai pendapatan pasif. Naik-turun harga tidak dihitung pasif. Inflasi ±4%/tahun menggerus uang yang menganggur.</div></div>';
     h += INVS.map(i => {
       const un = S.skills.fin >= i.fin, v = S.inv[i.id] || 0, g = S.last[i.id];
-      const sub = un ? i.desc + '<br>Hasil rutin ' + pct(i.y, 2) + '/bln · pajak ' + pct(i.tax) : '🔒 Butuh Literasi Finansial Lv ' + i.fin;
+      const L = i.liq, lq = (L.d === 0 ? '🟢 Cair seketika' : L.d <= 1 ? '🟡 Cair ±' + L.d + ' bln' : '🔴 Cair ±' + L.d + ' bln') + ' · biaya jual ' + pct(L.fee, 1) + ' · jual darurat rugi ' + pct(L.ef, 0);
+      const sub = un ? i.desc + '<br>Hasil rutin ' + pct(i.y, 2) + '/bln · pajak ' + pct(i.tax) + '<br><b>' + lq + '</b>' : '🔒 Butuh Literasi Finansial Lv ' + i.fin;
       const ex = un ? '<div class="rs">Nilai: <b>' + fmt(v) + '</b> ' + (g != null && v > 0 ? '<span class="' + (g >= 0 ? 'up' : 'dn') + '">' + (g >= 0 ? '▲ ' : '▼ ') + Math.abs(g * 100).toFixed(1).replace('.', ',') + '% bln lalu</span>' : '') + '</div>' +
         '<div class="ibtns"><button class="buy blue" data-act="inv:' + i.id + ':d25" data-cost="100000"><span class="bl">Setor 25%</span></button><button class="buy blue" data-act="inv:' + i.id + ':d50" data-cost="100000"><span class="bl">Setor 50%</span></button><button class="buy" data-act="inv:' + i.id + ':wd" data-need="' + i.id + '"><span class="bl">Tarik</span></button></div>' : '';
       return row({ icon: i.icon, title: i.name, sub, extra: ex, cls: un ? '' : 'locked' });
@@ -1204,12 +1558,13 @@ const TABS = {
   },
   biz() {
     const p = PI(S.m);
-    let h = '<div class="card"><b>Bisnis</b><div class="rs">Dijalankan sendiri = pendapatan <b>aktif</b> (menguras waktu). Setelah merekrut manajer = <b>pasif</b> (bagi hasil 75%). Pajak final usaha dipotong otomatis.</div></div>';
+    let h = '<div class="card"><b>Bisnis</b><div class="rs">Beda dengan investasi: hasilnya bergantung pada keputusanmu, bukan pasar. Setiap usaha baru butuh <b>masa rintis</b> yang rugi operasional dulu sebelum untung. Dijalankan sendiri = pendapatan <b>aktif</b>; setelah merekrut manajer = <b>pasif</b> (bagi hasil 75%). Kamu juga akan menghadapi keputusan usaha (iklan, pesaing, pemasok, karyawan).</div></div>';
     h += BIZS.map(b => {
       const un = S.skills.fin >= b.fin, s = S.biz[b.id] || { lvl: 0, mgr: false };
-      const sub = !un ? '🔒 Butuh Literasi Finansial Lv ' + b.fin : 'Laba ±' + fmt(b.profit * p) + '/bln per level (naik-turun)' + (s.lvl ? '<br>' + (s.mgr ? '👔 Dikelola manajer (pasif)' : '🕘 Dijalankan sendiri (aktif)') : '');
+      const rl = (s.until && s.until > S.m) ? s.until - S.m : 0, md = s.mod && s.mod.until > S.m ? s.mod : null;
+      const sub = !un ? '🔒 Butuh Literasi Finansial Lv ' + b.fin : 'Laba ±' + fmt(b.profit * p) + '/bln per level (naik-turun) · masa rintis ' + b.ramp + ' bln' + (s.lvl ? '<br>' + (s.mgr ? '👔 Dikelola manajer (pasif)' : '🕘 Dijalankan sendiri (aktif)') : '') + (rl ? '<br>⏳ <b>Masa rintis: ' + rl + ' bln lagi</b> · rugi operasional ±' + fmt(0.4 * b.profit * p) + '/bln' : '') + (md ? '<br>' + (md.mult >= 1 ? '📈 Laba ' + (md.mult >= 1 ? '+' : '') + Math.round((md.mult - 1) * 100) + '%' : '📉 Laba ' + Math.round((md.mult - 1) * 100) + '%') + ' sampai ' + dateTxt(md.until) : '') + (un ? '<br>Kredit usaha: bunga 0,75%/bln vs perkiraan imbal usaha ±' + pct(b.profit / b.cost, 1) + '/bln' : '');
       let btns = '';
-      if (un) { btns = btn('biz:' + b.id, s.lvl ? 'Cabang' : 'Buka', cost.bizBuy(b, s.lvl)); if (s.lvl && !s.mgr) btns += btn('mgr:' + b.id, 'Rekrut manajer', b.mgr * p, 'blue'); }
+      if (un) { btns = btn('biz:' + b.id, s.lvl ? 'Cabang' : 'Buka', cost.bizBuy(b, s.lvl)); btns += btn('kur:' + b.id, 'Kredit 80%', cost.bizBuy(b, s.lvl) * 0.2, 'blue'); if (s.lvl && !s.mgr) btns += btn('mgr:' + b.id, 'Rekrut manajer', b.mgr * p, 'blue'); }
       return row({ icon: b.icon, title: b.name, lvl: s.lvl || null, sub, cls: un ? '' : 'locked', btn: btns });
     }).join('');
     return h;
@@ -1220,9 +1575,11 @@ const TABS = {
     if (!S.partner) h += row({ icon: '💞', title: 'Cari Pasangan', sub: S.skills.comm >= 1 ? 'Kencan & acara: ' + fmt(1.5e6 * p) : '🔒 Butuh Komunikasi Lv 1', btn: S.skills.comm >= 1 ? btn('cari', 'Cari', 1.5e6 * p) : '' , cls: S.skills.comm >= 1 ? '' : 'locked' });
     else if (!S.married) h += row({ icon: '💍', title: S.partner.name + ' (pacar)', sub: 'Menikah menambah pengeluaran bersama & PTKP. Pilih skala pesta:', extra: '<div class="ibtns">' + ['Sederhana', 'Sedang', 'Mewah'].map((n, i) => btn('nikah:' + i, n, [10e6, 40e6, 150e6][i] * p, 'blue')).join('') + '</div>' });
     else h += row({ icon: '💑', title: S.partner.name + ' (pasangan)', sub: S.partner.works ? 'Bekerja: +' + fmt(partnerGross() * 0.92) + '/bln. ' : 'Tidak bekerja (mengurus keluarga). ', btn: tog('pwork', !S.partner.works, S.partner.works ? 'Berhenti kerja' : 'Kerja lagi') });
+    { const kidTot = STAGES.reduce((a, st) => a + (st.food + st.tu[S.edu]) * 1e6 * 12 * (st.to - st.from + 1), 0) * p, tun = S.married ? 0.05 + 0.02 * Math.min(3, S.kids.filter(c => kidAgeY(c) < 22).length) : 0;
+      h += '<div class="card"><b>Keluarga: biaya dan imbalannya</b><div class="rs">Pasangan menambah biaya hidup ±' + fmt(1.1e6 * p) + '/bln (hasil kerjanya bisa menutup). Kantor memberi tunjangan keluarga: ' + (tun ? '<b>+' + Math.round(tun * 100) + '% gaji</b> saat ini' : 'menikah +5%, tiap anak +2% (maks 3)') + '.<br>Anak adalah investasi 22 tahun: biaya membesarkan sampai mandiri ±' + fmt(kidTot) + ' (sekolah ' + EDU[S.edu] + '). Imbalannya: kebahagiaan harian, bonus skor, dan anak bermutu tinggi mengirim uang ke orang tua setelah umur 22. Waktu keluarga juga menambah kebahagiaan (lihat Jadwal 24 jam di tab Gaya).</div></div>'; }
     h += '<div class="sec">Anak</div>';
     if (S.married) {
-      h += row({ icon: '🤰', title: 'Program Hamil', sub: (S.pregDue != null ? 'Sedang hamil, lahir sekitar bulan ke-' + S.pregDue + '.' : S.kids.length >= 3 ? 'Maksimal 3 anak.' : 'Persalinan ±' + fmt(14e6 * p * (S.ins ? 0.6 : 1)) + '. Biaya anak naik seiring tumbuh; balita (0–5 thn) membuat kesehatanmu terkuras pelan.'), btn: (S.pregDue == null && S.kids.length < 3) ? btn('hamil', 'Mulai', 0, 'blue') : '' });
+      h += row({ icon: '🤰', title: 'Program Hamil', sub: (S.pregDue != null ? '🤰 Sedang hamil. Lahir <b>' + Math.max(0, S.pregDue - S.m) + ' bulan lagi</b> (' + dateTxt(S.pregDue) + ').' : S.kids.length >= 3 ? 'Maksimal 3 anak.' : 'Persalinan ±' + fmt(14e6 * p * (S.ins ? 0.6 : 1)) + '. Biaya anak naik seiring tumbuh; balita (0–5 thn) membuat kesehatanmu terkuras pelan.'), btn: (S.pregDue == null && S.kids.length < 3) ? btn('hamil', 'Mulai', 0, 'blue') : '' });
     } else h += '<div class="card">Menikah dulu untuk punya anak.</div>';
     S.kids.forEach(c => { const ay = kidAgeY(c), st = stageOf(ay); h += row({ icon: c.g === 'm' ? '👦' : '👧', title: c.name + ' (' + ay + ' thn)', sub: (st ? st.label + ': ±' + fmt((st.food + st.tu[S.edu]) * 1e6 * p) + '/bln' : 'Sudah mandiri 🎉' + (kidGift(c, p) > 0 ? ' · kirim ' + fmt(kidGift(c, p)) + '/bln ke kamu' : '')) + ' · 🎓 mutu ' + mutu(c).toFixed(2) }); });
     h += row({ icon: '🏫', title: 'Pilihan Sekolah: ' + EDU[S.edu], sub: 'Biaya: negeri paling murah, internasional ±5×. Manfaat: 🎓 mutu pendidikan anak (negeri 1,0 · swasta 1,5 · internasional 2,0) menambah skor leaderboard, dan anak bermutu tinggi mengirim uang ke orang tua setelah umur 22.', extra: '<div class="ibtns">' + EDU.map((n, i) => '<button class="buy ' + (S.edu === i ? '' : 'blue') + '" data-act="edu:' + i + '" data-cost="0"><span class="bl">' + n + '</span></button>').join('') + '</div>' });
@@ -1233,7 +1590,7 @@ const TABS = {
     return h;
   },
   life() {
-    const p = PI(S.m); let h = '<div class="sec">Gaya hidup</div>';
+    const p = PI(S.m); let h = timeCard() + '<div class="sec">Gaya hidup</div>';
     h += LIFE.map((l, i) => row({ icon: ['🥗', '🙂', '🍹', '💎', '👑'][i], title: l.n, sub: l.d + ' · ' + fmt(l.c * p) + '/bln · 😊 ' + (l.h ? (l.h > 0 ? '+' : '−') + Math.abs(l.h) : '±0') + '/bln · teman ' + (['−0,1', '±0', '+0,04', '+0,07', '+0,1'][i]) + '/bln' + (i >= 3 ? ' · stres −0,4 😊 kalau kas tipis (gengsi), godaan judol & bodong lebih sering' : i >= 1 ? ' · godaan judol & bodong sedikit lebih sering' : ''), btn: S.life === i ? '<span class="tag on">Aktif</span>' : btn('life:' + i, 'Pilih', 0, 'blue') })).join('');
     h += '<div class="sec">Tempat tinggal</div>';
     const hp = HOUSE_PRICE * p;
@@ -1246,6 +1603,9 @@ const TABS = {
       const price = VEH[k].price * p, has = S.vehicle === k, lock = S.vehicle === 'mobil' && k === 'motor';
       h += row({ icon: ic, title: nm, sub: 'Harga ' + fmt(price) + ' · transport ' + fmt(VEH[k].t * p) + '/bln · pajak ' + fmt(VEH[k].tax * p) + '/thn' + (k === 'motor' ? ' · 😊 +0,1/bln (bebas macet, praktis) · sampingan +30% (ojol/kurir) · ⚠️ risiko kecelakaan ±0,7%/bln (±8%/thn, bisa parah). Tanpa mobil, balita dan keluarga besar jadi repot' : ' · 😊 +0,2/bln · sampingan +30% · teman +0,03 · ❤️ −0,02/bln · lebih aman (±0,3%/bln, bodi melindungi) · nyaman untuk anak, keluarga, dan mudik'), btn: has ? '<span class="tag on">Dimiliki</span>' : lock ? '' : btn('veh:' + k + ':credit', 'Kredit (DP 20%)', price * 0.2) + btn('veh:' + k + ':cash', 'Tunai', price, 'blue') });
     });
+    h += '<div class="sec">Liburan & Wisata</div>';
+    h += row({ icon: '🇮🇩', title: 'Wisata Indonesia (' + tripN('d') + '/' + TRIP_D.length + ')', sub: 'Mulai ' + fmt(3.5e6 * p) + ' · 😊 +16 · jeda 6 bln', btn: S.cd.td > 0 ? '<span class="tag">' + S.cd.td + ' bln</span>' : btn('trip:d', 'Pergi', 0, 'blue') });
+    h += row({ icon: '🌏', title: 'Luar Negeri (' + tripN('i') + '/' + TRIP_I.length + ')', sub: 'Mulai ' + fmt(9e6 * p) + ' · 😊 +24 · jeda 12 bln · butuh badan sehat (kesehatan ≥ 40, tujuan jauh ≥ 55)', btn: S.cd.ti > 0 ? '<span class="tag">' + S.cd.ti + ' bln</span>' : btn('trip:i', 'Pergi', 0, 'blue') });
     h += '<div class="sec">Kesehatan</div>';
     h += row({ icon: '🏋️', title: 'Gym / Olahraga Rutin', sub: fmt(0.35e6 * p) + '/bln · kesehatan +0,2/bln', btn: tog('gym', S.gym, S.gym ? 'Berhenti' : 'Mulai') });
     h += row({ icon: '🛡️', title: 'Asuransi Kesehatan Swasta', sub: 'Premi naik seiring umur. Menanggung hingga ±95% biaya rawat inap & penyakit berat (BPJS saja ±65-75%).', btn: tog('ins', S.ins, S.ins ? 'Berhenti' : 'Ikut') });
@@ -1262,9 +1622,29 @@ function updateSheet() {
   $$('#list [data-cost]').forEach(b => b.classList.toggle('off', S.cash < (+b.dataset.cost)));
   $$('#list [data-need]').forEach(b => b.classList.toggle('off', !((S.inv[b.dataset.need] || 0) > 0)));
 }
+
+const TAB_DEF = { career: ['💼', 'Karier'], money: ['📊', 'Keuangan'], invest: ['📈', 'Investasi'], biz: ['🏪', 'Bisnis'], family: ['👨‍👩‍👧', 'Keluarga'], life: ['🏠', 'Gaya'], rank: ['🏆', 'Peringkat'] };
+const TAB_DEFAULT = ['career', 'money', 'invest', 'biz', 'family', 'life', 'rank'];
+let TAB_ORDER = TAB_DEFAULT.slice();
+try { localStorage.removeItem('merdeka_tabs'); } catch (e) {}
+function renderTabs() {
+  $('#tabs').innerHTML = TAB_ORDER.map((id, i) => '<button class="' + (id === tab ? 'on' : '') + '" data-tab="' + id + '"><i>' + TAB_DEF[id][0] + '</i>' + TAB_DEF[id][1] + '<span class="dot"></span></button>').join('');
+  if (S) tabDots();
+}
+function editTabs() {
+  const bs = TAB_ORDER.map((id, i) => ({ t: (i + 1) + '. ' + TAB_DEF[id][0] + ' ' + TAB_DEF[id][1] + (i < 2 ? ' (besar)' : ''), cls: i < 2 ? 'pri' : '', fn: () => { TAB_ORDER = [id].concat(TAB_ORDER.filter(x => x !== id)); try { localStorage.setItem('merdeka_tabs', JSON.stringify(TAB_ORDER)); } catch (e) {} renderTabs(); setTimeout(editTabs, 0); } }));
+  bs.push({ t: 'Kembalikan urutan awal', fn: () => { TAB_ORDER = TAB_DEFAULT.slice(); try { localStorage.removeItem('merdeka_tabs'); } catch (e) {} renderTabs(); setTimeout(editTabs, 0); } });
+  bs.push({ t: 'Selesai', cls: 'pri' });
+  modal('<h2>⇅ Atur Tab</h2><p>Ketuk sebuah tab untuk memindahkannya ke posisi 1. Dua tab teratas tampil sebagai tombol besar. Mau Karier dan Investasi di atas? Ketuk Investasi dulu, lalu Karier.</p>', bs);
+}
+function drawSpd() { $$('#spd button').forEach(b => { const v = +b.dataset.s; b.classList.toggle('on', v === 0 ? paused : (!paused && v === speed)); }); }
+function advance() {
+  if (!S || !started || S.ended || modalOn) return;
+  acc = 0; step(); updateScene(); renderSheet(true); drain(); updateHUD(true);
+}
 function openTab(t) {
   if (tab === t) return closeSheet();
-  tab = t; $('#sheet').classList.add('open'); $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  tab = t; $('#sheet').classList.add('open'); $$('#tabs button[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
   renderSheet(false); if (t === 'rank') loadBoard();
 }
 function closeSheet() { tab = null; $('#sheet').classList.remove('open'); $$('#tabs button').forEach(b => b.classList.remove('on')); }
@@ -1324,6 +1704,10 @@ function faceSVG(g, o) {
   h += '<path d="M-1.6 -122.8 Q0 -120.6 1.8 -122.8" stroke="#d29a78" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
   if (f) h += '<path d="M-5.2 -114.6 Q0 -111.4 5.2 -114.6 Q0 -113.2 -5.2 -114.6Z" fill="#cf3f60"/><path d="M-4.6 -114.4 Q0 -108.6 4.6 -114.4 Q0 -112 -4.6 -114.4Z" fill="#ec6784"/>';
   else h += '<path d="M-5.8 -114.4 Q0 -109 5.8 -114.4" stroke="#8f4638" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M-4 -113 Q0 -110.4 4 -113" stroke="#fff" stroke-width="1.2" fill="none" opacity=".8" stroke-linecap="round"/>';
+  if (o.sad) {
+    h += '<ellipse cx="0" cy="-113.5" rx="8" ry="4.2" fill="' + SK + '"/><path d="M-5 -111 Q0 -115.6 5 -111" stroke="' + (f ? '#a8334f' : '#8f4638') + '" stroke-width="2" fill="none" stroke-linecap="round"/>';
+    h += '<path d="M-14 -142 L-5 -145.4 M14 -142 L5 -145.4" stroke="' + hc + '" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="-9.5" cy="-125.6" rx="6" ry="2" fill="#6b5a8a" opacity=".28"/><ellipse cx="9.5" cy="-125.6" rx="6" ry="2" fill="#6b5a8a" opacity=".28"/><ellipse cx="0" cy="-130" rx="20" ry="26" fill="#b9c4dd" opacity=".18"/><path d="M-12.6 -127 q-1.4 4 0 6" stroke="#6fb4ff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".8"/>';
+  }
   if (ag) {
     const wl = '#c58f6d';
     if (ag.nl) h += '<path d="M-7 -121 Q-10 -117 -9.5 -112.6 M7 -121 Q10 -117 9.5 -112.6" stroke="' + wl + '" stroke-width="1" fill="none" opacity=".7" stroke-linecap="round"/>';
@@ -1439,6 +1823,11 @@ function personM(o) {
 /* tier gaya dari gaya hidup & jabatan */
 const TOP_F = ['#ff9ec0', '#9bd1ff', '#c7a4ff', '#b3243b', '#101010'];
 const TOP_M = ['#6bb3ff', '#e4572e', '#f4f1ea', '#26344f', '#15151b'];
+const pregStage = () => { if (S.pregDue == null) return 0; const l = S.pregDue - S.m; return l >= 9 ? 0 : l >= 6 ? 1 : l >= 3 ? 2 : 3; };
+function bellySVG(st, col) {
+  const B = [null, { rx: 8, ry: 6.5, y: -70 }, { rx: 12, ry: 10, y: -71 }, { rx: 16, ry: 14, y: -72 }][st]; if (!B) return '';
+  return '<ellipse cx="0" cy="' + B.y + '" rx="' + B.rx + '" ry="' + B.ry + '" fill="' + col + '"/><path d="M' + (-B.rx * 0.55) + ' ' + (B.y - B.ry * 0.35) + ' Q' + (-B.rx * 0.9) + ' ' + B.y + ' ' + (-B.rx * 0.45) + ' ' + (B.y + B.ry * 0.7) + '" stroke="rgba(255,255,255,.35)" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M' + (B.rx * 0.5) + ' ' + (B.y + B.ry * 0.75) + ' Q0 ' + (B.y + B.ry * 1.05) + ' ' + (-B.rx * 0.5) + ' ' + (B.y + B.ry * 0.75) + '" stroke="rgba(0,0,0,.14)" stroke-width="1.4" fill="none"/>';
+}
 function person(g, o) {
   o = Object.assign({ T: 0 }, o || {});
   o.T = Math.max(0, Math.min(4, o.T | 0));
@@ -1447,6 +1836,7 @@ function person(g, o) {
   const ag = o.ag = agingOf(g, o);
   if (ag && ag.senior && o.T < 3 && !o.top0) o.top = g === 'f' ? ['#c9a3b8', '#9fb4c9', '#b9a7cf'][o.T] : '#a9814b';
   let b = g === 'f' ? personF(o) : personM(o);
+  if (g === 'f' && o.preg) b += bellySVG(o.preg, o.top);
   if (ag && ag.senior && o.T < 3) {
     if (g === 'f') b += '<path d="M-15 -99 Q-17 -82 -14.4 -66 L-6.6 -66 L-3.6 -97Z M15 -99 Q17 -82 14.4 -66 L6.6 -66 L3.6 -97Z" fill="#6f5a86"/><circle cx="-5.2" cy="-84" r="1.3" fill="#e9d9f5"/><circle cx="-5.6" cy="-76" r="1.3" fill="#e9d9f5"/>';
     else b += '<g fill="#e8cf9a" opacity=".85"><circle cx="-9" cy="-92" r="1.6"/><circle cx="2" cy="-86" r="1.6"/><circle cx="10" cy="-94" r="1.6"/><circle cx="-4" cy="-76" r="1.6"/><circle cx="8" cy="-72" r="1.6"/><circle cx="-11" cy="-70" r="1.6"/></g><path d="M-19 -99 L-7 -103 L0 -93 L7 -103 L19 -99" stroke="#7a5a2c" stroke-width="1.4" fill="none"/>';
@@ -1868,11 +2258,11 @@ function petOf() { const sd = nameSeed(S.name + S.gender + 'pet'), idx = sd < 55
 function nameSeed(t) { let x = 7; for (let i = 0; i < t.length; i++) x = (x * 31 + t.charCodeAt(i)) % 1000; return x % 100; }
 function updateScene() {
   const W = wealthTier(), T = styleTier(W), V = Math.max(S.life, W);
-  const sig = [S.gender, T, W, V, S.married, S.partner && S.partner.g, S.kids.map(c => c.g + kidAgeY(c)).join(','), S.edu, S.housing, S.vehicle, Math.floor((age() - 22) / 2), S.health < 30 ? 1 : 0, S.name, S.m < 12 ? 0 : S.m < 30 ? 1 : S.m >= 180 ? 3 : 2].join('|');
+  const sig = [S.gender, T, W, V, S.married, S.partner && S.partner.g, S.kids.map(c => c.g + kidAgeY(c)).join(','), S.edu, S.housing, S.vehicle, Math.floor((age() - 22) / 2), S.health < 30 ? 1 : 0, S.happy < 25 ? 1 : 0, pregStage(), S.name, S.m < 12 ? 0 : S.m < 30 ? 1 : S.m >= 180 ? 3 : 2].join('|');
   if (sig === sceneSig) return; sceneSig = sig;
   if (!Walk.busy) Walk.put(98, false);
-  $('#gPlayer').innerHTML = '<ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(0,0,0,.18)"/><g class="bob">' + person(S.gender, { T, age: age(), sick: S.health < 30, seed: nameSeed(S.name + S.gender) }) + '</g>';
-  $('#gPartner').innerHTML = (S.partner && S.married) ? '<ellipse cx="0" cy="4" rx="32" ry="7" fill="rgba(0,0,0,.16)"/><g class="bob">' + person(S.partner.g, { T: Math.max(0, T - (T >= 3 ? 1 : 0)), age: Math.max(22, age() - 1), seed: nameSeed(S.partner.name + S.partner.g), top0: 1, top: S.partner.g === 'f' ? ['#ff7fa5', '#8fd0ff', '#c4a4ff', '#8e2b6a', '#f2c14e'][T] : ['#58b368', '#ffb347', '#e6e2d8', '#3c5a47', '#222'][T] }) + '</g>' : '';
+  $('#gPlayer').innerHTML = '<ellipse cx="0" cy="4" rx="34" ry="8" fill="rgba(0,0,0,.18)"/><g class="bob">' + person(S.gender, { T, age: age(), sick: S.health < 30, sad: S.happy < 25, seed: nameSeed(S.name + S.gender), preg: S.gender === 'f' ? pregStage() : 0 }) + '</g>';
+  $('#gPartner').innerHTML = (S.partner && S.married) ? '<ellipse cx="0" cy="4" rx="32" ry="7" fill="rgba(0,0,0,.16)"/><g class="bob">' + person(S.partner.g, { T: Math.max(0, T - (T >= 3 ? 1 : 0)), preg: S.partner.g === 'f' ? pregStage() : 0, age: Math.max(22, age() - 1), seed: nameSeed(S.partner.name + S.partner.g), top0: 1, top: S.partner.g === 'f' ? ['#ff7fa5', '#8fd0ff', '#c4a4ff', '#8e2b6a', '#f2c14e'][T] : ['#58b368', '#ffb347', '#e6e2d8', '#3c5a47', '#222'][T] }) + '</g>' : '';
   const pt = petOf(), psc = S.m < 12 ? .62 : S.m < 30 ? .82 : 1;
   $('#gPet').innerHTML = petSVG(pt.idx, { W, sc: psc * .95, old: S.m >= 180 });
   $('#gKids').innerHTML = S.kids.map((c, i) => {
@@ -1881,7 +2271,7 @@ function updateScene() {
     return '<g transform="translate(' + (244 + i * 32) + ',508) scale(' + sc.toFixed(2) + ')"><ellipse cx="0" cy="4" rx="30" ry="7" fill="rgba(0,0,0,.14)"/><g class="bob">' + body + '</g></g>';
   }).join('');
   $('#miniAv').setAttribute('viewBox', '-36 -178 72 76');
-  $('#miniAv').innerHTML = '<rect x="-36" y="-178" width="72" height="76" fill="#cfe8ff"/>' + faceSVG(S.gender, { T, age: age(), sick: S.health < 30, seed: nameSeed(S.name + S.gender) }) + accessorySVG(S.gender, T, false, agingOf(S.gender, { age: age(), sick: S.health < 30, seed: nameSeed(S.name + S.gender) }));
+  $('#miniAv').innerHTML = '<rect x="-36" y="-178" width="72" height="76" fill="#cfe8ff"/>' + faceSVG(S.gender, { T, age: age(), sick: S.health < 30, sad: S.happy < 25, seed: nameSeed(S.name + S.gender) }) + accessorySVG(S.gender, T, false, agingOf(S.gender, { age: age(), sick: S.health < 30, seed: nameSeed(S.name + S.gender) }));
   $('#gHouse').innerHTML = houseSVG(S.housing, W);
   $('#gGarage').innerHTML = garageSVG(S.vehicle, V, W);
   $('#gScenery').innerHTML = sceneryExtra(W);
@@ -1892,10 +2282,11 @@ let hudN = 0;
 function updateHUD(force) {
   if (!S) return; const f = S.flow || (S.flow = compute());
   const ne = $('#net'); ne.textContent = fmt(f.net, true) + '/bln'; ne.className = 'mn' + (f.net < 0 ? ' neg' : '');
+  { const tr = $('#happyFill').parentElement; if (tr) { tr.classList.toggle('low', S.happy < 25); const ic = tr.previousElementSibling; if (ic) ic.textContent = S.happy < 25 ? '😢' : S.happy < 35 ? '😟' : '😊'; } }
   $('#happyFill').style.width = S.happy + '%'; $('#happyVal').textContent = Math.round(S.happy);
   $('#healthFill').style.width = S.health + '%'; $('#healthVal').textContent = Math.round(S.health);
-  $('#ageBadge').textContent = age(); $('#yr').textContent = 2027 + Math.floor(S.m / 12); $('#mo').textContent = MONTHS[S.m % 12];
-  $('#yearsLeft').textContent = 'Umur ' + age() + ' · ' + Math.max(0, END_AGE - age()) + ' thn lagi';
+  $('#tbDate').textContent = dateTxt(S.m) + ' · bln ke-' + (S.m + 1); const ch = []; if (S.pregDue != null) ch.push('🤰 ' + Math.max(0, S.pregDue - S.m) + ' bln'); { let rl = 0; BIZS.forEach(b => { const x = S.biz[b.id]; if (x && x.lvl && x.until > S.m) rl = Math.max(rl, x.until - S.m); }); if (rl) ch.push('🏪 ' + rl + ' bln'); } $('#chips').textContent = ch.join(' '); $('#ageBadge').textContent = age(); $('#yr').textContent = 2027 + Math.floor(S.m / 12); $('#mo').textContent = MONTHS[S.m % 12];
+  $('#yearsLeft').textContent = 'Umur ' + age() + ' · ' + Math.max(0, END_AGE - age()) + ' th lagi';
   const ff = Math.min(1, f.ff); $('#ffFill').style.width = (ff * 100) + '%'; $('#ffPct').textContent = pct(f.ff);
   $('#ffNums').textContent = 'Pasif ' + fmt(f.passive) + ' / Butuh ' + fmt(f.needsFF);
   $('#ffStreak').textContent = S.ffStreak > 0 ? '🔥 bertahan ' + S.ffStreak + '/6 bln' : '';
@@ -1992,7 +2383,8 @@ async function submitScore() {
   if (tab === 'rank') renderSheet(true);
 }
 const END_ICON = { ff: '🏁', retire: '🧓', dead: '🕊️', bankrupt: '📉' };
-function rankHTML() {
+function rankHTML() { return rankBody() + goalHTML() + milesHTML(); }
+function rankBody() {
   let h = '<div class="card"><b>' + (MODE === 'harian' ? '📅 Tantangan Harian ' + DAY : '🏁 ' + seasonTxt()) + '</b><div class="rs">Semua pemain' + (MODE === 'harian' ? ' hari ini' : '') + ' menghadapi kejadian acak yang sama. Peringkat: yang <b>paling cepat merdeka finansial</b> menang; yang belum merdeka diurutkan dari persentase pasif tertinggi.</div></div>';
   if (S.ended) h += '<div class="card"><b>Hasilmu: ' + S.ended.score.toLocaleString('id-ID') + '</b> ' + END_ICON[S.ended.kind] + '<div class="rs">Pengiriman skor: ' + (S.flags.submitted || (boardState === 'ready' ? 'sedang dikirim…' : 'tidak tersedia di tampilan ini')) + '</div></div>';
   if (boardState !== 'ready') return h + '<div class="card">' + (inArtifact() ? 'Peringkat bersama belum aktif di tampilan ini (butuh login & akses dari pemilik game).' : 'Peringkat bersama belum tersambung. Cek koneksi internetmu lalu buka ulang game.') + ' Skor tetap tersimpan lokal.</div>';
@@ -2014,7 +2406,7 @@ function showStart() {
 }
 function resumeGame(mode) {
   const d = load(mode); if (!d || d.ended) return;
-  S = d; setMode(S.mode, S.day); started = true; shownCash = S.cash; sceneSig = ''; MQ.length = 0;
+  S = d; setMode(S.mode, S.day); started = true; shownCash = S.cash; sceneSig = ''; MQ.length = 0; birthQ = false;
   $('#start').classList.remove('on'); S.flow = compute(); updateScene(); updateHUD(true);
 }
 function tryStart(mode) {
@@ -2027,7 +2419,7 @@ function tryStart(mode) {
 function startGame(mode) {
   setMode(mode === 'harian' ? 'harian' : 'musim'); track(mode === 'harian' ? 'mulaiHarian' : 'mulai');
   const nm = ($('#nm').value || '').trim() || (pick.gender === 'f' ? 'Rani' : 'Rian');
-  newState({ name: nm, gender: pick.gender, bg: pick.bg }); sceneSig = '';
+  newState({ name: nm, gender: pick.gender, bg: pick.bg }); sceneSig = ''; birthQ = false;
   $('#start').classList.remove('on'); started = true; MQ.length = 0; board = null;
   S.flow = compute(); updateScene(); updateHUD(true); save();
   toast('👋 Halo ' + nm + '! Pendapatan pasif harus menutup semua kebutuhanmu. Mulai dari tab 💼 Karier.', 'gold');
@@ -2037,13 +2429,14 @@ function settings() {
     [{ t: 'Gaya musik: ' + (Music.style === 'ceria' ? 'Ceria (adaptif)' : 'Santai (lo-fi)'), cls: 'pri', fn: () => { Music.setStyle(Music.style === 'ceria' ? 'santai' : 'ceria'); setTimeout(settings, 0); } }, { t: 'Musik: ' + (Music.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { $('#music').textContent = Music.toggle() ? '🎵' : '🔇'; setTimeout(settings, 0); } }, { t: 'Efek suara: ' + (SFX.on ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { SFX.on = !SFX.on; try { localStorage.setItem('merdeka_sfx', SFX.on ? '1' : '0'); } catch (e) { } if (SFX.on) SFX.play('good'); setTimeout(settings, 0); } }, { t: 'Jeda otomatis saat panel terbuka: ' + (autoPause ? 'AKTIF' : 'mati'), cls: 'pri', fn: () => { autoPause = !autoPause; try { localStorage.setItem('merdeka_ap', autoPause ? '1' : '0'); } catch (e) {} setTimeout(settings, 0); } }, { t: '🏠 Menu utama (game tersimpan)', fn: () => { save(); showStart(); } }, { t: 'Tutup' }, { t: 'Mulai ulang', cls: 'dng', fn: () => modal('<h2>Mulai ulang?</h2><p>Progres hidup ini akan dihapus. Musim dan kejadian acak tetap sama.</p>', [{ t: 'Batal' }, { t: 'Ya, ulang', cls: 'dng', fn: showStart }]) }]);
 }
 function bind() {
-  $('#tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) openTab(b.dataset.tab); });
+  $('#tabs').addEventListener('click', e => { if (e.target.closest('button[data-edit]')) return editTabs(); const b = e.target.closest('button[data-tab]'); if (b) openTab(b.dataset.tab); });
   $('#sheetClose').addEventListener('click', closeSheet);
   $('#list').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b || b.classList.contains('off')) return; dispatch(b.dataset.act); });
   $('#aFun').addEventListener('click', () => dispatch('fun')); $('#aDoc').addEventListener('click', () => dispatch('doc'));
   $('#gear').addEventListener('click', () => { if (S) settings(); });
-  $('#pause').addEventListener('click', () => { paused = !paused; $('#pause').textContent = paused ? '▶' : '⏸'; });
-  $('#ff').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : speed === 4 ? 0.5 : 1; $('#ff').textContent = '⏩ ' + spdLabel(speed); });
+  $('#spd').addEventListener('click', e => { const b = e.target.closest('button[data-s]'); if (!b) return; const v = +b.dataset.s; if (v === 0) paused = true; else { paused = false; speed = v; } drawSpd(); });
+  $('#skip').addEventListener('click', advance);
+  renderTabs(); drawSpd();
   $('#music').textContent = Music.on ? '🎵' : '🔇';
   $('#music').addEventListener('click', () => { $('#music').textContent = Music.toggle() ? '🎵' : '🔇'; });
   document.addEventListener('pointerdown', () => Music.start(), { once: true, passive: true });
@@ -2059,7 +2452,11 @@ let last = performance.now(), saveT = 0, uiT = 0;
 function loop() {
   const now = performance.now(), dt = Math.min(1000, now - last); last = now;
   const hold = autoPause && !!tab;
-  if (started && S && !paused) { const pb = $('#pause'), want = hold ? '💭' : '⏸'; if (pb.textContent !== want) pb.textContent = want; }
+  if (started && S) {
+    const st = S.ended ? 'Selesai' : paused ? 'Jeda' : modalOn ? 'Pilih dulu…' : hold ? 'Tab terbuka, waktu berhenti' : (speed > 1 ? 'Cepat' : 'Berjalan'), te = $('#tbState');
+    if (te.textContent !== st) te.textContent = st;
+    $('#tbFill').style.width = Math.min(100, acc / MONTH_MS * 100) + '%';
+  }
   if (started && S && !paused && !S.ended && !modalOn && !hold) {
     acc += dt * speed; let n = 0;
     while (acc >= MONTH_MS && n < 8) { acc -= MONTH_MS; step(); n++; if (modalOn || S.ended) break; }
